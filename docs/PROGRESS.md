@@ -72,8 +72,9 @@ after the mapping is recorded so the remote branch list stays readable.
   executed 21 unit tests and 4 UI tests with zero failures; the first Intel attempt
   [42257558856](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42257558856)
   had exposed the two test defects fixed in `4900420`.
-- This final PROGRESS update is documentation-only and is marked `[skip ci]`; the verified
-  trunk head is `5e37a1a` (run 42265181937). `ci-local.sh --static` passed on the docs head.
+- The PROGRESS updates after the verified trunk head are documentation-only and are marked
+  `[skip ci]`; the verified trunk head is `5e37a1a` (run 42265181937). `ci-local.sh --static`
+  passed on the docs head.
 - The Phase 4 test-only hardening `43a1754` was compiled and executed by the Intel gate
   [42257558856](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42257558856):
   all 4 UI tests passed, so it is verified. The last green Phase 4 run predates it because the
@@ -88,4 +89,5 @@ after the mapping is recorded so the remote branch list stays readable.
   the Phase 5 gate 42254738224; both were cancelled after 15 minutes with `runner_id: 0` and
   zero steps. The documented `macos-26-intel` fallback then assigned a runner immediately. The
   Phase 5 gate and the `main` gate therefore run on Intel; this is a capacity workaround, not a
-  scope reduction. The static job passed on every head.
+  scope reduction. The static job passed on every gated head; documentation-only heads were
+  checked locally with `ci-local.sh --static`.
