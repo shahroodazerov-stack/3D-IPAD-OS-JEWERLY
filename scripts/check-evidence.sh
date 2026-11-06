@@ -62,6 +62,40 @@ for path in files:
     if not str(data.get("check", "")).strip():
         errors.append(f"{path.relative_to(root)}: check must name the executed check")
 
+link_path = root / "docs/evidence/link-status.json"
+if not link_path.exists():
+    errors.append("docs/evidence/link-status.json is missing (run scripts/check-links.py)")
+else:
+    try:
+        link = json.loads(link_path.read_text(encoding="utf-8"))
+    except Exception as exc:
+        errors.append(f"docs/evidence/link-status.json is not valid JSON: {exc}")
+        link = None
+    if isinstance(link, dict):
+        for key in ("generated_at", "source_glob", "total", "counts", "entries"):
+            if key not in link:
+                errors.append(f"link-status.json: missing key {key!r}")
+        entries = link.get("entries")
+        if not isinstance(entries, list):
+            errors.append("link-status.json: entries must be a list")
+        else:
+            if link.get("total") != len(entries):
+                errors.append(f"link-status.json: total {link.get('total')!r} != {len(entries)} entries")
+            counts = link.get("counts") if isinstance(link.get("counts"), dict) else {}
+            if counts and sum(counts.values()) != len(entries):
+                errors.append("link-status.json: counts do not sum to the entry count")
+            for e in entries:
+                if not isinstance(e, dict):
+                    errors.append("link-status.json: entry is not an object")
+                    continue
+                for key in ("url", "sources", "http_code", "status", "fetched_at", "note"):
+                    if key not in e:
+                        errors.append(f"link-status.json: entry {e.get('url')!r} missing {key!r}")
+                if not re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", str(e.get("fetched_at", ""))):
+                    errors.append(f"link-status.json: {e.get('url')!r} fetched_at must be an ISO-8601 UTC timestamp")
+                if e.get("status") != "ok" and not str(e.get("note", "")).strip():
+                    errors.append(f"link-status.json: {e.get('url')!r} is {e.get('status')!r} without an explanatory note")
+
 if errors:
     print(f"evidence check: FAIL — {len(errors)} problem(s)")
     for e in errors:

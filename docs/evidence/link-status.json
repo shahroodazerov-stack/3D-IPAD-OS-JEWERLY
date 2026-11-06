@@ -1,0 +1,1395 @@
+{
+  "generated_at": "2026-11-06T11:24:31Z",
+  "source_glob": "docs/research/*.md",
+  "total": 106,
+  "counts": {
+    "ok": 104,
+    "ok_suspect": 1,
+    "http_4xx": 1
+  },
+  "entries": [
+    {
+      "url": "http://docs.mcneel.com/rhino/8/help/en-us/user_interface/shortcuts.htm",
+      "sources": [
+        "b-matrixgold-ux.md:121"
+      ],
+      "http_code": 206,
+      "final_url": "http://docs.mcneel.com/rhino/8/help/en-us/user_interface/shortcuts.htm",
+      "content_type": "text/html",
+      "body_bytes": 38085,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://aleos.dev/posts/2026-02-17-xcode-ci-build-caching/",
+      "sources": [
+        "f-engineering-delivery.md:169"
+      ],
+      "http_code": 206,
+      "final_url": "https://aleos.dev/posts/2026-02-17-xcode-ci-build-caching/",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 33010,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://assets.stullercloud.com/web/apps/images/kbpdfs/CADCAMProductionStandards.pdf",
+      "sources": [
+        "c-jeweler-domain.md:184"
+      ],
+      "http_code": 206,
+      "final_url": "https://assets.stullercloud.com/web/apps/images/kbpdfs/CADCAMProductionStandards.pdf",
+      "content_type": "application/pdf",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://bescojewelers.com/wp-content/uploads/Jewelry-Basics.pdf",
+      "sources": [
+        "c-jeweler-domain.md:183"
+      ],
+      "http_code": 206,
+      "final_url": "https://bescojewelers.com/wp-content/uploads/Jewelry-Basics.pdf",
+      "content_type": "application/pdf",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://blog.esslinger.com/stone-weight-estimation-formula",
+      "sources": [
+        "c-jeweler-domain.md:191"
+      ],
+      "http_code": 200,
+      "final_url": "https://blog.esslinger.com/stone-weight-estimation-formula/",
+      "content_type": "text/html; charset=UTF-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": "redirected to https://blog.esslinger.com/stone-weight-estimation-formula/"
+    },
+    {
+      "url": "https://blog.stuller.com/introducing-matrixgold-3-10-the-efficiency-update",
+      "sources": [
+        "d-cad-kernel.md:156"
+      ],
+      "http_code": 206,
+      "final_url": "https://blog.stuller.com/introducing-matrixgold-3-10-the-efficiency-update/",
+      "content_type": "text/html; charset=UTF-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": "redirected to https://blog.stuller.com/introducing-matrixgold-3-10-the-efficiency-update/"
+    },
+    {
+      "url": "https://blog.stuller.com/introducing-matrixgold-3-9-the-performance-update",
+      "sources": [
+        "d-cad-kernel.md:155"
+      ],
+      "http_code": 206,
+      "final_url": "https://blog.stuller.com/introducing-matrixgold-3-9-the-performance-update/",
+      "content_type": "text/html; charset=UTF-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": "redirected to https://blog.stuller.com/introducing-matrixgold-3-9-the-performance-update/"
+    },
+    {
+      "url": "https://blog.stuller.com/press-release/gemvision-releases-matrixgold-4-0",
+      "sources": [
+        "d-cad-kernel.md:157"
+      ],
+      "http_code": 206,
+      "final_url": "https://blog.stuller.com/press-release/gemvision-releases-matrixgold-4-0/",
+      "content_type": "text/html; charset=UTF-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": "redirected to https://blog.stuller.com/press-release/gemvision-releases-matrixgold-4-0/"
+    },
+    {
+      "url": "https://bluecast.info/blog/3d-jewelry-casting:-master-dimensional-accuracy-and-castable-resin-shrinkage",
+      "sources": [
+        "c-jeweler-domain.md:197"
+      ],
+      "http_code": 200,
+      "final_url": "https://www.bluecast.info/blog/3d-jewelry-casting:-master-dimensional-accuracy-and-castable-resin-shrinkage",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": "redirected to https://www.bluecast.info/blog/3d-jewelry-casting:-master-dimensional-accuracy-and-castable-resin-shrinkage"
+    },
+    {
+      "url": "https://developer.apple.com/documentation/applepencil/handling-squeezes-from-apple-pencil",
+      "sources": [
+        "e-ipados-stack-legal.md:128"
+      ],
+      "http_code": 206,
+      "final_url": "https://developer.apple.com/documentation/applepencil/handling-squeezes-from-apple-pencil",
+      "content_type": "text/html",
+      "body_bytes": 18820,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://developer.apple.com/documentation/foundation/processinfo/thermalstate-swift.property",
+      "sources": [
+        "e-ipados-stack-legal.md:135"
+      ],
+      "http_code": 206,
+      "final_url": "https://developer.apple.com/documentation/foundation/processinfo/thermalstate-swift.property",
+      "content_type": "text/html",
+      "body_bytes": 18715,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://developer.apple.com/documentation/metal/developing-metal-apps-that-run-in-simulator",
+      "sources": [
+        "e-ipados-stack-legal.md:138"
+      ],
+      "http_code": 206,
+      "final_url": "https://developer.apple.com/documentation/metal/developing-metal-apps-that-run-in-simulator",
+      "content_type": "text/html",
+      "body_bytes": 18818,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://developer.apple.com/documentation/metal/managing-your-metal-app-window-in-ipados",
+      "sources": [
+        "e-ipados-stack-legal.md:132"
+      ],
+      "http_code": 206,
+      "final_url": "https://developer.apple.com/documentation/metal/managing-your-metal-app-window-in-ipados",
+      "content_type": "text/html",
+      "body_bytes": 18830,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://developer.apple.com/documentation/os/os_proc_available_memory",
+      "sources": [
+        "e-ipados-stack-legal.md:134"
+      ],
+      "http_code": 206,
+      "final_url": "https://developer.apple.com/documentation/os/os_proc_available_memory",
+      "content_type": "text/html",
+      "body_bytes": 18492,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://developer.apple.com/documentation/pencilkit",
+      "sources": [
+        "e-ipados-stack-legal.md:130"
+      ],
+      "http_code": 206,
+      "final_url": "https://developer.apple.com/documentation/pencilkit",
+      "content_type": "text/html",
+      "body_bytes": 18282,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://developer.apple.com/documentation/realitykit/bringing-your-scenekit-projects-to-realitykit",
+      "sources": [
+        "e-ipados-stack-legal.md:123"
+      ],
+      "http_code": 206,
+      "final_url": "https://developer.apple.com/documentation/realitykit/bringing-your-scenekit-projects-to-realitykit",
+      "content_type": "text/html",
+      "body_bytes": 19000,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://developer.apple.com/documentation/realitykit/lowlevelmesh",
+      "sources": [
+        "e-ipados-stack-legal.md:124"
+      ],
+      "http_code": 206,
+      "final_url": "https://developer.apple.com/documentation/realitykit/lowlevelmesh",
+      "content_type": "text/html",
+      "body_bytes": 18502,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://developer.apple.com/documentation/realitykit/meshdescriptor",
+      "sources": [
+        "e-ipados-stack-legal.md:125"
+      ],
+      "http_code": 206,
+      "final_url": "https://developer.apple.com/documentation/realitykit/meshdescriptor",
+      "content_type": "text/html",
+      "body_bytes": 18374,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://developer.apple.com/documentation/scenekit",
+      "sources": [
+        "e-ipados-stack-legal.md:122"
+      ],
+      "http_code": 206,
+      "final_url": "https://developer.apple.com/documentation/scenekit",
+      "content_type": "text/html",
+      "body_bytes": 18553,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://developer.apple.com/documentation/uikit/adopting-hover-support-for-apple-pencil",
+      "sources": [
+        "e-ipados-stack-legal.md:127"
+      ],
+      "http_code": 206,
+      "final_url": "https://developer.apple.com/documentation/uikit/adopting-hover-support-for-apple-pencil",
+      "content_type": "text/html",
+      "body_bytes": 18864,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://developer.apple.com/documentation/uikit/handling-input-from-apple-pencil",
+      "sources": [
+        "e-ipados-stack-legal.md:126"
+      ],
+      "http_code": 206,
+      "final_url": "https://developer.apple.com/documentation/uikit/handling-input-from-apple-pencil",
+      "content_type": "text/html",
+      "body_bytes": 18670,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://developer.apple.com/documentation/uikit/multitasking-on-ipad-mac-and-apple-vision-pro",
+      "sources": [
+        "e-ipados-stack-legal.md:131"
+      ],
+      "http_code": 206,
+      "final_url": "https://developer.apple.com/documentation/uikit/multitasking-on-ipad-mac-and-apple-vision-pro",
+      "content_type": "text/html",
+      "body_bytes": 18996,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://developer.apple.com/documentation/uikit/uiupdatelink",
+      "sources": [
+        "e-ipados-stack-legal.md:129"
+      ],
+      "http_code": 206,
+      "final_url": "https://developer.apple.com/documentation/uikit/uiupdatelink",
+      "content_type": "text/html",
+      "body_bytes": 18384,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://developer.apple.com/documentation/usd/creating-usd-files-for-apple-devices",
+      "sources": [
+        "d-cad-kernel.md:152"
+      ],
+      "http_code": 206,
+      "final_url": "https://developer.apple.com/documentation/usd/creating-usd-files-for-apple-devices",
+      "content_type": "text/html",
+      "body_bytes": 18656,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://developer.apple.com/documentation/xcode/identifying-high-memory-use-with-jetsam-event-reports",
+      "sources": [
+        "e-ipados-stack-legal.md:133"
+      ],
+      "http_code": 206,
+      "final_url": "https://developer.apple.com/documentation/xcode/identifying-high-memory-use-with-jetsam-event-reports",
+      "content_type": "text/html",
+      "body_bytes": 19096,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://developer.apple.com/documentation/xcode/organizing-your-code-with-local-packages",
+      "sources": [
+        "f-engineering-delivery.md:159"
+      ],
+      "http_code": 206,
+      "final_url": "https://developer.apple.com/documentation/xcode/organizing-your-code-with-local-packages",
+      "content_type": "text/html",
+      "body_bytes": 18983,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://developer.apple.com/documentation/xcode/testing",
+      "sources": [
+        "f-engineering-delivery.md:160"
+      ],
+      "http_code": 206,
+      "final_url": "https://developer.apple.com/documentation/xcode/testing",
+      "content_type": "text/html",
+      "body_bytes": 18329,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://developer.apple.com/documentation/xcode/xcode-command-line-tool-reference",
+      "sources": [
+        "f-engineering-delivery.md:163"
+      ],
+      "http_code": 206,
+      "final_url": "https://developer.apple.com/documentation/xcode/xcode-command-line-tool-reference",
+      "content_type": "text/html",
+      "body_bytes": 18825,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://developer.apple.com/videos/play/wwdc2021/10296/",
+      "sources": [
+        "f-engineering-delivery.md:164"
+      ],
+      "http_code": 200,
+      "final_url": "https://developer.apple.com/videos/play/wwdc2021/10296/",
+      "content_type": "text/html; charset=UTF-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://developer.rhino3d.com/api/rhinocommon/rhino.fileio.file3dmsettings",
+      "sources": [
+        "d-cad-kernel.md:149"
+      ],
+      "http_code": 200,
+      "final_url": "https://developer.rhino3d.com/api/rhinocommon/type/rhino.fileio.file3dmsettings/",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": "redirected to https://developer.rhino3d.com/api/rhinocommon/type/rhino.fileio.file3dmsettings/"
+    },
+    {
+      "url": "https://developer.rhino3d.com/api/rhinocommon/rhino.geometry.brep/createbooleandifference",
+      "sources": [
+        "d-cad-kernel.md:146"
+      ],
+      "http_code": 200,
+      "final_url": "https://developer.rhino3d.com/api/rhinocommon/type/rhino.geometry.brep/?member=createbooleandifference-rhino.geometry.brep-rhino.geometry.brep-system.double#createbooleandifference-rhino.geometry.brep-rhino.geometry.brep-system.double",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": "redirected to https://developer.rhino3d.com/api/rhinocommon/type/rhino.geometry.brep/?member=createbooleandifference-rhino.geometry.brep-rhino.geometry.brep-system.double#createbooleandifference-rhino.geometry.brep-rhino.geometry.brep-system.double"
+    },
+    {
+      "url": "https://developer.rhino3d.com/api/rhinocommon/rhino.geometry.meshingparameters",
+      "sources": [
+        "d-cad-kernel.md:147"
+      ],
+      "http_code": 200,
+      "final_url": "https://developer.rhino3d.com/api/rhinocommon/type/rhino.geometry.meshingparameters/",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": "redirected to https://developer.rhino3d.com/api/rhinocommon/type/rhino.geometry.meshingparameters/"
+    },
+    {
+      "url": "https://developer.rhino3d.com/guides/opennurbs/reading-subdivision-surfaces",
+      "sources": [
+        "d-cad-kernel.md:141"
+      ],
+      "http_code": 206,
+      "final_url": "https://developer.rhino3d.com/guides/opennurbs/reading-subdivision-surfaces/",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 31188,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": "redirected to https://developer.rhino3d.com/guides/opennurbs/reading-subdivision-surfaces/"
+    },
+    {
+      "url": "https://developer.rhino3d.com/guides/opennurbs/what-is-opennurbs",
+      "sources": [
+        "d-cad-kernel.md:151"
+      ],
+      "http_code": 206,
+      "final_url": "https://developer.rhino3d.com/guides/opennurbs/what-is-opennurbs/",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 27634,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": "redirected to https://developer.rhino3d.com/guides/opennurbs/what-is-opennurbs/"
+    },
+    {
+      "url": "https://discourse.mcneel.com/t/matrixgold-rendering/223157",
+      "sources": [
+        "b-matrixgold-ux.md:125"
+      ],
+      "http_code": 200,
+      "final_url": "https://discourse.mcneel.com/t/matrixgold-rendering/223157",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 30989,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://discourse.mcneel.com/t/rhino-8-feature-layers-panel/142737?page=2",
+      "sources": [
+        "b-matrixgold-ux.md:126"
+      ],
+      "http_code": 200,
+      "final_url": "https://discourse.mcneel.com/t/rhino-8-feature-layers-panel/142737?page=2",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://docs.bitrise.io/en/bitrise-ci/testing/testing-ios-apps/building-an-ios-app-for-a-simulator",
+      "sources": [
+        "f-engineering-delivery.md:162"
+      ],
+      "http_code": 200,
+      "final_url": "https://docs.bitrise.io/en/bitrise-ci/testing/testing-ios-apps/building-an-ios-app-for-a-simulator",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 63227,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://docs.codemagic.io/yaml-code-signing/ios-simulator-builds",
+      "sources": [
+        "f-engineering-delivery.md:161"
+      ],
+      "http_code": 206,
+      "final_url": "https://docs.codemagic.io/yaml-code-signing/ios-simulator-builds/",
+      "content_type": "text/html",
+      "body_bytes": 59138,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": "redirected to https://docs.codemagic.io/yaml-code-signing/ios-simulator-builds/"
+    },
+    {
+      "url": "https://docs.github.com/en/actions/reference/runners/github-hosted-runners",
+      "sources": [
+        "f-engineering-delivery.md:168"
+      ],
+      "http_code": 206,
+      "final_url": "https://docs.github.com/en/actions/reference/runners/github-hosted-runners",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax",
+      "sources": [
+        "f-engineering-delivery.md:172"
+      ],
+      "http_code": 206,
+      "final_url": "https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://docs.github.com/en/actions/tutorials/store-and-share-data",
+      "sources": [
+        "f-engineering-delivery.md:171"
+      ],
+      "http_code": 206,
+      "final_url": "https://docs.github.com/en/actions/tutorials/store-and-share-data",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+      "sources": [
+        "f-engineering-delivery.md:170",
+        "f-engineering-delivery.md:177"
+      ],
+      "http_code": 206,
+      "final_url": "https://docs.github.com/en/billing/concepts/product-billing/github-actions",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://docs.github.com/en/billing/reference/actions-runner-pricing",
+      "sources": [
+        "f-engineering-delivery.md:176"
+      ],
+      "http_code": 206,
+      "final_url": "https://docs.github.com/en/billing/reference/actions-runner-pricing",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://docs.mcneel.com/rhino/8/help/en-us/commands/chamferedge.htm",
+      "sources": [
+        "d-cad-kernel.md:145"
+      ],
+      "http_code": 206,
+      "final_url": "https://docs.mcneel.com/rhino/8/help/en-us/commands/chamferedge.htm",
+      "content_type": "text/html",
+      "body_bytes": 27164,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://docs.mcneel.com/rhino/8/help/en-us/commands/loft.htm",
+      "sources": [
+        "d-cad-kernel.md:144"
+      ],
+      "http_code": 206,
+      "final_url": "https://docs.mcneel.com/rhino/8/help/en-us/commands/loft.htm",
+      "content_type": "text/html",
+      "body_bytes": 37185,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://docs.mcneel.com/rhino/8/help/en-us/commands/revolve.htm",
+      "sources": [
+        "d-cad-kernel.md:143"
+      ],
+      "http_code": 206,
+      "final_url": "https://docs.mcneel.com/rhino/8/help/en-us/commands/revolve.htm",
+      "content_type": "text/html",
+      "body_bytes": 23511,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://docs.mcneel.com/rhino/8/help/en-us/fileio/stereolithography_stl_import_export.htm",
+      "sources": [
+        "d-cad-kernel.md:148"
+      ],
+      "http_code": 206,
+      "final_url": "https://docs.mcneel.com/rhino/8/help/en-us/fileio/stereolithography_stl_import_export.htm",
+      "content_type": "text/html",
+      "body_bytes": 25821,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://en.design-engineering.net/matrixgold/matrixgold-3-11",
+      "sources": [
+        "a-matrixgold-product.md:144",
+        "b-matrixgold-ux.md:122",
+        "d-cad-kernel.md:153"
+      ],
+      "http_code": 200,
+      "final_url": "https://en.design-engineering.net/matrixgold/matrixgold-3-11",
+      "content_type": "text/html; charset=UTF-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://en.design-engineering.net/matrixgold/matrixgold-3-9",
+      "sources": [
+        "b-matrixgold-ux.md:123"
+      ],
+      "http_code": 200,
+      "final_url": "https://en.design-engineering.net/matrixgold/matrixgold-3-9",
+      "content_type": "text/html; charset=UTF-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://en.design-engineering.net/matrixgold/matrixgold-update-history",
+      "sources": [
+        "a-matrixgold-product.md:137"
+      ],
+      "http_code": 200,
+      "final_url": "https://en.design-engineering.net/matrixgold/matrixgold-update-history",
+      "content_type": "text/html; charset=UTF-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://en.design-engineering.net/matrixgold/matrixgold20",
+      "sources": [
+        "b-matrixgold-ux.md:124"
+      ],
+      "http_code": 200,
+      "final_url": "https://en.design-engineering.net/matrixgold/matrixgold20",
+      "content_type": "text/html; charset=UTF-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:23Z",
+      "note": ""
+    },
+    {
+      "url": "https://en.design-engineering.net/matrixgold/matrixgold25",
+      "sources": [
+        "d-cad-kernel.md:154"
+      ],
+      "http_code": 200,
+      "final_url": "https://en.design-engineering.net/matrixgold/matrixgold25",
+      "content_type": "text/html; charset=UTF-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:24Z",
+      "note": ""
+    },
+    {
+      "url": "https://en.wikipedia.org/wiki/Ring_size",
+      "sources": [
+        "c-jeweler-domain.md:181"
+      ],
+      "http_code": 200,
+      "final_url": "https://en.wikipedia.org/wiki/Ring_size",
+      "content_type": "text/html; charset=UTF-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:24Z",
+      "note": ""
+    },
+    {
+      "url": "https://formlabs.com/white-papers/introduction-to-casting-for-3d-printed-jewelry-patterns/",
+      "sources": [
+        "c-jeweler-domain.md:195"
+      ],
+      "http_code": 200,
+      "final_url": "https://formlabs.com/white-papers/introduction-to-casting-for-3d-printed-jewelry-patterns/",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:24Z",
+      "note": ""
+    },
+    {
+      "url": "https://gemvision.com/",
+      "sources": [
+        "a-matrixgold-product.md:136"
+      ],
+      "http_code": 206,
+      "final_url": "https://gemvision.com/",
+      "content_type": "text/html",
+      "body_bytes": 2486,
+      "status": "ok_suspect",
+      "fetched_at": "2026-11-06T11:24:24Z",
+      "note": "bare host (no specific page); vendor homepage; 206 is a valid ranged response"
+    },
+    {
+      "url": "https://gemvision.com/legal/mg-membership-terms",
+      "sources": [
+        "a-matrixgold-product.md:141"
+      ],
+      "http_code": 200,
+      "final_url": "https://gemvision.com/legal/mg-membership-terms",
+      "content_type": "text/html",
+      "body_bytes": 2486,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:24Z",
+      "note": ""
+    },
+    {
+      "url": "https://gemvision.com/matrixgold",
+      "sources": [
+        "a-matrixgold-product.md:133"
+      ],
+      "http_code": 200,
+      "final_url": "https://gemvision.com/matrixgold",
+      "content_type": "text/html",
+      "body_bytes": 2486,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:24Z",
+      "note": ""
+    },
+    {
+      "url": "https://gemvision.com/matrixgold/systemrequirements",
+      "sources": [
+        "a-matrixgold-product.md:134"
+      ],
+      "http_code": 200,
+      "final_url": "https://gemvision.com/matrixgold/systemrequirements",
+      "content_type": "text/html",
+      "body_bytes": 2486,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:24Z",
+      "note": ""
+    },
+    {
+      "url": "https://gemvision.com/onesheeters/matrixgold_transition_pricing_2023.pdf",
+      "sources": [
+        "a-matrixgold-product.md:140"
+      ],
+      "http_code": 206,
+      "final_url": "https://gemvision.com/onesheeters/matrixgold_transition_pricing_2023.pdf",
+      "content_type": "application/pdf",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:24Z",
+      "note": ""
+    },
+    {
+      "url": "https://gemvision.com/store/matrixgold-4-upgrade/without-rhinoceros",
+      "sources": [
+        "a-matrixgold-product.md:139"
+      ],
+      "http_code": 200,
+      "final_url": "https://gemvision.com/store/matrixgold-4-upgrade/without-rhinoceros",
+      "content_type": "text/html",
+      "body_bytes": 2486,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:24Z",
+      "note": ""
+    },
+    {
+      "url": "https://github.blog/changelog/2026-10-01-github-actions-macos-14-runner-image-retirement",
+      "sources": [
+        "f-engineering-delivery.md:167"
+      ],
+      "http_code": 200,
+      "final_url": "https://github.blog/changelog/2026-10-01-github-actions-macos-14-runner-image-retirement/",
+      "content_type": "text/html; charset=UTF-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:24Z",
+      "note": "redirected to https://github.blog/changelog/2026-10-01-github-actions-macos-14-runner-image-retirement/"
+    },
+    {
+      "url": "https://github.com/actions/runner-images",
+      "sources": [
+        "e-ipados-stack-legal.md:139",
+        "f-engineering-delivery.md:165"
+      ],
+      "http_code": 206,
+      "final_url": "https://github.com/actions/runner-images",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:24Z",
+      "note": ""
+    },
+    {
+      "url": "https://github.com/actions/runner-images/blob/main/images/macos/macos-26-arm64-Readme.md",
+      "sources": [
+        "f-engineering-delivery.md:166"
+      ],
+      "http_code": 206,
+      "final_url": "https://github.com/actions/runner-images/blob/main/images/macos/macos-26-arm64-Readme.md",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:24Z",
+      "note": ""
+    },
+    {
+      "url": "https://github.com/actions/runner-images/issues/11509",
+      "sources": [
+        "f-engineering-delivery.md:173"
+      ],
+      "http_code": 206,
+      "final_url": "https://github.com/actions/runner-images/issues/11509",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:24Z",
+      "note": ""
+    },
+    {
+      "url": "https://github.com/actions/runner-images/issues/12777",
+      "sources": [
+        "f-engineering-delivery.md:174"
+      ],
+      "http_code": 206,
+      "final_url": "https://github.com/actions/runner-images/issues/12777",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:24Z",
+      "note": ""
+    },
+    {
+      "url": "https://github.com/actions/runner-images/issues/13264",
+      "sources": [
+        "f-engineering-delivery.md:175"
+      ],
+      "http_code": 206,
+      "final_url": "https://github.com/actions/runner-images/issues/13264",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:24Z",
+      "note": ""
+    },
+    {
+      "url": "https://github.com/mcneel/opennurbs/blob/8.x/LICENSE",
+      "sources": [
+        "e-ipados-stack-legal.md:144"
+      ],
+      "http_code": 206,
+      "final_url": "https://github.com/mcneel/opennurbs/blob/8.x/LICENSE",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:24Z",
+      "note": ""
+    },
+    {
+      "url": "https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY.git",
+      "sources": [
+        "f-engineering-delivery.md:143"
+      ],
+      "http_code": 206,
+      "final_url": "https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:24Z",
+      "note": "redirected to https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY"
+    },
+    {
+      "url": "https://ijewel3d.com/docs/start/what-is-ijewel3d",
+      "sources": [
+        "d-cad-kernel.md:158"
+      ],
+      "http_code": 200,
+      "final_url": "https://ijewel3d.com/docs/start/what-is-ijewel3d.html",
+      "content_type": "text/html",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:25Z",
+      "note": "redirected to https://ijewel3d.com/docs/start/what-is-ijewel3d.html"
+    },
+    {
+      "url": "https://ijewel3d.com/pricing",
+      "sources": [
+        "a-matrixgold-product.md:142"
+      ],
+      "http_code": 200,
+      "final_url": "https://ijewel3d.com/pricing/",
+      "content_type": "text/html",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:25Z",
+      "note": "redirected to https://ijewel3d.com/pricing/"
+    },
+    {
+      "url": "https://lemondim.com/en/matrixgold/",
+      "sources": [
+        "a-matrixgold-product.md:143"
+      ],
+      "http_code": 200,
+      "final_url": "https://lemondim.com/en/matrixgold/",
+      "content_type": "text/html; charset=UTF-8",
+      "body_bytes": 40011,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:25Z",
+      "note": ""
+    },
+    {
+      "url": "https://meleedirect.com/size-guide",
+      "sources": [
+        "c-jeweler-domain.md:193"
+      ],
+      "http_code": 200,
+      "final_url": "https://meleedirect.com/size-guide",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 24157,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:25Z",
+      "note": ""
+    },
+    {
+      "url": "https://morrisandwatson.com/casting/cad-design-guidelines",
+      "sources": [
+        "c-jeweler-domain.md:194"
+      ],
+      "http_code": 200,
+      "final_url": "https://morrisandwatson.com/casting/cad-design-guidelines",
+      "content_type": "text/html; charset=UTF-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:25Z",
+      "note": ""
+    },
+    {
+      "url": "https://plumbclub.com/how-to-estimate-gem-weight/",
+      "sources": [
+        "c-jeweler-domain.md:190"
+      ],
+      "http_code": 200,
+      "final_url": "https://plumbclub.com/how-to-estimate-gem-weight/",
+      "content_type": "text/html; charset=UTF-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:25Z",
+      "note": ""
+    },
+    {
+      "url": "https://s3.amazonaws.com/gemvision.com/Images/MatrixGold/GettingStarted/MatrixGold%20Quick%20Start%20Guide.pdf",
+      "sources": [
+        "b-matrixgold-ux.md:119"
+      ],
+      "http_code": 206,
+      "final_url": "https://s3.amazonaws.com/gemvision.com/Images/MatrixGold/GettingStarted/MatrixGold%20Quick%20Start%20Guide.pdf",
+      "content_type": "application/pdf",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:25Z",
+      "note": ""
+    },
+    {
+      "url": "https://s3.amazonaws.com/gemvision.com/Manuals/MatrixGold%202019%20Training%20Guide.pdf",
+      "sources": [
+        "b-matrixgold-ux.md:120"
+      ],
+      "http_code": 206,
+      "final_url": "https://s3.amazonaws.com/gemvision.com/Manuals/MatrixGold%202019%20Training%20Guide.pdf",
+      "content_type": "application/pdf",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:25Z",
+      "note": ""
+    },
+    {
+      "url": "https://stuller.scene7.com/is/content/Stuller/DAS/09b4e2e2-e12e-45f8-a2ed-a4f80104aa9f.pdf",
+      "sources": [
+        "c-jeweler-domain.md:185"
+      ],
+      "http_code": 206,
+      "final_url": "https://stuller.scene7.com/is/content/Stuller/DAS/09b4e2e2-e12e-45f8-a2ed-a4f80104aa9f.pdf",
+      "content_type": "application/pdf",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:25Z",
+      "note": ""
+    },
+    {
+      "url": "https://support.apple.com/en-us/122242",
+      "sources": [
+        "e-ipados-stack-legal.md:137"
+      ],
+      "http_code": 200,
+      "final_url": "https://support.apple.com/en-us/122242",
+      "content_type": "text/html;charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:25Z",
+      "note": ""
+    },
+    {
+      "url": "https://www.apple.com/ipad-pro/specs/",
+      "sources": [
+        "e-ipados-stack-legal.md:136"
+      ],
+      "http_code": 200,
+      "final_url": "https://www.apple.com/ipad-pro/specs/",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:25Z",
+      "note": ""
+    },
+    {
+      "url": "https://www.diamondscreener.com/education/recommended-depth-table-and-length-width-ratio-for-fancy-shape-diamonds",
+      "sources": [
+        "c-jeweler-domain.md:189"
+      ],
+      "http_code": 200,
+      "final_url": "https://www.diamondscreener.com/education/recommended-depth-table-and-length-width-ratio-for-fancy-shape-diamonds/",
+      "content_type": "text/html; charset=UTF-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:25Z",
+      "note": "redirected to https://www.diamondscreener.com/education/recommended-depth-table-and-length-width-ratio-for-fancy-shape-diamonds/"
+    },
+    {
+      "url": "https://www.eff.org/issues/coders/reverse-engineering-faq",
+      "sources": [
+        "e-ipados-stack-legal.md:141"
+      ],
+      "http_code": 206,
+      "final_url": "https://www.eff.org/issues/coders/reverse-engineering-faq",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:25Z",
+      "note": ""
+    },
+    {
+      "url": "https://www.evotechpacific.com.au/matrixgold",
+      "sources": [
+        "a-matrixgold-product.md:145"
+      ],
+      "http_code": 206,
+      "final_url": "https://www.evotechpacific.com.au/matrixgold",
+      "content_type": "text/html;charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:25Z",
+      "note": ""
+    },
+    {
+      "url": "https://www.evotechpacific.com.au/matrixgold-new-licence",
+      "sources": [
+        "a-matrixgold-product.md:135",
+        "a-matrixgold-product.md:138"
+      ],
+      "http_code": 206,
+      "final_url": "https://www.evotechpacific.com.au/matrixgold-new-licence",
+      "content_type": "text/html;charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:25Z",
+      "note": ""
+    },
+    {
+      "url": "https://www.gia.edu/FAQ/gia-faq-analysis-grading-system-fancy-shape-diamond",
+      "sources": [
+        "c-jeweler-domain.md:188"
+      ],
+      "http_code": 200,
+      "final_url": "https://www.gia.edu/FAQ/gia-faq-analysis-grading-system-fancy-shape-diamond",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:25Z",
+      "note": ""
+    },
+    {
+      "url": "https://www.gia.edu/diamond-cut/diamond-cut-anatomy-round-brilliant",
+      "sources": [
+        "c-jeweler-domain.md:186"
+      ],
+      "http_code": 200,
+      "final_url": "https://www.gia.edu/diamond-cut/diamond-cut-anatomy-round-brilliant",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:26Z",
+      "note": ""
+    },
+    {
+      "url": "https://www.gia.edu/facetware-help",
+      "sources": [
+        "c-jeweler-domain.md:187"
+      ],
+      "http_code": 200,
+      "final_url": "https://www.gia.edu/facetware-help",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:26Z",
+      "note": ""
+    },
+    {
+      "url": "https://www.haywoodsjewellery.co.uk/learning-cad-for-jewellery",
+      "sources": [
+        "b-matrixgold-ux.md:127"
+      ],
+      "http_code": 200,
+      "final_url": "https://www.haywoodsjewellery.co.uk/learning-cad-for-jewellery/",
+      "content_type": "text/html; charset=UTF-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:26Z",
+      "note": "redirected to https://www.haywoodsjewellery.co.uk/learning-cad-for-jewellery/"
+    },
+    {
+      "url": "https://www.icreatia.es/producto/matrixgold",
+      "sources": [
+        "a-matrixgold-product.md:148"
+      ],
+      "http_code": 200,
+      "final_url": "https://www.icreatia.es/producto/matrixgold/",
+      "content_type": "text/html; charset=UTF-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:26Z",
+      "note": "redirected to https://www.icreatia.es/producto/matrixgold/"
+    },
+    {
+      "url": "https://www.iso.org/standard/65408.html",
+      "sources": [
+        "c-jeweler-domain.md:179"
+      ],
+      "http_code": 403,
+      "final_url": "https://www.iso.org/standard/65408.html",
+      "content_type": "text/html; charset=UTF-8",
+      "body_bytes": 5619,
+      "status": "http_4xx",
+      "fetched_at": "2026-11-06T11:24:26Z",
+      "note": "official ISO catalogue page; 403 is bot blocking, not a missing page"
+    },
+    {
+      "url": "https://www.law.cornell.edu/uscode/text/15/1125",
+      "sources": [
+        "e-ipados-stack-legal.md:143"
+      ],
+      "http_code": 206,
+      "final_url": "https://www.law.cornell.edu/uscode/text/15/1125",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:26Z",
+      "note": ""
+    },
+    {
+      "url": "https://www.law.cornell.edu/uscode/text/17/102",
+      "sources": [
+        "e-ipados-stack-legal.md:140"
+      ],
+      "http_code": 206,
+      "final_url": "https://www.law.cornell.edu/uscode/text/17/102",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:26Z",
+      "note": ""
+    },
+    {
+      "url": "https://www.law.cornell.edu/uscode/text/17/1201",
+      "sources": [
+        "e-ipados-stack-legal.md:142"
+      ],
+      "http_code": 206,
+      "final_url": "https://www.law.cornell.edu/uscode/text/17/1201",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:26Z",
+      "note": ""
+    },
+    {
+      "url": "https://www.loc.gov/preservation/digital/formats/fdd/fdd000601.shtml",
+      "sources": [
+        "d-cad-kernel.md:159"
+      ],
+      "http_code": 200,
+      "final_url": "https://www.loc.gov/preservation/digital/formats/fdd/fdd000601.shtml",
+      "content_type": "text/html; charset=UTF-8",
+      "body_bytes": 35428,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:26Z",
+      "note": ""
+    },
+    {
+      "url": "https://www.multistation.com/en/product/gemvision-3d-software-matrixgold",
+      "sources": [
+        "a-matrixgold-product.md:146"
+      ],
+      "http_code": 200,
+      "final_url": "https://www.multistation.com/en/product/gemvision-3d-software-matrixgold/",
+      "content_type": "text/html; charset=UTF-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:26Z",
+      "note": "redirected to https://www.multistation.com/en/product/gemvision-3d-software-matrixgold/"
+    },
+    {
+      "url": "https://www.rhino3d.com/en/docs/guides/modeling/rhino-geometry-types",
+      "sources": [
+        "d-cad-kernel.md:140"
+      ],
+      "http_code": 206,
+      "final_url": "https://www.rhino3d.com/en/docs/guides/modeling/rhino-geometry-types/",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:26Z",
+      "note": "redirected to https://www.rhino3d.com/en/docs/guides/modeling/rhino-geometry-types/"
+    },
+    {
+      "url": "https://www.rhino3d.com/en/features/developer/opennurbs/",
+      "sources": [
+        "e-ipados-stack-legal.md:145"
+      ],
+      "http_code": 206,
+      "final_url": "https://www.rhino3d.com/en/features/developer/opennurbs/",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 20477,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:26Z",
+      "note": ""
+    },
+    {
+      "url": "https://www.rhino3d.com/en/features/file-formats",
+      "sources": [
+        "d-cad-kernel.md:150"
+      ],
+      "http_code": 206,
+      "final_url": "https://www.rhino3d.com/en/features/file-formats/",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:26Z",
+      "note": "redirected to https://www.rhino3d.com/en/features/file-formats/"
+    },
+    {
+      "url": "https://www.rhino3d.com/en/features/subd",
+      "sources": [
+        "d-cad-kernel.md:142"
+      ],
+      "http_code": 206,
+      "final_url": "https://www.rhino3d.com/en/features/subd/",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 45443,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:26Z",
+      "note": "redirected to https://www.rhino3d.com/en/features/subd/"
+    },
+    {
+      "url": "https://www.rhino3d.com/features/file-formats/",
+      "sources": [
+        "a-matrixgold-product.md:149"
+      ],
+      "http_code": 206,
+      "final_url": "https://www.rhino3d.com/features/file-formats/",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:26Z",
+      "note": ""
+    },
+    {
+      "url": "https://www.stuller.com/articles/view/ring-sizing",
+      "sources": [
+        "c-jeweler-domain.md:182"
+      ],
+      "http_code": 200,
+      "final_url": "https://www.stuller.com/articles/view/ring-sizing",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:26Z",
+      "note": ""
+    },
+    {
+      "url": "https://www.stuller.com/articles/view/techniques-for-channel-setting",
+      "sources": [
+        "c-jeweler-domain.md:192"
+      ],
+      "http_code": 200,
+      "final_url": "https://www.stuller.com/articles/view/techniques-for-channel-setting",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:26Z",
+      "note": ""
+    },
+    {
+      "url": "https://www.stuller.com/articles/view/where-to-find-gravity-of-materials",
+      "sources": [
+        "c-jeweler-domain.md:196"
+      ],
+      "http_code": 200,
+      "final_url": "https://www.stuller.com/articles/view/where-to-find-gravity-of-materials",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:26Z",
+      "note": ""
+    },
+    {
+      "url": "https://www.stuller.com/services/custom-jewelry-design-services/3d-jewelry-design-software/matrixgold",
+      "sources": [
+        "a-matrixgold-product.md:147"
+      ],
+      "http_code": 200,
+      "final_url": "https://www.stuller.com/services/custom-jewelry-design-services/3d-jewelry-design-software/matrixgold",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:26Z",
+      "note": ""
+    },
+    {
+      "url": "https://www.youtube.com/watch?v=G56--0zOkVQ",
+      "sources": [
+        "b-matrixgold-ux.md:128"
+      ],
+      "http_code": 200,
+      "final_url": "https://www.youtube.com/watch?v=G56--0zOkVQ",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:26Z",
+      "note": ""
+    },
+    {
+      "url": "https://www.youtube.com/watch?v=_AtFmL1gP8U",
+      "sources": [
+        "b-matrixgold-ux.md:128"
+      ],
+      "http_code": 200,
+      "final_url": "https://www.youtube.com/watch?v=_AtFmL1gP8U",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:26Z",
+      "note": ""
+    },
+    {
+      "url": "https://www.youtube.com/watch?v=vuMiO0gN4WU",
+      "sources": [
+        "b-matrixgold-ux.md:128"
+      ],
+      "http_code": 200,
+      "final_url": "https://www.youtube.com/watch?v=vuMiO0gN4WU",
+      "content_type": "text/html; charset=utf-8",
+      "body_bytes": 65536,
+      "status": "ok",
+      "fetched_at": "2026-11-06T11:24:27Z",
+      "note": ""
+    }
+  ]
+}

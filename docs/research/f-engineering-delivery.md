@@ -169,7 +169,7 @@ in `AGENTS.md`.
 [11] https://aleos.dev/posts/2026-02-17-xcode-ci-build-caching/
 [12] https://docs.github.com/en/billing/concepts/product-billing/github-actions
 [13] https://docs.github.com/en/actions/tutorials/store-and-share-data
-[14] https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax-for-github-actions
+[14] https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax
 [15] https://github.com/actions/runner-images/issues/11509
 [16] https://github.com/actions/runner-images/issues/12777
 [17] https://github.com/actions/runner-images/issues/13264

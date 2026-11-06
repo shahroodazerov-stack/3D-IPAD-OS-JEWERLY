@@ -37,6 +37,19 @@ snapshot, or XCUITest assertion must be one.
    durable URL or a path under `.dev-cache/evidence/` that is not committed.
 4. A record with `result: "fail"` blocks the phase exactly like a red test.
 
+## Citation fetch records
+
+`docs/evidence/link-status.json` and `link-status.md` are the second record type: every URL
+cited in `docs/research/*.md`, fetched by `scripts/check-links.py`, with the HTTP code, final
+URL, content type, fetch date and one of `ok`, `ok_suspect`, `http_4xx`, `http_5xx`, `http_other`, `timeout`,
+`dns_error`, `tls_error` or `network_error`. A blocked page (for example ISO returning 403 to an
+automated client) keeps its real status and carries a note; it is never rounded up to 200.
+The shape is defined by `docs/evidence/link-status.schema.json`.
+
+Run `python scripts/check-links.py` to regenerate both files. Add `--strict` before a release
+when every citation must return 2xx; routine runs record rather than fail, because several
+vendors block automated clients.
+
 ## Example
 
 ```json

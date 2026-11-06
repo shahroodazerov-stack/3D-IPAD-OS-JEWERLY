@@ -73,6 +73,23 @@ UI, and it explicitly excludes copying names, icons, libraries, help text or cod
 | **Deps** | Phase numbers that must already be green |
 | **Axis** | `spec` (behaviour/data fidelity) · `design` (UI/UX) · `correctness` (kernel/tests) · `concision` (performance/simplification) |
 
+### Figure provenance (standards vs trade rules)
+
+Every numeric default carries one of four labels, matching dossier C:
+
+- **FACT / standard** — published by a standards body or primary reference (ISO 8653 ring
+  sizing, GIA facet ranges). Tests may assert it as a correctness requirement.
+- **VENDOR** — one supplier's production guidance (Stuller wall/prong minima, Formlabs cast
+  walls). It is a configurable default; the test asserts the configured value and that the
+  warning names the source, not that the number is universal.
+- **TRADE** — an industry rule of thumb (halo spacing, carat factors, shrinkage ranges). It is
+  surfaced as a default with a range and never described as a standard.
+- **INFERENCE** — our own design decision (shank preset dimensions, tolerance policy).
+
+Phase 104 enforces only the `>= 0.15 mm` lower bound of the 0.15–0.30 mm halo band. The upper
+figure and the 0.30 mm "thin wall" in phases 110/147 are test-fixture values, not manufacturing
+standards.
+
 ### Definition of done (every phase)
 
 1. Code merged to `main` with tests committed alongside.
@@ -273,16 +290,16 @@ pushed on its own branch for the first Actions run; it is not merged to `main` w
 | # | Goal | Deliverables | Acceptance | Deps | Axis |
 | --- | --- | --- | --- | --- | --- |
 | 79 | Gemstone data model | Cut, dimensions, proportion set, material, colour, clarity, orientation, carat estimate; `Gemstone` value type | CI: Model round-trips through the document; invalid proportion combinations are rejected with a reason | 35 | spec |
-| 80 | Round brilliant generator | Parametric 57/58-facet round brilliant from girdle diameter and proportion set; Tolkowsky and GIA-range presets | CI: Facet count = 57 or 58; table %, crown angle and pavilion angle measured from geometry match parameters within 0.05 % / 0.1° | 79 | correctness |
+| 80 | Round brilliant generator | Parametric 57/58-facet round brilliant from girdle diameter and proportion set; Tolkowsky (published 1919 ideal, not a current standard) and GIA-range presets | CI: Facet count = 57 or 58; table %, crown angle and pavilion angle measured from geometry match parameters within 0.05 % / 0.1° | 79 | correctness |
 | 81 | Fancy cuts set 1 | Oval, pear, marquise generators with length:width ratio and bow-tie-aware proportions | CI: Each cut produces the expected facet count and L:W within 0.01; the mesh is watertight | 80 | correctness |
 | 82 | Fancy cuts set 2 | Princess, emerald, cushion, trillion, baguette, heart generators | CI: Six cuts generate within 2 % of their reference volumes; girdle outline matches the named shape | 81 | correctness |
 | 83 | Proportion editor | Live facet update from sliders (table, crown, pavilion, girdle, depth), constraint warnings, reset to preset | CI: Dragging any slider keeps the stone valid; extreme values clamp with a message instead of breaking geometry | 82 | design |
-| 84 | Carat estimation | Coloured-stone `L×W×D×SG×factor` engine with per-cut coefficients, diamond fixed factors, girdle adjustment, ±5 % band shown | CI: Estimates on 20 reference stones match published charts within 5 %; UI states the estimate is approximate | 83 | spec |
+| 84 | Carat estimation | Coloured-stone `L×W×D×SG×factor` engine with per-cut coefficients, diamond fixed factors, girdle adjustment, ±5 % band shown; coefficients are trade formulas, not standards | CI: Estimates on 20 reference stones match published charts within 5 %; UI states the estimate is approximate | 83 | spec |
 | 85 | Gem material presets | Diamond, moissanite, CZ, sapphire, ruby, emerald, topaz, amethyst, garnet, pearl with IOR, dispersion, SG, colour | CI: 10 presets validated (IOR 1.5–2.5, SG 2.6–4.0); carat estimate uses the correct SG per material | 84 | spec |
 | 86 | Stone library | 50 generated stones across cuts/sizes, search, filter, favourites, drag-to-place | CI: Library loads in < 500 ms; every entry is generated (no external asset); search by size and cut returns correct sets | 85 | design |
-| 87 | Melee library | 0.8–2.5 mm melee in standard gradations with carat weights, multi-select for pavé | CI: Selecting 50 melee stones inserts exactly 50 with correct carat totals ± 2 % | 86 | spec |
+| 87 | Melee library | 0.8–2.5 mm melee in standard gradations with carat weights (trade approximations), multi-select for pavé | CI: Selecting 50 melee stones inserts exactly 50 with correct carat totals ± 2 % | 86 | spec |
 | 88 | Stone placement | Drop on surface, orient to surface normal, auto-seat, nudge along surface, replace on drop | CI: Placed stone sits normal to the surface within 0.5°; auto-seat produces a valid seat cut every time on 20 trials | 15, 87 | design |
-| 89 | Multi-stone layout | Halo/pavé/channel arrays from the gem side, spacing validation, collision report | CI: Arrays respect 0.15 mm spacing; collision report lists any overlapping pair with positions | 88 | correctness |
+| 89 | Multi-stone layout | Halo/pavé/channel arrays from the gem side, 0.15 mm Stuller vendor spacing default (configurable), collision report | CI: Arrays respect 0.15 mm spacing; collision report lists any overlapping pair with positions | 88 | correctness |
 | 90 | Stone swap with re-seat | Replace a stone with a different cut/size, re-cut the seat, keep the setting or adapt it with rules | CI: Swapping 6 mm round → 8.5×6.5 oval re-seats and re-fits the head in one action, watertight result | 89 | correctness |
 | 91 | Stone report | On-screen inventory, CSV and JSON export: count, cut, dimensions, carat estimate, material, position | CI: Report totals match the scene graph exactly; CSV opens with correct headers and units | 90 | spec |
 | 92 | Gem interference validation | Girdle clearance, pavilion vs shank, prong contact coverage, culet clearance against the 0.5 mm rule | CI: 15 deliberately bad placements are all caught with specific messages; good placements produce zero findings | 91 | correctness |
@@ -293,22 +310,22 @@ pushed on its own branch for the first Actions run; it is not merged to `main` w
 
 | # | Goal | Deliverables | Acceptance | Deps | Axis |
 | --- | --- | --- | --- | --- | --- |
-| 95 | Ring sizing as a first-class model | `RingSize` standards: US quarter sizes, UK letters, EU/ISO circumference, JP; conversion tables; inner-diameter source of truth | CI: 40 conversion fixtures match published tables within 0.02 mm; US 6 → 16.51 mm and ISO 51 → 16.23 mm exact | 30 | spec |
+| 95 | Ring sizing as a first-class model | `RingSize` data: US quarter sizes (trade convention), UK letters, EU/ISO circumference and JP as published tables (not one universal scale); conversion tables; inner-diameter source of truth | CI: 40 conversion fixtures match published tables within 0.02 mm; US 6 → 16.51 mm and ISO 51 → 16.23 mm exact | 30 | spec |
 | 96 | Guided ring builder | Five-step wizard (size → profile → head → stones → finish) with persistent step editing and live preview | CI: Completing the wizard produces a ring document; re-entering any step and cancelling leaves the previous result intact | 77 | design |
-| 97 | Shank profile engine | Width/thickness taper, outside profile (flat, half-round, knife-edge), inside profile (flat, comfort-fit), cathedral shoulders, bypass | CI: 12 profile presets regenerate watertight; measured width/thickness at three stations match parameters within 0.05 mm | 96 | correctness |
+| 97 | Shank profile engine | Width/thickness taper, outside profile (flat, half-round, knife-edge), inside profile (flat, comfort-fit), cathedral shoulders, bypass | CI: 12 profile presets (shank defaults are our inference, not standards) regenerate watertight; measured width/thickness at three stations match parameters within 0.05 mm | 96 | correctness |
 | 98 | Ring resizer | Profile-aware resize from 3–13 US quarter sizes, keeps shank proportions and stone positions, warns on > 3-size jumps | CI: Size 6 → 9 changes bore to 18.95 mm ± 0.02 and keeps prong tips within 0.1 mm of design intent; 5-size jump warns | 97 | correctness |
 | 99 | Head library v1 | Parametric 4-prong and 6-prong round heads, cathedral and peg variants, height/width parameters | CI: Each head regenerates watertight at 5 sizes; prong tips intersect the girdle plane within 0.05 mm | 79, 80, 97 | correctness |
-| 100 | Prong generator | Prong count, diameter, taper, tip profile, seat height, spread angle, gallery rail attachment | CI: 0.45 mm minimum enforced with a blocking warning; 100 generated prong sets contain no self-intersections | 99 | correctness |
-| 101 | Stone seat cutting | Bearing cone, girdle support ledge, pavilion clearance, seat depth validation against the 25 % rule | CI: Seat depth measured on section is within 0.01 mm of parameter; stones placed in seats show ≥ 0.02 mm clearance | 80, 100 | correctness |
-| 102 | Bezel setting | Full and partial bezel, wall thickness ≥ 0.45 mm, height, inside relief, bright-cut edge option | CI: Bezel wall measured 0.45–1.2 mm; stone enters the bezel in a collision test with no interpenetration | 101 | correctness |
-| 103 | Galleries and under-galleries | Gallery rails, decorative under-gallery, bridge supports, minimum 0.4 mm rail gap enforcement | CI: Gallery generation keeps the specified gap and stays watertight; missing support is flagged in the manufacturing check | 102 | correctness |
-| 104 | Halo generator | Round/oval/cushion halos, melee count derivation, shared-prong rules, inner bezel or prong centre | CI: halo spacing is >= 0.15 mm on 10 fixtures (the 0.15-0.30 mm band is a trade convention, not a published standard); changing the centre stone size rebuilds the halo count correctly | 87, 103 | correctness |
-| 105 | Pavé and bead layout | Placement along curves and on surfaces, spacing rules, bead size 0.4–0.5 mm, seat per stone, auto-prong | CI: 0.15 mm minimum stone-to-stone enforced; 200-stone pavé field all seats cut and no collisions in interference test | 87, 104 | correctness |
-| 106 | Channel setting | Channel walls ≥ 0.4 mm, seat cutting, stone spacing, flat vs domed channel, end caps | CI: Channel cut width is 0.25–0.5 mm narrower than stones on 8 fixtures; stones sit below the wall edge by the specified amount | 105 | correctness |
+| 100 | Prong generator | Prong count, diameter, taper, tip profile, seat height, spread angle, gallery rail attachment; 0.45 mm default is a Stuller vendor minimum, overridable | CI: the configured 0.45 mm Stuller default is enforced with a blocking warning that names the source; 100 generated prong sets contain no self-intersections | 99 | correctness |
+| 101 | Stone seat cutting | Bearing cone, girdle support ledge, pavilion clearance, seat-depth validation against the 25 % Stuller vendor rule (overridable) | CI: Seat depth measured on section is within 0.01 mm of the configured value; stones placed in seats show ≥ 0.02 mm clearance | 80, 100 | correctness |
+| 102 | Bezel setting | Full and partial bezel, wall thickness ≥ 0.45 mm (Stuller vendor minimum), height, inside relief, bright-cut edge option | CI: Bezel wall measured 0.45–1.2 mm; stone enters the bezel in a collision test with no interpenetration | 101 | correctness |
+| 103 | Galleries and under-galleries | Gallery rails, decorative under-gallery, bridge supports, 0.4 mm rail-gap default (Stuller vendor rule) | CI: Gallery generation keeps the specified gap and stays watertight; missing support is flagged in the manufacturing check | 102 | correctness |
+| 104 | Halo generator | Round/oval/cushion halos, melee count derivation, shared-prong rules, inner bezel or prong centre | CI: halo spacing is >= 0.15 mm on 10 fixtures (the 0.15-0.30 mm band is a trade convention with no published standard; only the lower bound is enforced); changing the centre stone size rebuilds the halo count correctly | 87, 103 | correctness |
+| 105 | Pavé and bead layout | Placement along curves and on surfaces, spacing rules, bead size 0.4–0.5 mm (craft/vendor practice, not a standard), seat per stone, auto-prong | CI: 0.15 mm minimum stone-to-stone enforced; 200-stone pavé field all seats cut and no collisions in interference test | 87, 104 | correctness |
+| 106 | Channel setting | Channel walls ≥ 0.4 mm (Stuller vendor rule), seat cutting, stone spacing, flat vs domed channel, end caps | CI: Channel cut width is 0.25–0.5 mm narrower than stones on 8 fixtures; stones sit below the wall edge by the specified amount | 105 | correctness |
 | 107 | Tension setting (expert) | Tension-style ring with explicit structural warning, hardened-alloy preset, minimum cross-section validation | CI: The feature is unavailable unless the user accepts the risk dialog; minimum cross-section check blocks unsafe geometry | 106 | spec |
 | 108 | Multi-stone assemblies | Two-stone, three-stone and side-stone layouts, shared shank, alignment rules, matching-height checks | CI: Three-stone layout keeps all tables coplanar within 0.05 mm; side stones never intersect the centre head | 107 | correctness |
 | 109 | Parametric round-trip | Edit any builder step after the fact; size, profile, head, stone shape and stone size all re-fit without manual repair | CI: Size 6 → 9 and round 6 mm → oval 8.5×6.5 rebuild successfully in one action, watertight, with no leftover geometry | 80, 108 | correctness |
-| 110 | Manufacturing checks for rings | Min wall, prong thickness, stone clearance, culet clearance, ring bore roundness, castability report per ring | CI: Report flags a deliberately thin 0.3 mm wall and passes a 1.8 mm shank; each finding names the offending feature | 109 | correctness |
+| 110 | Manufacturing checks for rings | Min wall, prong thickness, stone clearance, culet clearance, ring bore roundness, castability report per ring | CI: Report flags a deliberately thin 0.30 mm test wall (fixture, not a manufacturing minimum) and passes a 1.8 mm shank; each finding names the offending feature | 109 | correctness |
 | 111 | Canonical workflow test | Automated end-to-end scenario mirroring the documented eight-step jeweller workflow, as an XCUITest plus geometry assertions | CI: Test completes in < 3 minutes in CI and ends with a watertight ring whose bore is 18.95 mm and whose stone is 8.5×6.5 mm | 110 | correctness |
 | 112 | Ring presets | Ten original designs (solitaire, three-stone, halo, pavé band, signet, men's band, twist, bypass, vintage, eternity) | CI: Each preset opens, rebuilds and exports as watertight STL; snapshot per preset | 111 | design |
 | 113 | Builder performance | Incremental rebuild of unaffected features, mesh caching, preview LOD during parameter drags | CI: check-evidence.sh 97 accepts a full-ring rebuild < 300 ms and drag preview < 16 ms on iPad Air (M3); a unit test proves an unchanged feature is not rebuilt | 112 | concision |
@@ -360,9 +377,9 @@ pushed on its own branch for the first Actions run; it is not merged to `main` w
 
 | # | Goal | Deliverables | Acceptance | Deps | Axis |
 | --- | --- | --- | --- | --- | --- |
-| 147 | Wall thickness analysis | Ray-cast min-wall per sample point, heat map overlay, threshold slider, report list of thin regions | CI: A 0.3 mm wall is flagged red and a 1.0 mm wall green; measured thickness matches a calliper fixture within 0.02 mm | 72, 110 | correctness |
+| 147 | Wall thickness analysis | Ray-cast min-wall per sample point, heat map overlay, threshold slider, report list of thin regions | CI: A 0.30 mm test wall is flagged red and a 1.0 mm wall green; measured thickness matches a calliper fixture within 0.02 mm | 72, 110 | correctness |
 | 148 | Undercut and draft analysis | Casting pull-direction analysis, undercut heat map, draft angle report per face group | CI: 15 planted undercuts all detected; a clean ring reports zero; direction change updates in < 300 ms | 147 | correctness |
-| 149 | Shrinkage compensation | Per-alloy linear shrink table (gold 1.2–1.5 %, silver 1.5–2.0 %, platinum 2.5–3.0 %), uniform apply, per-axis override, calibration note | CI: Applying 1.5 % increases bore by 1.5 % ± 0.001 mm; the compensation is a reversible history step | 69, 148 | spec |
+| 149 | Shrinkage compensation | Per-alloy linear shrink table (gold 1.2–1.5 %, silver 1.5–2.0 %, platinum 2.5–3.0 %; vendor/process guidance, not standards), uniform apply, per-axis override, calibration note | CI: Applying 1.5 % increases bore by 1.5 % ± 0.001 mm; the compensation is a reversible history step | 69, 148 | spec |
 | 150 | Print mesh preparation | Watertight check, orientation normalisation, degenerate removal, self-intersection repair, repair log | CI: 25 corrupt fixtures become watertight with a log of changes; unrepaired cases fail with a specific reason | 68, 149 | correctness |
 | 151 | Hollowing and drain holes | Hollow shell with 0.7 mm minimum wall, drain hole placement, interior cleanup | CI: Hollowed ring weighs within 5 % of the analytic estimate; holes are 1.0–2.0 mm and fully through the shell | 150 | correctness |
 | 152 | STL export | Binary and ASCII STL, unit note, watertight assertion, triangle budget check | CI: Exported STL imports into two independent slicers with zero repair warnings; units explicitly mm | 150 | spec |

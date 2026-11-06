@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/docs/evidence/link-status.schema.json",
+  "title": "FacetForge citation fetch record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["generated_at", "source_glob", "total", "counts", "entries"],
+  "properties": {
+    "generated_at": { "type": "string", "format": "date-time" },
+    "source_glob": { "type": "string" },
+    "total": { "type": "integer", "minimum": 0 },
+    "counts": { "type": "object", "additionalProperties": { "type": "integer" } },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["url", "sources", "http_code", "final_url", "content_type", "body_bytes", "status", "fetched_at", "note"],
+        "properties": {
+          "url": { "type": "string", "format": "uri" },
+          "sources": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+          "http_code": { "type": ["integer", "null"] },
+          "final_url": { "type": ["string", "null"] },
+          "content_type": { "type": ["string", "null"] },
+          "body_bytes": { "type": "integer", "minimum": 0 },
+          "status": {
+            "enum": ["ok", "ok_suspect", "http_4xx", "http_5xx", "http_other", "timeout", "dns_error", "tls_error", "network_error"]
+          },
+          "fetched_at": { "type": "string", "format": "date-time" },
+          "note": { "type": "string" }
+        }
+      }
+    }
+  }
+}
