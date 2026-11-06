@@ -128,6 +128,7 @@ struct FFAppShell: View {
     @State private var frameStatistics = FFFrameStatistics()
     @State private var camera = FFCamera.standard
     @State private var namedView: FFNamedView? = .iso
+    @State private var lengthUnit: FFLengthUnit = .millimetres
 
     private let tools: [FFTool] = [
         FFTool(id: "select", systemImage: "cursorarrow", label: "Select"),
@@ -179,6 +180,7 @@ struct FFAppShell: View {
                     if !inspectorCollapsed {
                         FFInspector(
                             bandWidth: $bandWidth,
+                            lengthUnit: $lengthUnit,
                             onCollapse: { inspectorCollapsed = true }
                         )
                         .frame(width: metrics.inspectorWidth)
@@ -336,6 +338,14 @@ private struct FFViewport: View {
     let onFrameStatistics: (FFFrameStatistics) -> Void
     let onShowTools: () -> Void
     let onShowInspector: () -> Void
+    @State private var viewportSize = CGSize(width: 800, height: 600)
+
+    private var scaleBarPlan: FFScaleBarPlan? {
+        guard let units = camera.worldUnitsPerPoint(
+            viewport: Vec2(x: viewportSize.width, y: viewportSize.height)
+        ) else { return nil }
+        return FFScaleBar.plan(millimetresPerPoint: units)
+    }
 
     private var fpsLabel: String {
         guard frameStatistics.averageFPS > 0 else { return "starting" }
@@ -419,22 +429,38 @@ private struct FFViewport: View {
                 Spacer(minLength: FFSpace.sm)
 
                 HStack(alignment: .bottom, spacing: FFSpace.xs) {
-                    HStack(spacing: FFSpace.xxs) {
-                        Circle()
-                            .fill(FFPalette.success.color)
-                            .frame(width: 6, height: 6)
-                        Text(cameraLabel)
-                            .font(FFType.monoSmall)
-                            .foregroundStyle(FFPalette.textTertiary.color)
-                            .lineLimit(1)
-                            .accessibilityIdentifier("shell.viewport.camera")
-                            .accessibilityLabel(cameraLabel)
+                    VStack(alignment: .leading, spacing: FFSpace.xxs) {
+                        if let plan = scaleBarPlan {
+                            HStack(spacing: FFSpace.xxs) {
+                                Rectangle()
+                                    .fill(FFPalette.textSecondary.color)
+                                    .frame(width: CGFloat(plan.pixelWidth), height: 2)
+                                Text(plan.label)
+                                    .font(FFType.monoSmall)
+                                    .foregroundStyle(FFPalette.textTertiary.color)
+                            }
+                            .accessibilityElement(children: .combine)
+                            .accessibilityIdentifier("shell.viewport.scaleBar")
+                            .accessibilityLabel("Scale bar, \(plan.label)")
+                        }
 
-                        Text("\(fpsLabel) · \(camera.projection.label.lowercased())")
-                            .font(FFType.monoSmall)
-                            .foregroundStyle(FFPalette.textTertiary.color)
-                            .accessibilityIdentifier("shell.viewport.fps")
-                            .accessibilityLabel("Metal viewport, grid and world axes, \(fpsLabel)")
+                        HStack(spacing: FFSpace.xxs) {
+                            Circle()
+                                .fill(FFPalette.success.color)
+                                .frame(width: 6, height: 6)
+                            Text(cameraLabel)
+                                .font(FFType.monoSmall)
+                                .foregroundStyle(FFPalette.textTertiary.color)
+                                .lineLimit(1)
+                                .accessibilityIdentifier("shell.viewport.camera")
+                                .accessibilityLabel(cameraLabel)
+
+                            Text("\(fpsLabel) · \(camera.projection.label.lowercased())")
+                                .font(FFType.monoSmall)
+                                .foregroundStyle(FFPalette.textTertiary.color)
+                                .accessibilityIdentifier("shell.viewport.fps")
+                                .accessibilityLabel("Metal viewport, grid and world axes, \(fpsLabel)")
+                        }
                     }
 
                     Spacer(minLength: 0)
@@ -450,6 +476,11 @@ private struct FFViewport: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .onGeometryChange(for: CGSize.self) { proxy in
+            proxy.size
+        } action: { size in
+            viewportSize = size
+        }
         .clipped()
     }
 
@@ -478,6 +509,7 @@ private struct FFViewport: View {
 
 private struct FFInspector: View {
     @Binding var bandWidth: String
+    @Binding var lengthUnit: FFLengthUnit
     let onCollapse: () -> Void
 
     var body: some View {
@@ -508,6 +540,30 @@ private struct FFInspector: View {
                 FFPanel(title: "Dimensions", subtitle: "Millimetres") {
                     FFField(label: "Band width", value: $bandWidth, unit: "mm")
                     FFListRow(title: "Wall", trailing: "1.20 mm")
+
+                    HStack(spacing: FFSpace.xxs) {
+                        ForEach(FFLengthUnit.allCases) { unit in
+                            FFChip(
+                                title: unit.label,
+                                isSelected: lengthUnit == unit,
+                                accessibilityIdentifier: "shell.inspector.unit.\(unit.rawValue)"
+                            ) {
+                                lengthUnit = unit
+                            }
+                        }
+                    }
+
+                    FFListRow(
+                        title: "Converted",
+                        trailing: lengthUnit.formatted(millimetres: Double(bandWidth) ?? 18)
+                    )
+                    FFListRow(
+                        title: "Ring size",
+                        trailing: String(
+                            format: "US %.1f",
+                            FFRingSize(innerDiameterMM: 18).usSize
+                        )
+                    )
                 }
 
                 FFPanel(title: "Manufacturing") {

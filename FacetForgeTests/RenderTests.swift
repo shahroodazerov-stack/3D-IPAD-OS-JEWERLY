@@ -157,6 +157,11 @@ final class RenderTests: XCTestCase {
         let vertices = FFViewportGeometry.gridAndAxes(extent: 60, spacing: 5)
         let expectedLines = 4 * 12 + 3
         XCTAssertEqual(vertices.count, expectedLines * 2)
+        XCTAssertEqual(FFViewportGeometry.defaultSpacing, 1, accuracy: 1e-12)
+        XCTAssertEqual(
+            FFViewportGeometry.gridAndAxes().count,
+            (4 * 40 + 3) * 2
+        )
         XCTAssertEqual(FFViewportGeometry.gridAndAxes(extent: 0, spacing: 5).count, 0)
         XCTAssertEqual(FFViewportGeometry.gridAndAxes(extent: 60, spacing: 0).count, 0)
 

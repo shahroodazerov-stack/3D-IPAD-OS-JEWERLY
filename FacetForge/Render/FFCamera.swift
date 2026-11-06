@@ -270,16 +270,24 @@ struct FFCamera: Equatable, Sendable {
         )
     }
 
-    /// Moves the target so the scene follows a drag by `screenDelta` points.
-    mutating func pan(screenDelta: Vec2, viewport: Vec2) {
-        guard viewport.y > FFMath.eps else { return }
-        let worldPerPoint: Double
+    /// World millimetres covered by one viewport point on the target plane.
+    /// The scale bar and the pan both use this value, so the drawn bar and the
+    /// finger travel cannot drift apart.
+    func worldUnitsPerPoint(viewport: Vec2) -> Double? {
+        guard viewport.x > FFMath.eps, viewport.y > FFMath.eps else { return nil }
         switch projection {
         case .perspective:
-            worldPerPoint = 2 * distance * tan(fieldOfView * 0.5) / viewport.y
+            return 2 * distance * tan(fieldOfView * 0.5) / viewport.y
         case .orthographic:
-            worldPerPoint = orthographicHeight / viewport.y
+            return orthographicHeight / viewport.y
         }
+    }
+
+    /// Moves the target so the scene follows a drag by `screenDelta` points.
+    mutating func pan(screenDelta: Vec2, viewport: Vec2) {
+        guard let worldPerPoint = worldUnitsPerPoint(viewport: viewport),
+              screenDelta.x.isFinite, screenDelta.y.isFinite
+        else { return }
         let frame = basis
         target = target
             - frame.right * (screenDelta.x * worldPerPoint)
@@ -305,6 +313,14 @@ struct FFCamera: Equatable, Sendable {
 
     mutating func setProjection(_ mode: FFProjectionMode) {
         projection = mode
+    }
+
+    /// Sets the vertical world span for the orthographic lens. The clamp keeps
+    /// the scale finite and above one millimetre so the scale bar can always
+    /// resolve a physical length.
+    mutating func setOrthographicHeight(_ height: Double) {
+        guard height.isFinite else { return }
+        orthographicHeight = max(1, height)
     }
 
     /// Points the camera along a named view without touching the lens, the

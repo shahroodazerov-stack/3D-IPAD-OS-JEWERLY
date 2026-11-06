@@ -51,8 +51,11 @@ struct FFFrameStatistics: Equatable, Sendable {
 /// Deterministic line geometry for the empty-scene viewport. The grid lies in
 /// the XZ plane and the three world axes are drawn on top of it.
 enum FFViewportGeometry {
-    static let defaultExtent = 60.0
-    static let defaultSpacing = 5.0
+    /// Phase 11 sets the modelling grid to 1 mm with a 40 mm half-extent and a
+    /// major line every 10 mm. The scale bar and the grid share the millimetre
+    /// model, so a line is always one real millimetre apart.
+    static let defaultExtent = 40.0
+    static let defaultSpacing = 1.0
 
     static let minorColor = SIMD4<Float>(0.30, 0.33, 0.38, 1)
     static let majorColor = SIMD4<Float>(0.44, 0.48, 0.55, 1)
@@ -76,7 +79,7 @@ enum FFViewportGeometry {
 
         for index in -stepCount...stepCount where index != 0 {
             let coordinate = Double(index) * spacing
-            let color = index % 5 == 0 ? majorColor : minorColor
+            let color = index % 10 == 0 ? majorColor : minorColor
             appendLine(
                 from: Vec3(x: coordinate, y: 0, z: -extent),
                 to: Vec3(x: coordinate, y: 0, z: extent),
