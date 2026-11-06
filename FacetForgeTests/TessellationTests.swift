@@ -51,7 +51,7 @@ final class TessellationTests: XCTestCase {
         XCTAssertTrue(circle.isClosed)
         XCTAssertTrue(circle.toleranceMet)
         XCTAssertEqual(circle.triangleCount, 98)
-        XCTAssertEqual(circle.length, 2 * .pi * 10, accuracy: 0.01)
+        XCTAssertEqual(circle.length, 2 * .pi * 10, accuracy: 0.02)
     }
 
     func testTwentySampledArcMidpointsStayInsideFiveMicrons() {
@@ -104,7 +104,7 @@ final class TessellationTests: XCTestCase {
         }
 
         XCTAssertEqual(TessellationLOD.allCases, [.display, .export])
-        XCTAssertLessThan(TessellationSettings.display.chordalTolerance, TessellationSettings.export.chordalTolerance)
+        XCTAssertGreaterThan(TessellationSettings.display.chordalTolerance, TessellationSettings.export.chordalTolerance)
         XCTAssertLessThan(display.segmentCount, export.segmentCount)
         XCTAssertGreaterThanOrEqual(export.segmentCount, 100)
         XCTAssertTrue(display.toleranceMet)

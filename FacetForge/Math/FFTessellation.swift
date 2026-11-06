@@ -316,8 +316,11 @@ enum Tessellator {
         let start = curve.start
         let end = curve.end
         let isClosed = start.distance(to: end) <= 1e-7
-        let maximumPoints = isClosed ? settings.maximumSegments : settings.maximumSegments + 1
-        guard maximumPoints >= (isClosed ? 3 : 2) else { return nil }
+        // One extra point is reserved for a closed path's duplicate endpoint,
+        // which is removed after refinement. The same point budget therefore
+        // bounds both open and closed segment counts.
+        let maximumPoints = settings.maximumSegments + 1
+        guard maximumPoints >= 3 else { return nil }
 
         var points = [start]
         var toleranceMet = true
@@ -360,13 +363,14 @@ enum Tessellator {
             _ t1: Double,
             _ p0: Vec2,
             _ p1: Vec2,
-            _ depth: Int
+            _ depth: Int,
+            _ pointBudget: Int
         ) {
             let deviation = sampledDeviation(from: t0, to: t1, start: p0, end: p1)
             let turn = tangentTurn(from: t0, to: t1)
             let withinTolerance = deviation <= chordalThreshold
                 && turn <= settings.angularTolerance
-            let canSplit = depth < 16 && points.count + 2 <= maximumPoints
+            let canSplit = depth < 16 && pointBudget >= 2
 
             if withinTolerance || !canSplit {
                 if !withinTolerance { toleranceMet = false }
@@ -374,13 +378,21 @@ enum Tessellator {
                 return
             }
 
+            // Split the remaining point budget between the two halves. The
+            // right half's closing point is the parent's `p1`; the left half's
+            // closing point is the shared middle point. Allocating the budget
+            // explicitly, rather than checking `points.count` inside each
+            // recursive call, prevents a sequence of right siblings from
+            // overshooting the segment cap.
+            let leftBudget = max(1, pointBudget / 2)
+            let rightBudget = pointBudget - leftBudget
             let middle = (t0 + t1) * 0.5
             let middlePoint = curve.point(at: middle)
-            refine(t0, middle, p0, middlePoint, depth + 1)
-            refine(middle, t1, middlePoint, p1, depth + 1)
+            refine(t0, middle, p0, middlePoint, depth + 1, leftBudget)
+            refine(middle, t1, middlePoint, p1, depth + 1, rightBudget)
         }
 
-        refine(0, 1, start, end, 0)
+        refine(0, 1, start, end, 0, maximumPoints - 1)
 
         if isClosed {
             points.removeLast()
