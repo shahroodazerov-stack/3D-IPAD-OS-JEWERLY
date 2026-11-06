@@ -12,9 +12,9 @@ final class AppIdentityTests: XCTestCase {
         XCTAssertEqual(AppIdentity.tagline, "iPad CAD for jewellers")
     }
 
-    func testPhaseEightIsTheTessellationPipeline() {
-        XCTAssertEqual(AppIdentity.phase, 8)
-        XCTAssertEqual(AppIdentity.phaseLabel, "Phase 8 · tessellation")
+    func testPhaseNineIsTheMetalViewportBootstrap() {
+        XCTAssertEqual(AppIdentity.phase, 9)
+        XCTAssertEqual(AppIdentity.phaseLabel, "Phase 9 · metal viewport")
     }
 
     func testTheHostAppSupportsTheIPadLayout() {

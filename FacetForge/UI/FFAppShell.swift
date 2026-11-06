@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 
 /// The four width bands the shell is designed around. Phase 4 names these
@@ -124,6 +125,7 @@ struct FFAppShell: View {
     @State private var toolsCollapsed = false
     @State private var inspectorCollapsed = false
     @State private var bandWidth = "18.00"
+    @State private var frameStatistics = FFFrameStatistics()
 
     private let tools: [FFTool] = [
         FFTool(id: "select", systemImage: "cursorarrow", label: "Select"),
@@ -161,6 +163,8 @@ struct FFAppShell: View {
                         selectedTool: selectedTool,
                         toolsCollapsed: toolsCollapsed,
                         inspectorCollapsed: inspectorCollapsed,
+                        frameStatistics: frameStatistics,
+                        onFrameStatistics: { frameStatistics = $0 },
                         onShowTools: { toolsCollapsed = false },
                         onShowInspector: { inspectorCollapsed = false }
                     )
@@ -322,16 +326,24 @@ private struct FFViewport: View {
     let selectedTool: String
     let toolsCollapsed: Bool
     let inspectorCollapsed: Bool
+    let frameStatistics: FFFrameStatistics
+    let onFrameStatistics: (FFFrameStatistics) -> Void
     let onShowTools: () -> Void
     let onShowInspector: () -> Void
+
+    private var fpsLabel: String {
+        guard frameStatistics.averageFPS > 0 else { return "starting" }
+        return String(format: "%.0f fps", frameStatistics.averageFPS)
+    }
 
     var body: some View {
         ZStack {
             FFPalette.canvas.color
 
-            FFGrid()
-
-            FFRingPreview()
+            FFMetalViewportView(
+                camera: .standard,
+                onStatistics: onFrameStatistics
+            )
 
             VStack(spacing: 0) {
                 HStack(alignment: .top, spacing: FFSpace.sm) {
@@ -359,12 +371,13 @@ private struct FFViewport: View {
                         Circle()
                             .fill(FFPalette.success.color)
                             .frame(width: 6, height: 6)
-                        Text("60 fps · perspective")
+                        Text("\(fpsLabel) · perspective")
                             .font(FFType.monoSmall)
                             .foregroundStyle(FFPalette.textTertiary.color)
                     }
                     .accessibilityElement(children: .combine)
-                    .accessibilityLabel("Viewport running at 60 frames per second, perspective")
+                    .accessibilityIdentifier("shell.viewport.fps")
+                    .accessibilityLabel("Metal viewport, grid and world axes, \(fpsLabel), perspective")
 
                     Spacer(minLength: 0)
 
@@ -402,79 +415,6 @@ private struct FFViewport: View {
     }
 }
 
-private struct FFGrid: View {
-    var body: some View {
-        Canvas { context, size in
-            let step: CGFloat = 24
-            var minor = Path()
-            var x: CGFloat = 0
-            while x <= size.width {
-                minor.move(to: CGPoint(x: x, y: 0))
-                minor.addLine(to: CGPoint(x: x, y: size.height))
-                x += step
-            }
-            var y: CGFloat = 0
-            while y <= size.height {
-                minor.move(to: CGPoint(x: 0, y: y))
-                minor.addLine(to: CGPoint(x: size.width, y: y))
-                y += step
-            }
-            context.stroke(
-                minor,
-                with: .color(FFPalette.separator.color.opacity(0.22)),
-                lineWidth: 0.5
-            )
-
-            var axes = Path()
-            axes.move(to: CGPoint(x: size.width / 2, y: 0))
-            axes.addLine(to: CGPoint(x: size.width / 2, y: size.height))
-            axes.move(to: CGPoint(x: 0, y: size.height / 2))
-            axes.addLine(to: CGPoint(x: size.width, y: size.height / 2))
-            context.stroke(
-                axes,
-                with: .color(FFPalette.textAccent.color.opacity(0.3)),
-                lineWidth: 1
-            )
-        }
-        .accessibilityHidden(true)
-    }
-}
-
-private struct FFRingPreview: View {
-    var body: some View {
-        ZStack {
-            Circle()
-                .stroke(FFPalette.accent.color, lineWidth: 2)
-                .padding(0)
-
-            Circle()
-                .stroke(FFPalette.textSecondary.color.opacity(0.4), lineWidth: 1)
-                .padding(28)
-
-            Circle()
-                .fill(FFPalette.gem.color)
-                .frame(width: 76, height: 76)
-
-            Circle()
-                .stroke(FFPalette.textPrimary.color.opacity(0.55), lineWidth: 1)
-                .frame(width: 76, height: 76)
-
-            VStack(spacing: 2) {
-                Text("1.00 ct")
-                    .font(FFType.monoSmall)
-                    .foregroundStyle(FFPalette.textPrimary.color)
-                Text("18.00 mm")
-                    .font(FFType.monoSmall)
-                    .foregroundStyle(FFPalette.textAccent.color)
-            }
-            .padding(.top, 112)
-        }
-        .frame(width: 260, height: 260)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("Ring preview, one carat round stone, 18 millimetre band")
-        .accessibilityIdentifier("shell.viewport.ring")
-    }
-}
 
 // MARK: - Inspector
 
