@@ -235,8 +235,8 @@ private struct FFAppBar: View {
                 }
                 .font(FFType.caption)
                 .foregroundStyle(FFPalette.textSecondary.color)
-                .frame(minHeight: 44)
-                .padding(.horizontal, isCompact ? 0 : FFSpace.sm)
+                .frame(width: isCompact ? 44 : 116, height: 44)
+                .contentShape(Rectangle())
             }
             .buttonStyle(FFPressStyle())
             .accessibilityIdentifier("shell.openGallery")
