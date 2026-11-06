@@ -26,8 +26,11 @@ required = [
     "FacetForge.xcodeproj/xcshareddata/xcschemes/FacetForge.xcscheme",
     "FacetForge/FacetForgeApp.swift",
     "FacetForge/ContentView.swift",
+    "FacetForge/AppIdentity.swift",
     "FacetForge/Assets.xcassets/Contents.json",
     "FacetForge/Assets.xcassets/AccentColor.colorset/Contents.json",
+    "FacetForgeTests/AppIdentityTests.swift",
+    "FacetForgeUITests/LaunchTests.swift",
 ]
 for rel in required:
     if not (root / rel).exists():
@@ -76,6 +79,27 @@ if project.exists():
         if token not in text:
             errors.append(f"project.pbxproj is missing {token!r}")
 
+    for name, product in (("FacetForgeTests", "FacetForgeTests.xctest"), ("FacetForgeUITests", "FacetForgeUITests.xctest")):
+        target = re.search(rf"([0-9A-F]{{24}}) /\* {name} \*/ = \{{\s*isa = PBXNativeTarget;", text)
+        if not target:
+            errors.append(f"no PBXNativeTarget named {name}")
+        else:
+            block = text[target.start():]
+            block = block[: block.find("};") + 2]
+            if product not in block:
+                errors.append(f"{name} target does not produce {product}")
+
+    for token in (
+        "PRODUCT_BUNDLE_IDENTIFIER = com.shahroodazerov.facetforge.tests;",
+        "PRODUCT_BUNDLE_IDENTIFIER = com.shahroodazerov.facetforge.uitests;",
+        'TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FacetForge.app/FacetForge";',
+        "TEST_TARGET_NAME = FacetForge;",
+        'productType = "com.apple.product-type.bundle.unit-test";',
+        'productType = "com.apple.product-type.bundle.ui-testing";',
+    ):
+        if token not in text:
+            errors.append(f"project.pbxproj is missing {token!r}")
+
     defs = set(re.findall(r"^\s*([0-9A-F]{24})(?: /\*.*?\*/)? = \{", text, re.M))
     refs = set(re.findall(r"\b([0-9A-F]{24})\b", text))
     dangling = sorted(refs - defs)
@@ -102,6 +126,16 @@ if scheme.exists():
                 errors.append('scheme BuildableName is not "FacetForge.app"')
             if not any(e.get("ReferencedContainer") == "container:FacetForge.xcodeproj" for e in refs):
                 errors.append("scheme does not reference container:FacetForge.xcodeproj")
+
+        testables = [e for e in tree.iter("TestableReference")]
+        testable_names = {
+            e.find("BuildableReference").get("BuildableName")
+            for e in testables
+            if e.find("BuildableReference") is not None
+        }
+        for product in ("FacetForgeTests.xctest", "FacetForgeUITests.xctest"):
+            if product not in testable_names:
+                errors.append(f"scheme TestAction does not include {product}")
 
 if workspace.exists():
     try:

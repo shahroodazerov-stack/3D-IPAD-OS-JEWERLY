@@ -32,7 +32,7 @@ jobs:
           for f in scripts/*.sh; do bash -n "$f"; done
 
   ios:
-    name: Build and launch (iPad simulator)
+    name: Build, test and launch (iPad simulator)
     needs: static
     runs-on: macos-26
     timeout-minutes: 45
@@ -40,7 +40,7 @@ jobs:
       PROJECT: FacetForge.xcodeproj
       SCHEME: FacetForge
       DERIVED: ${{ github.workspace }}/.build/DerivedData
-      RESULT: ${{ github.workspace }}/.build/Build.xcresult
+      RESULT: ${{ github.workspace }}/.build/Test.xcresult
       LOG: ${{ github.workspace }}/.build/xcodebuild.log
     steps:
       - name: Checkout
@@ -99,13 +99,13 @@ jobs:
           xcrun simctl boot "$udid" || true
           xcrun simctl bootstatus "$udid" -b
 
-      - name: Build for the iPad simulator
+      - name: Build and run unit/UI tests
         if: steps.detect.outputs.present == 'true'
         shell: bash
         run: |
           set -o pipefail
           rm -rf "$RESULT"
-          xcodebuild build \
+          xcodebuild test \
             -project "$PROJECT" \
             -scheme "$SCHEME" \
             -configuration Debug \
@@ -113,10 +113,23 @@ jobs:
             -derivedDataPath "$DERIVED" \
             -clonedSourcePackagesDirPath .build/SourcePackages \
             -resultBundlePath "$RESULT" \
+            -parallel-testing-enabled NO \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
             | tee "$LOG"
+
+      - name: Verify tests actually executed
+        if: steps.detect.outputs.present == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! grep -Eq 'Executed [1-9][0-9]* tests?, with 0 failures' "$LOG"; then
+            echo "::error::xcodebuild exited without executing any passing tests. A green gate with zero tests is not a gate."
+            grep -E 'Executed|Test Suite|error:|failed' "$LOG" | tail -80 || true
+            exit 1
+          fi
+          grep -E 'Executed [1-9][0-9]* tests?, with 0 failures' "$LOG" | tail -5
 
       - name: Simulator launch smoke and screenshot
         if: steps.detect.outputs.present == 'true'
@@ -137,13 +150,13 @@ jobs:
           test -s .build/smoke.png
           sips -g pixelWidth -g pixelHeight .build/smoke.png
 
-      - name: Upload build results and screenshot
+      - name: Upload test results and screenshot
         if: always() && steps.detect.outputs.present == 'true'
         uses: actions/upload-artifact@v4
         with:
           name: ios-results
           path: |
-            .build/Build.xcresult
+            .build/Test.xcresult
             .build/xcodebuild.log
             .build/xcodebuild-list.json
             .build/launch.txt

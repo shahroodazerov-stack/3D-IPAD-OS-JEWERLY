@@ -66,20 +66,26 @@ if [ -z "$UDID" ]; then
 fi
 
 xcodebuild -list -project "$PROJECT" -json | tee .dev-cache/xcode/xcodebuild-list.json
-rm -rf .dev-cache/xcode/Build.xcresult
+rm -rf .dev-cache/xcode/Test.xcresult
 set -o pipefail
-xcodebuild build \
+xcodebuild test \
   -project "$PROJECT" \
   -scheme "$SCHEME" \
   -configuration Debug \
   -destination "platform=iOS Simulator,id=$UDID" \
   -derivedDataPath .dev-cache/xcode/DerivedData \
   -clonedSourcePackagesDirPath .dev-cache/xcode/SourcePackages \
-  -resultBundlePath .dev-cache/xcode/Build.xcresult \
+  -resultBundlePath .dev-cache/xcode/Test.xcresult \
+  -parallel-testing-enabled NO \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGNING_REQUIRED=NO \
   CODE_SIGN_IDENTITY="" \
   | tee .dev-cache/xcode/xcodebuild.log
+
+if ! grep -Eq 'Executed [1-9][0-9]* tests?, with 0 failures' .dev-cache/xcode/xcodebuild.log; then
+  echo "FAIL: xcodebuild ran no passing tests" >&2
+  exit 1
+fi
 
 APP=$(find .dev-cache/xcode/DerivedData/Build/Products -name 'FacetForge.app' -type d | head -1)
 if [ -z "$APP" ]; then

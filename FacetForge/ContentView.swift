@@ -16,24 +16,27 @@ struct ContentView: View {
                     .accessibilityHidden(true)
 
                 VStack(spacing: 6) {
-                    Text("FacetForge")
+                    Text(AppIdentity.displayName)
                         .font(.system(size: 36, weight: .semibold, design: .serif))
                         .foregroundStyle(porcelain)
+                        .accessibilityIdentifier("launch.title")
 
-                    Text("iPad CAD for jewellers")
+                    Text(AppIdentity.tagline)
                         .font(.callout)
                         .foregroundStyle(porcelain.opacity(0.72))
+                        .accessibilityIdentifier("launch.tagline")
                 }
 
-                Text("Phase 1 · app target")
+                Text(AppIdentity.phaseLabel)
                     .font(.system(.footnote, design: .monospaced))
                     .foregroundStyle(metal)
                     .padding(.top, 4)
+                    .accessibilityIdentifier("launch.phase")
             }
             .padding(48)
         }
+        .accessibilityIdentifier("launch.root")
         .preferredColorScheme(.dark)
-        .accessibilityElement(children: .combine)
     }
 }
 
