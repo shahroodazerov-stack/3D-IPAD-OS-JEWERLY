@@ -30,7 +30,11 @@ final class AdaptiveShellTests: XCTestCase {
             XCTAssertTrue(viewport.exists, "viewport zone missing at \(Int(width)) pt")
             XCTAssertTrue(inspector.exists, "inspector zone missing at \(Int(width)) pt")
 
+            let window = app.windows.firstMatch
+            XCTAssertTrue(window.exists, "app window missing at \(Int(width)) pt")
             XCTAssertEqual(shell.frame.width, width, accuracy: 3, "shell did not render at \(Int(width)) pt")
+            XCTAssertGreaterThanOrEqual(shell.frame.minX, window.frame.minX - 1, "shell is clipped at the left edge")
+            XCTAssertLessThanOrEqual(shell.frame.maxX, window.frame.maxX + 1, "shell is wider than the app window")
             XCTAssertGreaterThan(tools.frame.width, 0)
             XCTAssertGreaterThan(viewport.frame.width, 200)
             XCTAssertGreaterThan(inspector.frame.width, 0)
@@ -51,7 +55,7 @@ final class AdaptiveShellTests: XCTestCase {
             XCTAssertGreaterThanOrEqual(bandWidth.frame.minX, inspector.frame.minX - 1, "field clipped at left")
             XCTAssertLessThanOrEqual(bandWidth.frame.maxX, inspector.frame.maxX + 1, "field clipped at right")
 
-            let screenshot = XCTAttachment(screenshot: app.screenshot())
+            let screenshot = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
             screenshot.name = "adaptive-shell-\(Int(width))"
             screenshot.lifetime = .keepAlways
             add(screenshot)
@@ -93,7 +97,7 @@ final class AdaptiveShellTests: XCTestCase {
         showTools.tap()
         XCTAssertTrue(element("shell.tools", app).waitForExistence(timeout: 3))
 
-        let restored = XCTAttachment(screenshot: app.screenshot())
+        let restored = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
         restored.name = "adaptive-shell-restored"
         restored.lifetime = .keepAlways
         add(restored)
