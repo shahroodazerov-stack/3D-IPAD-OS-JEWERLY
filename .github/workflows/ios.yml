@@ -1,0 +1,137 @@
+name: iOS gate
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static:
+    name: Plan and workflow checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate plan, workflow and scripts
+        shell: bash
+        run: |
+          set -o pipefail
+          bash scripts/check-plan.sh
+          bash scripts/check-workflow.sh
+          bash scripts/check-evidence.sh
+          for f in scripts/*.sh; do bash -n "$f"; done
+
+  ios:
+    name: Build and test (iPad simulator)
+    needs: static
+    runs-on: macos-26
+    timeout-minutes: 45
+    env:
+      PROJECT: FacetForge.xcodeproj
+      SCHEME: FacetForge
+      DERIVED: ${{ github.workspace }}/.build/DerivedData
+      RESULT: ${{ github.workspace }}/.build/Test.xcresult
+      LOG: ${{ github.workspace }}/.build/xcodebuild.log
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Select Xcode
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -d /Applications/Xcode_26.6.app ]; then
+            sudo xcode-select -s /Applications/Xcode_26.6.app
+          fi
+          xcodebuild -version
+
+      - name: Detect Xcode project
+        id: detect
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .build
+          if [ -d "$PROJECT" ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Phase 0 skeleton: no $PROJECT yet. Static gate only; phase 1 turns on the build."
+          fi
+
+      - name: Select an available iPad simulator
+        id: sim
+        if: steps.detect.outputs.present == 'true'
+        shell: bash
+        run: |
+          set -euo pipefail
+          udid=$(xcrun simctl list devices available -j | ruby -rjson -e '
+            devices = JSON.parse(STDIN.read)["devices"]
+            pick = nil
+            devices.each do |runtime, list|
+              next unless runtime.include?("iOS")
+              list.each { |d| pick = d if pick.nil? && d["name"].match?(/iPad/) }
+            end
+            puts(pick ? pick["udid"] : "")
+          ')
+          if [ -z "$udid" ]; then
+            echo "::error::No available iPad simulator on this runner image."
+            xcrun simctl list devices available
+            exit 1
+          fi
+          echo "udid=$udid" >> "$GITHUB_OUTPUT"
+          xcrun simctl boot "$udid" || true
+
+      - name: Build and unit/UI test
+        if: steps.detect.outputs.present == 'true'
+        shell: bash
+        run: |
+          set -o pipefail
+          rm -rf "$RESULT"
+          xcodebuild test \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -destination "platform=iOS Simulator,id=${{ steps.sim.outputs.udid }}" \
+            -derivedDataPath "$DERIVED" \
+            -clonedSourcePackagesDirPath .build/SourcePackages \
+            -resultBundlePath "$RESULT" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            | tee "$LOG"
+
+      - name: Simulator launch smoke and screenshot
+        if: steps.detect.outputs.present == 'true'
+        shell: bash
+        run: |
+          set -o pipefail
+          app=$(find "$DERIVED/Build/Products" -name '*.app' -type d | head -1)
+          if [ -z "$app" ]; then
+            echo "::error::No .app product found after build."
+            exit 1
+          fi
+          bundle=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$app/Info.plist")
+          xcrun simctl install "${{ steps.sim.outputs.udid }}" "$app"
+          xcrun simctl launch "${{ steps.sim.outputs.udid }}" "$bundle"
+          sleep 3
+          xcrun simctl io "${{ steps.sim.outputs.udid }}" screenshot .build/smoke.png
+
+      - name: Upload test results and screenshot
+        if: always() && steps.detect.outputs.present == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-results
+          path: |
+            .build/Test.xcresult
+            .build/xcodebuild.log
+            .build/smoke.png
+          if-no-files-found: warn

@@ -1,0 +1,64 @@
+# --- project-local cache staging area (everything tooling generates) -------
+.dev-cache/
+
+# --- OS / editor ----------------------------------------------------------
+Thumbs.db
+Desktop.ini
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# --- secrets --------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# --- node / js ------------------------------------------------------------
+node_modules/
+.npm/
+.next/
+.nuxt/
+.svelte-kit/
+.turbo/
+.parcel-cache/
+dist/
+build/
+out/
+coverage/
+*.tsbuildinfo
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- python ---------------------------------------------------------------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# --- go -------------------------------------------------------------------
+vendor/
+*.test
+*.out
+
+# --- dotnet ---------------------------------------------------------------
+bin/
+obj/
+*.user
+TestResults/
+
+# --- rust -----------------------------------------------------------------
+target/
+
+# --- logs / scratch -------------------------------------------------------
+*.log
+tmp/
