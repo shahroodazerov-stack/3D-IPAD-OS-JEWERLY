@@ -344,6 +344,7 @@ private struct FFViewport: View {
                 camera: .standard,
                 onStatistics: onFrameStatistics
             )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             VStack(spacing: 0) {
                 HStack(alignment: .top, spacing: FFSpace.sm) {
