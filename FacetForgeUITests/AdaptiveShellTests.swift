@@ -77,25 +77,33 @@ final class AdaptiveShellTests: XCTestCase {
         XCTAssertTrue(hideInspector.waitForExistence(timeout: 5))
         hideInspector.tap()
 
-        XCTAssertFalse(element("shell.inspector", app).waitForExistence(timeout: 2))
+        waitForDisappearance(
+            element("shell.inspector", app),
+            timeout: 10,
+            "inspector did not collapse after tapping Hide inspector"
+        )
         let afterInspector = element("shell.viewport", app)
-        XCTAssertTrue(afterInspector.waitForExistence(timeout: 2))
+        XCTAssertTrue(afterInspector.waitForExistence(timeout: 5))
         XCTAssertGreaterThan(afterInspector.frame.width, before + 200, "inspector width did not return to the viewport")
 
         let showInspector = app.buttons["Show inspector"]
-        XCTAssertTrue(showInspector.waitForExistence(timeout: 3))
+        XCTAssertTrue(showInspector.waitForExistence(timeout: 10))
         showInspector.tap()
-        XCTAssertTrue(element("shell.inspector", app).waitForExistence(timeout: 3))
+        XCTAssertTrue(element("shell.inspector", app).waitForExistence(timeout: 10))
 
         let hideTools = app.buttons["Hide tools"]
         XCTAssertTrue(hideTools.waitForExistence(timeout: 5))
         hideTools.tap()
-        XCTAssertFalse(element("shell.tools", app).waitForExistence(timeout: 2))
+        waitForDisappearance(
+            element("shell.tools", app),
+            timeout: 10,
+            "tool rail did not collapse after tapping Hide tools"
+        )
 
         let showTools = app.buttons["Show tools"]
-        XCTAssertTrue(showTools.waitForExistence(timeout: 3))
+        XCTAssertTrue(showTools.waitForExistence(timeout: 10))
         showTools.tap()
-        XCTAssertTrue(element("shell.tools", app).waitForExistence(timeout: 3))
+        XCTAssertTrue(element("shell.tools", app).waitForExistence(timeout: 10))
 
         let restored = XCTAttachment(screenshot: XCUIScreen.main.screenshot())
         restored.name = "adaptive-shell-restored"
@@ -132,5 +140,21 @@ final class AdaptiveShellTests: XCTestCase {
 
     private func element(_ identifier: String, _ app: XCUIApplication) -> XCUIElement {
         app.descendants(matching: .any)[identifier]
+    }
+
+    /// `waitForExistence` returns immediately when the element is already
+    /// present, so it cannot prove a view disappeared. This waits on the
+    /// `exists` predicate until the app finishes removing the view.
+    private func waitForDisappearance(
+        _ element: XCUIElement,
+        timeout: TimeInterval,
+        _ message: String
+    ) {
+        let expectation = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "exists == false"),
+            object: element
+        )
+        let result = XCTWaiter.wait(for: [expectation], timeout: timeout)
+        XCTAssertEqual(result, .completed, message)
     }
 }
