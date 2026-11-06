@@ -111,7 +111,7 @@ final class RenderTests: XCTestCase {
         XCTAssertEqual(camera.pitch, FFCamera.pitchLimit, accuracy: 1e-12)
         XCTAssertEqual(camera.yaw, FFMath.radians(-35) + .pi * 2, accuracy: 1e-12)
 
-        camera.orbit(deltaPitch: -100)
+        camera.orbit(deltaYaw: 0, deltaPitch: -100)
         XCTAssertEqual(camera.pitch, -FFCamera.pitchLimit, accuracy: 1e-12)
 
         camera.dolly(by: 1_000_000)
