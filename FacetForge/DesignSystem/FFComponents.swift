@@ -76,6 +76,7 @@ struct FFChip: View {
     let title: String
     var systemImage: String? = nil
     var isSelected = false
+    var accessibilityIdentifier: String? = nil
     let action: () -> Void
 
     var body: some View {
@@ -97,6 +98,7 @@ struct FFChip: View {
             )
         }
         .buttonStyle(FFPressStyle())
+        .accessibilityIdentifier(accessibilityIdentifier ?? title)
         .accessibilityLabel(title)
         .accessibilityAddTraits(isSelected ? .isSelected : [])
     }

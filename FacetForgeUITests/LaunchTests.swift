@@ -18,8 +18,12 @@ final class LaunchTests: XCTestCase {
         }
         XCTAssertTrue(app.staticTexts["iPad CAD for jewellers"].exists)
         XCTAssertTrue(
-            app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Phase 2")).firstMatch.exists
+            app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Phase 4")).firstMatch.exists
         )
+        XCTAssertTrue(app.otherElements["shell"].exists)
+        XCTAssertTrue(app.otherElements["shell.tools"].exists)
+        XCTAssertTrue(app.otherElements["shell.viewport"].exists)
+        XCTAssertTrue(app.otherElements["shell.inspector"].exists)
 
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = "launch-smoke"

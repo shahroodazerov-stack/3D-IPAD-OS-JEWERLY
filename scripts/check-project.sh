@@ -30,13 +30,18 @@ required = [
     "FacetForge/DesignSystem/FFTokens.swift",
     "FacetForge/DesignSystem/FFComponents.swift",
     "FacetForge/DesignSystem/ComponentGalleryView.swift",
+    "FacetForge/UI/FFAppShell.swift",
+    "FacetForge/UI/FFLayoutLabView.swift",
+    "FacetForge/UI/FFSceneSizePolicy.swift",
     "FacetForge/Assets.xcassets/Contents.json",
     "FacetForge/Assets.xcassets/AccentColor.colorset/Contents.json",
     "FacetForgeTests/AppIdentityTests.swift",
     "FacetForgeTests/DesignSystemTests.swift",
     "FacetForgeTests/ComponentSnapshotTests.swift",
+    "FacetForgeTests/LayoutSnapshotTests.swift",
     "FacetForgeUITests/LaunchTests.swift",
     "FacetForgeUITests/GalleryTests.swift",
+    "FacetForgeUITests/AdaptiveShellTests.swift",
 ]
 for rel in required:
     if not (root / rel).exists():
@@ -96,6 +101,11 @@ if project.exists():
                 errors.append(f"{name} target does not produce {product}")
 
     for token in (
+        "A10000000000000000000023 /* FFAppShell.swift in Sources */",
+        "A10000000000000000000024 /* FFLayoutLabView.swift in Sources */",
+        "A10000000000000000000025 /* FFSceneSizePolicy.swift in Sources */",
+        "A20000000000000000000013 /* LayoutSnapshotTests.swift in Sources */",
+        "A30000000000000000000011 /* AdaptiveShellTests.swift in Sources */",
         "PRODUCT_BUNDLE_IDENTIFIER = com.shahroodazerov.facetforge.tests;",
         "PRODUCT_BUNDLE_IDENTIFIER = com.shahroodazerov.facetforge.uitests;",
         'TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FacetForge.app/FacetForge";',
