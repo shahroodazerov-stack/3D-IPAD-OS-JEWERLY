@@ -11,10 +11,15 @@ final class LaunchTests: XCTestCase {
         app.launch()
 
         XCTAssertTrue(app.wait(for: .runningForeground, timeout: 30))
-        XCTAssertTrue(app.staticTexts["launch.title"].waitForExistence(timeout: 10))
-        XCTAssertEqual(app.staticTexts["launch.title"].label, "FacetForge")
-        XCTAssertEqual(app.staticTexts["launch.tagline"].label, "iPad CAD for jewellers")
-        XCTAssertTrue(app.staticTexts["launch.phase"].label.contains("Phase 2"))
+
+        let title = app.staticTexts["FacetForge"]
+        if !title.waitForExistence(timeout: 10) {
+            XCTFail("FacetForge title did not appear. Hierarchy:\n\(app.debugDescription)")
+        }
+        XCTAssertTrue(app.staticTexts["iPad CAD for jewellers"].exists)
+        XCTAssertTrue(
+            app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Phase 2")).firstMatch.exists
+        )
 
         let attachment = XCTAttachment(screenshot: app.screenshot())
         attachment.name = "launch-smoke"

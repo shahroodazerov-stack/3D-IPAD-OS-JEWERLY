@@ -35,7 +35,7 @@ struct ContentView: View {
             }
             .padding(48)
         }
-        .accessibilityIdentifier("launch.root")
+        .accessibilityElement(children: .contain)
         .preferredColorScheme(.dark)
     }
 }
