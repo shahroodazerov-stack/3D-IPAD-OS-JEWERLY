@@ -20,11 +20,13 @@
 		A1000000000000000000002B /* FFMath.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000027 /* FFMath.swift */; };
 		A1000000000000000000002C /* FFMatrices.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000028 /* FFMatrices.swift */; };
 		A1000000000000000000002D /* FFGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000029 /* FFGeometry.swift */; };
+		A1000000000000000000002F /* FFCurves.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000002E /* FFCurves.swift */; };
 		A2000000000000000000000B /* AppIdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* AppIdentityTests.swift */; };
 		A2000000000000000000000F /* DesignSystemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* DesignSystemTests.swift */; };
 		A20000000000000000000011 /* ComponentSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* ComponentSnapshotTests.swift */; };
 		A20000000000000000000013 /* LayoutSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000012 /* LayoutSnapshotTests.swift */; };
 		A20000000000000000000015 /* MathPropertyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* MathPropertyTests.swift */; };
+		A20000000000000000000017 /* CurveKernelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000016 /* CurveKernelTests.swift */; };
 		A3000000000000000000000B /* LaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000002 /* LaunchTests.swift */; };
 		A3000000000000000000000F /* GalleryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3000000000000000000000E /* GalleryTests.swift */; };
 		A30000000000000000000011 /* AdaptiveShellTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000010 /* AdaptiveShellTests.swift */; };
@@ -62,11 +64,13 @@
 		A10000000000000000000027 /* FFMath.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFMath.swift; sourceTree = "<group>"; };
 		A10000000000000000000028 /* FFMatrices.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFMatrices.swift; sourceTree = "<group>"; };
 		A10000000000000000000029 /* FFGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFGeometry.swift; sourceTree = "<group>"; };
+		A1000000000000000000002E /* FFCurves.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFCurves.swift; sourceTree = "<group>"; };
 		A20000000000000000000002 /* AppIdentityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIdentityTests.swift; sourceTree = "<group>"; };
 		A2000000000000000000000E /* DesignSystemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystemTests.swift; sourceTree = "<group>"; };
 		A20000000000000000000010 /* ComponentSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentSnapshotTests.swift; sourceTree = "<group>"; };
 		A20000000000000000000012 /* LayoutSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutSnapshotTests.swift; sourceTree = "<group>"; };
 		A20000000000000000000014 /* MathPropertyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathPropertyTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000016 /* CurveKernelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurveKernelTests.swift; sourceTree = "<group>"; };
 		A20000000000000000000003 /* FacetForgeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FacetForgeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A30000000000000000000002 /* LaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchTests.swift; sourceTree = "<group>"; };
 		A3000000000000000000000E /* GalleryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryTests.swift; sourceTree = "<group>"; };
@@ -159,6 +163,7 @@
 				A10000000000000000000027 /* FFMath.swift */,
 				A10000000000000000000028 /* FFMatrices.swift */,
 				A10000000000000000000029 /* FFGeometry.swift */,
+				A1000000000000000000002E /* FFCurves.swift */,
 			);
 			path = Math;
 			sourceTree = "<group>";
@@ -171,6 +176,7 @@
 				A20000000000000000000010 /* ComponentSnapshotTests.swift */,
 				A20000000000000000000012 /* LayoutSnapshotTests.swift */,
 				A20000000000000000000014 /* MathPropertyTests.swift */,
+				A20000000000000000000016 /* CurveKernelTests.swift */,
 			);
 			path = FacetForgeTests;
 			sourceTree = "<group>";
@@ -326,6 +332,7 @@
 				A1000000000000000000002B /* FFMath.swift in Sources */,
 				A1000000000000000000002C /* FFMatrices.swift in Sources */,
 				A1000000000000000000002D /* FFGeometry.swift in Sources */,
+				A1000000000000000000002F /* FFCurves.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -338,6 +345,7 @@
 				A20000000000000000000011 /* ComponentSnapshotTests.swift in Sources */,
 				A20000000000000000000013 /* LayoutSnapshotTests.swift in Sources */,
 				A20000000000000000000015 /* MathPropertyTests.swift in Sources */,
+				A20000000000000000000017 /* CurveKernelTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
