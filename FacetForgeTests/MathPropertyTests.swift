@@ -139,7 +139,7 @@ private func checkVec2Normalize(seed: UInt64) -> String? {
     if abs(unit.length - 1) > 1e-12 {
         return "normalized Vec2 has length \(unit.length)"
     }
-    guard let scaled = (value * -7.5).normalized() else {
+    guard let scaled = (value * 7.5).normalized() else {
         return "a scaled non-zero Vec2 failed to normalize"
     }
     if scaled.distance(to: unit) > 1e-12 {
@@ -181,7 +181,7 @@ private func checkVec3Normalize(seed: UInt64) -> String? {
     if abs(unit.length - 1) > 1e-12 {
         return "normalized Vec3 has length \(unit.length)"
     }
-    guard let scaled = (value * -4.25).normalized() else {
+    guard let scaled = (value * 4.25).normalized() else {
         return "a scaled non-zero Vec3 failed to normalize"
     }
     if scaled.distance(to: unit) > 1e-12 {
