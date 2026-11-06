@@ -13,7 +13,7 @@ final class AppIdentityTests: XCTestCase {
     }
 
     func testPhaseTwoIsTheActiveGate() {
-        XCTAssertEqual(AppIdentity.phase, 2)
+        XCTAssertEqual(AppIdentity.phase, 999)
         XCTAssertEqual(AppIdentity.phaseLabel, "Phase 2 · behaviour gate")
     }
 
