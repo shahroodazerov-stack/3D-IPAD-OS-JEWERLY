@@ -34,6 +34,7 @@ REQUIRED = [
     "scripts/check-links.py",
     "docs/MASTER-PLAN.md",
     "docs/PROGRESS.md",
+    "docs/branding.md",
     "docs/legal/provenance.md",
     "docs/adr/README.md",
     "docs/research/a-matrixgold-product.md",
