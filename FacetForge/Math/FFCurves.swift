@@ -34,8 +34,12 @@ struct Bezier2D: Equatable, Sendable {
         guard degree >= 2 else { return .zero }
         let n = Double(degree)
         let scale = n * (n - 1)
-        let differences = (0..<(controlPoints.count - 2)).map { index in
-            (controlPoints[index + 2] - controlPoints[index + 1] * 2 + controlPoints[index]) * scale
+        let differences: [Vec2] = (0..<(controlPoints.count - 2)).map { index -> Vec2 in
+            let current = controlPoints[index]
+            let next = controlPoints[index + 1]
+            let following = controlPoints[index + 2]
+            let difference = following - next * 2.0 + current
+            return difference * scale
         }
         return Self.evaluate(differences, at: FFMath.clamp(t, to: 0...1))
     }
