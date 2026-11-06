@@ -34,7 +34,10 @@ jobs:
   ios:
     name: Build, test and launch (iPad simulator)
     needs: static
-    runs-on: macos-26
+    # The research note says to use the Intel image only when the arm64 pool is
+    # unavailable. After repeated arm64 cancellations with runner_id 0, that is
+    # the current state; macos-26-intel carries the same Xcode 26.6 toolchain.
+    runs-on: macos-26-intel
     timeout-minutes: 45
     env:
       PROJECT: FacetForge.xcodeproj
