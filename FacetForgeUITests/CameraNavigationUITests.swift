@@ -53,7 +53,7 @@ final class CameraNavigationUITests: XCTestCase {
             wait(
                 until: {
                     guard let state = metal.value as? String,
-                          let current = distance(in: state)
+                          let current = self.distance(in: state)
                     else { return false }
                     return current < beforePinch - 1
                 },
