@@ -16,6 +16,7 @@ echo "== static checks"
 bash scripts/check-plan.sh
 bash scripts/check-workflow.sh
 bash scripts/check-evidence.sh
+bash scripts/check-project.sh
 for f in scripts/*.sh; do
   bash -n "$f"
 done
@@ -64,29 +65,34 @@ if [ -z "$UDID" ]; then
   exit 1
 fi
 
-rm -rf .dev-cache/xcode/Test.xcresult
+xcodebuild -list -project "$PROJECT" -json | tee .dev-cache/xcode/xcodebuild-list.json
+rm -rf .dev-cache/xcode/Build.xcresult
 set -o pipefail
-xcodebuild test \
+xcodebuild build \
   -project "$PROJECT" \
   -scheme "$SCHEME" \
+  -configuration Debug \
   -destination "platform=iOS Simulator,id=$UDID" \
   -derivedDataPath .dev-cache/xcode/DerivedData \
   -clonedSourcePackagesDirPath .dev-cache/xcode/SourcePackages \
-  -resultBundlePath .dev-cache/xcode/Test.xcresult \
+  -resultBundlePath .dev-cache/xcode/Build.xcresult \
   CODE_SIGNING_ALLOWED=NO \
   CODE_SIGNING_REQUIRED=NO \
   CODE_SIGN_IDENTITY="" \
   | tee .dev-cache/xcode/xcodebuild.log
 
-APP=$(find .dev-cache/xcode/DerivedData/Build/Products -name '*.app' -type d | head -1)
+APP=$(find .dev-cache/xcode/DerivedData/Build/Products -name 'FacetForge.app' -type d | head -1)
 if [ -z "$APP" ]; then
-  echo "FAIL: no .app product found" >&2
+  echo "FAIL: no FacetForge.app product found" >&2
   exit 1
 fi
 BUNDLE=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP/Info.plist")
 xcrun simctl boot "$UDID" || true
+xcrun simctl bootstatus "$UDID" -b
 xcrun simctl install "$UDID" "$APP"
-xcrun simctl launch "$UDID" "$BUNDLE"
-sleep 3
+xcrun simctl launch --terminate-running-process "$UDID" "$BUNDLE" | tee .dev-cache/xcode/launch.txt
+sleep 5
 xcrun simctl io "$UDID" screenshot .dev-cache/xcode/smoke.png
+test -s .dev-cache/xcode/smoke.png
+sips -g pixelWidth -g pixelHeight .dev-cache/xcode/smoke.png
 echo "== iOS build: PASS (screenshot .dev-cache/xcode/smoke.png)"

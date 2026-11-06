@@ -59,6 +59,14 @@ TestResults/
 # --- rust -----------------------------------------------------------------
 target/
 
+# --- xcode / apple --------------------------------------------------------
+.build/
+DerivedData/
+*.xcresult
+xcuserdata/
+*.xccheckout
+*.xcscmblueprint
+
 # --- logs / scratch -------------------------------------------------------
 *.log
 tmp/

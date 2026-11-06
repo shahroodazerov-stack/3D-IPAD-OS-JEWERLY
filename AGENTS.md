@@ -186,6 +186,8 @@ If a tool ignores all of this and still writes to C:, document it under
 ## Project facts
 
 - Runtime available: Node.js 24 / npm 11, Python 3.15, Go, .NET 8, Git.
+- iOS stack: SwiftUI app target, iPadOS 26.0 deployment target, hand-authored
+  `FacetForge.xcodeproj`; system frameworks only, no third-party packages.
+- Test runner: XCUITest/XCTest planned; no test target exists in Phase 1.
 - Not installed: pnpm, yarn, bun, cargo, rustup (env vars for them are set
   pre-emptively so they stay local the day they are added).
-- Package manager / framework / test runner: **undecided** — fill in when chosen.

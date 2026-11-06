@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+# Static checks for the hand-authored Xcode project. This does not replace
+# xcodebuild; it catches missing files, dangling object IDs, an unshared scheme
+# and wrong target settings before a macOS runner is spent.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+
+PY="${PYTHON:-}"
+if [ -z "$PY" ]; then
+  if command -v python3 >/dev/null 2>&1; then PY=python3; else PY=python; fi
+fi
+
+"$PY" - "$@" <<'PY'
+import json
+import re
+import sys
+import xml.etree.ElementTree as ET
+from pathlib import Path
+
+root = Path.cwd()
+errors = []
+
+required = [
+    "FacetForge.xcodeproj/project.pbxproj",
+    "FacetForge.xcodeproj/project.xcworkspace/contents.xcworkspacedata",
+    "FacetForge.xcodeproj/xcshareddata/xcschemes/FacetForge.xcscheme",
+    "FacetForge/FacetForgeApp.swift",
+    "FacetForge/ContentView.swift",
+    "FacetForge/Assets.xcassets/Contents.json",
+    "FacetForge/Assets.xcassets/AccentColor.colorset/Contents.json",
+]
+for rel in required:
+    if not (root / rel).exists():
+        errors.append(f"missing {rel}")
+
+project = root / "FacetForge.xcodeproj/project.pbxproj"
+scheme = root / "FacetForge.xcodeproj/xcshareddata/xcschemes/FacetForge.xcscheme"
+workspace = root / "FacetForge.xcodeproj/project.xcworkspace/contents.xcworkspacedata"
+
+target_id = None
+if project.exists():
+    text = project.read_text(encoding="utf-8")
+    if text.count("{") != text.count("}"):
+        errors.append("project.pbxproj has unbalanced braces")
+    if text.count('"') % 2:
+        errors.append("project.pbxproj has an odd number of double quotes")
+    if "rootObject =" not in text:
+        errors.append("project.pbxproj has no rootObject")
+
+    match = re.search(r"([0-9A-F]{24}) /\* FacetForge \*/ = \{\s*isa = PBXNativeTarget;", text)
+    if not match:
+        errors.append("no PBXNativeTarget named FacetForge")
+    else:
+        target_id = match.group(1)
+        block = text[match.start():]
+        block = block[: block.find("};") + 2]
+        for token in (
+            'productType = "com.apple.product-type.application";',
+            "productReference = A10000000000000000000006",
+        ):
+            if token not in block:
+                errors.append(f"FacetForge target is missing {token!r}")
+
+    settings = [
+        "PRODUCT_BUNDLE_IDENTIFIER = com.shahroodazerov.facetforge;",
+        "IPHONEOS_DEPLOYMENT_TARGET = 26.0;",
+        "TARGETED_DEVICE_FAMILY = 2;",
+        "SWIFT_VERSION = 5.0;",
+        "GENERATE_INFOPLIST_FILE = YES;",
+        "INFOPLIST_KEY_UILaunchScreen_Generation = YES;",
+        "INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;",
+        'SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";',
+        "CODE_SIGN_STYLE = Automatic;",
+    ]
+    for token in settings:
+        if token not in text:
+            errors.append(f"project.pbxproj is missing {token!r}")
+
+    defs = set(re.findall(r"^\s*([0-9A-F]{24})(?: /\*.*?\*/)? = \{", text, re.M))
+    refs = set(re.findall(r"\b([0-9A-F]{24})\b", text))
+    dangling = sorted(refs - defs)
+    if dangling:
+        errors.append("project.pbxproj references undefined object IDs: " + ", ".join(dangling))
+
+    root_match = re.search(r"rootObject = ([0-9A-F]{24})", text)
+    if root_match and root_match.group(1) not in defs:
+        errors.append("project.pbxproj rootObject is not defined")
+
+if scheme.exists():
+    try:
+        tree = ET.parse(scheme)
+    except ET.ParseError as exc:
+        errors.append(f"scheme is not valid XML: {exc}")
+    else:
+        refs = [e for e in tree.iter("BuildableReference")]
+        if not refs:
+            errors.append("scheme has no BuildableReference")
+        else:
+            if target_id and not any(e.get("BlueprintIdentifier") == target_id for e in refs):
+                errors.append("scheme BlueprintIdentifier does not match the FacetForge target")
+            if not any(e.get("BuildableName") == "FacetForge.app" for e in refs):
+                errors.append('scheme BuildableName is not "FacetForge.app"')
+            if not any(e.get("ReferencedContainer") == "container:FacetForge.xcodeproj" for e in refs):
+                errors.append("scheme does not reference container:FacetForge.xcodeproj")
+
+if workspace.exists():
+    try:
+        ET.parse(workspace)
+    except ET.ParseError as exc:
+        errors.append(f"workspace is not valid XML: {exc}")
+
+for rel in (
+    "FacetForge/Assets.xcassets/Contents.json",
+    "FacetForge/Assets.xcassets/AccentColor.colorset/Contents.json",
+):
+    path = root / rel
+    if path.exists():
+        try:
+            json.loads(path.read_text(encoding="utf-8"))
+        except Exception as exc:
+            errors.append(f"{rel} is not valid JSON: {exc}")
+
+app = root / "FacetForge/FacetForgeApp.swift"
+content = root / "FacetForge/ContentView.swift"
+if app.exists() and "@main" not in app.read_text(encoding="utf-8"):
+    errors.append("FacetForgeApp.swift has no @main entry point")
+if content.exists() and "struct ContentView" not in content.read_text(encoding="utf-8"):
+    errors.append("ContentView.swift has no ContentView type")
+
+if errors:
+    print(f"project check: FAIL — {len(errors)} problem(s)")
+    for e in errors:
+        print("FAIL:", e)
+    sys.exit(1)
+
+print("project check: PASS — FacetForge.xcodeproj, shared scheme, app target")
+PY
