@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State private var showingGallery = false
+
     private let ink = Color(red: 0.078, green: 0.086, blue: 0.102)
     private let porcelain = Color(red: 0.957, green: 0.945, blue: 0.918)
     private let metal = Color(red: 0.784, green: 0.631, blue: 0.353)
@@ -32,11 +34,37 @@ struct ContentView: View {
                     .foregroundStyle(metal)
                     .padding(.top, 4)
                     .accessibilityIdentifier("launch.phase")
+
+                Button {
+                    showingGallery = true
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "square.grid.2x2")
+                        Text("Open component gallery")
+                    }
+                    .font(.callout.weight(.medium))
+                    .foregroundStyle(metal)
+                    .frame(minHeight: 44)
+                    .padding(.horizontal, 16)
+                    .background(
+                        Color(red: 0.165, green: 0.180, blue: 0.208),
+                        in: RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    )
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(metal.opacity(0.55), lineWidth: 1)
+                    }
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Open component gallery")
             }
             .padding(48)
         }
         .accessibilityElement(children: .contain)
         .preferredColorScheme(.dark)
+        .sheet(isPresented: $showingGallery) {
+            ComponentGalleryView()
+        }
     }
 }
 

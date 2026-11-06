@@ -131,6 +131,16 @@ jobs:
           fi
           grep -E 'Executed [1-9][0-9]* tests?, with 0 failures' "$LOG" | tail -5
 
+      - name: Export screenshots from xcresult
+        if: always() && steps.detect.outputs.present == 'true'
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p .build/attachments
+          xcrun xcresulttool export attachments --path "$RESULT" --output-path .build/attachments
+          find .build/attachments -maxdepth 1 -type f -exec ls -l {} \;
+
       - name: Simulator launch smoke and screenshot
         if: steps.detect.outputs.present == 'true'
         shell: bash
@@ -161,4 +171,5 @@ jobs:
             .build/xcodebuild-list.json
             .build/launch.txt
             .build/smoke.png
+            .build/attachments
           if-no-files-found: warn

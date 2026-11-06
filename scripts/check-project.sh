@@ -27,10 +27,16 @@ required = [
     "FacetForge/FacetForgeApp.swift",
     "FacetForge/ContentView.swift",
     "FacetForge/AppIdentity.swift",
+    "FacetForge/DesignSystem/FFTokens.swift",
+    "FacetForge/DesignSystem/FFComponents.swift",
+    "FacetForge/DesignSystem/ComponentGalleryView.swift",
     "FacetForge/Assets.xcassets/Contents.json",
     "FacetForge/Assets.xcassets/AccentColor.colorset/Contents.json",
     "FacetForgeTests/AppIdentityTests.swift",
+    "FacetForgeTests/DesignSystemTests.swift",
+    "FacetForgeTests/ComponentSnapshotTests.swift",
     "FacetForgeUITests/LaunchTests.swift",
+    "FacetForgeUITests/GalleryTests.swift",
 ]
 for rel in required:
     if not (root / rel).exists():
