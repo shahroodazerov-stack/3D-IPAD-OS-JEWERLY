@@ -22,6 +22,7 @@
 		A1000000000000000000002D /* FFGeometry.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000029 /* FFGeometry.swift */; };
 		A1000000000000000000002F /* FFCurves.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000002E /* FFCurves.swift */; };
 		A10000000000000000000031 /* FFMeshes.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000030 /* FFMeshes.swift */; };
+		A10000000000000000000033 /* FFTessellation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000032 /* FFTessellation.swift */; };
 		A2000000000000000000000B /* AppIdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* AppIdentityTests.swift */; };
 		A2000000000000000000000F /* DesignSystemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* DesignSystemTests.swift */; };
 		A20000000000000000000011 /* ComponentSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* ComponentSnapshotTests.swift */; };
@@ -29,6 +30,7 @@
 		A20000000000000000000015 /* MathPropertyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000014 /* MathPropertyTests.swift */; };
 		A20000000000000000000017 /* CurveKernelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000016 /* CurveKernelTests.swift */; };
 		A20000000000000000000019 /* MeshKernelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000018 /* MeshKernelTests.swift */; };
+		A2000000000000000000001B /* TessellationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001A /* TessellationTests.swift */; };
 		A3000000000000000000000B /* LaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000002 /* LaunchTests.swift */; };
 		A3000000000000000000000F /* GalleryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3000000000000000000000E /* GalleryTests.swift */; };
 		A30000000000000000000011 /* AdaptiveShellTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000010 /* AdaptiveShellTests.swift */; };
@@ -68,6 +70,7 @@
 		A10000000000000000000029 /* FFGeometry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFGeometry.swift; sourceTree = "<group>"; };
 		A1000000000000000000002E /* FFCurves.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFCurves.swift; sourceTree = "<group>"; };
 		A10000000000000000000030 /* FFMeshes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFMeshes.swift; sourceTree = "<group>"; };
+		A10000000000000000000032 /* FFTessellation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFTessellation.swift; sourceTree = "<group>"; };
 		A20000000000000000000002 /* AppIdentityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIdentityTests.swift; sourceTree = "<group>"; };
 		A2000000000000000000000E /* DesignSystemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystemTests.swift; sourceTree = "<group>"; };
 		A20000000000000000000010 /* ComponentSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentSnapshotTests.swift; sourceTree = "<group>"; };
@@ -75,6 +78,7 @@
 		A20000000000000000000014 /* MathPropertyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MathPropertyTests.swift; sourceTree = "<group>"; };
 		A20000000000000000000016 /* CurveKernelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CurveKernelTests.swift; sourceTree = "<group>"; };
 		A20000000000000000000018 /* MeshKernelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshKernelTests.swift; sourceTree = "<group>"; };
+		A2000000000000000000001A /* TessellationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TessellationTests.swift; sourceTree = "<group>"; };
 		A20000000000000000000003 /* FacetForgeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FacetForgeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A30000000000000000000002 /* LaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchTests.swift; sourceTree = "<group>"; };
 		A3000000000000000000000E /* GalleryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryTests.swift; sourceTree = "<group>"; };
@@ -169,6 +173,7 @@
 				A10000000000000000000029 /* FFGeometry.swift */,
 				A1000000000000000000002E /* FFCurves.swift */,
 				A10000000000000000000030 /* FFMeshes.swift */,
+				A10000000000000000000032 /* FFTessellation.swift */,
 			);
 			path = Math;
 			sourceTree = "<group>";
@@ -183,6 +188,7 @@
 				A20000000000000000000014 /* MathPropertyTests.swift */,
 				A20000000000000000000016 /* CurveKernelTests.swift */,
 				A20000000000000000000018 /* MeshKernelTests.swift */,
+				A2000000000000000000001A /* TessellationTests.swift */,
 			);
 			path = FacetForgeTests;
 			sourceTree = "<group>";
@@ -340,6 +346,7 @@
 				A1000000000000000000002D /* FFGeometry.swift in Sources */,
 				A1000000000000000000002F /* FFCurves.swift in Sources */,
 				A10000000000000000000031 /* FFMeshes.swift in Sources */,
+				A10000000000000000000033 /* FFTessellation.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -354,6 +361,7 @@
 				A20000000000000000000015 /* MathPropertyTests.swift in Sources */,
 				A20000000000000000000017 /* CurveKernelTests.swift in Sources */,
 				A20000000000000000000019 /* MeshKernelTests.swift in Sources */,
+				A2000000000000000000001B /* TessellationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
