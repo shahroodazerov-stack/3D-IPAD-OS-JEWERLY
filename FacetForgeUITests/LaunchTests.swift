@@ -18,7 +18,7 @@ final class LaunchTests: XCTestCase {
         }
         XCTAssertTrue(app.staticTexts["iPad CAD for jewellers"].exists)
         XCTAssertTrue(
-            app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Phase 4")).firstMatch.exists
+            app.staticTexts.containing(NSPredicate(format: "label CONTAINS %@", "Phase 5")).firstMatch.exists
         )
         XCTAssertTrue(app.descendants(matching: .any)["shell"].exists)
         XCTAssertTrue(app.descendants(matching: .any)["shell.tools"].exists)
