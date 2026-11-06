@@ -11,7 +11,7 @@ not green yet. Update this file in the same commit as the phase.
 | 2 | green | 2026-11-06 | [42217712774](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42217712774) | Unit and UI test targets in the hand-authored project, shared scheme test action, `/Test.xcresult` and screenshot artifacts. Green run executed 4 unit tests and the launch UI smoke. The gate was then proven to fail on the throwaway `phase-2-gate-teeth` [run 42219539127](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42219539127) with a deliberately wrong assertion. The throwaway branch is kept at that red commit as evidence and is not merged. Now on `main` |
 | 3 | green | 2026-11-06 | [42223050145](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42223050145) | FFUI semantic palette, type/space/radius/elevation tokens, 12 primitives, component gallery, 19 text/background contrast pairs, 12 component image snapshots and gallery screenshots. Green run executed 10 unit tests (WCAG AA contrast and snapshot hashes) and 2 UI tests (gallery sections and launch smoke). Now on `main` |
 | 4 | green | 2026-11-06 | [42230744875](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42230744875) | Adaptive three-zone shell (tools, viewport, inspector), collapsible panels, width-driven breakpoints 640/820/1024/1366 pt, `UISceneSizeRestrictions` at 640×480 pt, five-width layout snapshot tests and a five-width XCUITest. Green run executed 15 unit tests and 4 UI tests, including the 640/700/820/1024/1366 width pass, collapse/restore, gallery and launch smoke. App code is unchanged after this run. The later test-only hardening commit (`43a1754`) adds window-containment assertions and screen-level captures; it was compiled and all 4 UI tests passed on the Intel gate [42257558856](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42257558856). Now on `main`; the arm64 `main` gate [42253433184](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42253433184) was cancelled after 15 minutes queued with zero steps, and the Intel `main` gate is reported below |
-| 5 | green | 2026-11-06 | [42261681741](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42261681741) | `FFMath` core: `Vec2/3/4`, `Mat3/4`, `Quat`, `Plane`, `Ray`, `AABB`, `EPS 1e-9`, 132 deterministic property cases in 6 XCTest methods plus 6 acceptance tests, and inverse round-trips below 1e-12. The Intel gate executed 21 unit tests and 4 UI tests with zero failures. The first Intel run [42257558856](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42257558856) compiled the code and exposed two test defects (a negative normalization comparison and architecture-dependent image digests); both were fixed in `4900420` before this green run. Now on `main` |
+| 5 | green | 2026-11-06 | [42261681741](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42261681741) | `FFMath` core: `Vec2/3/4`, `Mat3/4`, `Quat`, `Plane`, `Ray`, `AABB`, `EPS 1e-9`, 132 deterministic property cases in 6 XCTest methods plus 6 acceptance tests, and inverse round-trips below 1e-12. The Intel gate executed 21 unit tests and 4 UI tests with zero failures. The first Intel run [42257558856](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42257558856) compiled the code and exposed two test defects (a negative normalization comparison and architecture-dependent image digests); both were fixed in `4900420` before this green run. On `main` at `5e37a1a`; the trunk gate [42265181937](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42265181937) also passed 21 unit and 4 UI tests, launched the app and uploaded the screenshot |
 
 Status vocabulary:
 
@@ -31,7 +31,7 @@ Status vocabulary:
 | 2 | `phase-2-test-gate` | `79bdc6c` | fast-forward |
 | 3 | `phase-3-design-system` | `20be71d` | fast-forward |
 | 4 | `phase-4-adaptive-shell` | `b4b8860` | fast-forward |
-| 5 | `phase-5-math-core` | `4900420` (verified code) | fast-forward after the green Intel run; docs follow on `main` |
+| 5 | `phase-5-math-core` | `5e37a1a` | fast-forward; tip contains verified code `4900420` and the PROGRESS commit |
 
 The red `phase-2-gate-teeth` branch (`aa42234`) is deliberately not merged; it exists only as
 evidence that the gate fails when an assertion breaks. The merged phase branches are deleted
@@ -39,12 +39,15 @@ after the mapping is recorded so the remote branch list stays readable.
 
 ## Known deviations
 
-- `main` now carries phases 0–4 at `b4b8860` and Phase 5 at `4900420`, not just `README.md`.
+- `main` now carries phases 0–4 at `b4b8860` and Phase 5 at `5e37a1a`, not just `README.md`.
   The consolidation is a fast-forward, not a squash, so every phase commit remains inspectable.
   The arm64 gate for the first consolidated head
   [42253433184](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42253433184)
   passed the static job and was then cancelled after 15 minutes queued for a macOS runner
-  (`runner_id: 0`, zero steps). The Intel gate on `main` is the trunk verification.
+  (`runner_id: 0`, zero steps). The Intel trunk gate
+  [42265181937](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42265181937)
+  then passed: 21 unit tests and 4 UI tests with zero failures, a simulator launch
+  (`com.shahroodazerov.facetforge`, PID 25374), and a 2064×2752 screenshot artifact.
 - Phase 1's app was a branded launch-screen stub. The viewport begins in Phase 9, the document
   model in Phase 12, and tests in Phase 2. The Phase 1 gate proves build, install, launch and
   screenshot, not CAD behaviour.
@@ -69,6 +72,8 @@ after the mapping is recorded so the remote branch list stays readable.
   executed 21 unit tests and 4 UI tests with zero failures; the first Intel attempt
   [42257558856](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42257558856)
   had exposed the two test defects fixed in `4900420`.
+- This final PROGRESS update is documentation-only and is marked `[skip ci]`; the verified
+  trunk head is `5e37a1a` (run 42265181937). `ci-local.sh --static` passed on the docs head.
 - The Phase 4 test-only hardening `43a1754` was compiled and executed by the Intel gate
   [42257558856](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42257558856):
   all 4 UI tests passed, so it is verified. The last green Phase 4 run predates it because the
