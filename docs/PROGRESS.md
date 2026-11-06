@@ -12,6 +12,8 @@ not green yet. Update this file in the same commit as the phase.
 | 3 | green | 2026-11-06 | [42223050145](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42223050145) | FFUI semantic palette, type/space/radius/elevation tokens, 12 primitives, component gallery, 19 text/background contrast pairs, 12 component image snapshots and gallery screenshots. Green run executed 10 unit tests (WCAG AA contrast and snapshot hashes) and 2 UI tests (gallery sections and launch smoke). Now on `main` |
 | 4 | green | 2026-11-06 | [42230744875](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42230744875) | Adaptive three-zone shell (tools, viewport, inspector), collapsible panels, width-driven breakpoints 640/820/1024/1366 pt, `UISceneSizeRestrictions` at 640×480 pt, five-width layout snapshot tests and a five-width XCUITest. Green run executed 15 unit tests and 4 UI tests, including the 640/700/820/1024/1366 width pass, collapse/restore, gallery and launch smoke. App code is unchanged after this run. The later test-only hardening commit (`43a1754`) adds window-containment assertions and screen-level captures; it was compiled and all 4 UI tests passed on the Intel gate [42257558856](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42257558856). Now on `main`; the arm64 `main` gate [42253433184](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42253433184) was cancelled after 15 minutes queued with zero steps, and the Intel `main` gate is reported below |
 | 5 | green | 2026-11-06 | [42261681741](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42261681741) | `FFMath` core: `Vec2/3/4`, `Mat3/4`, `Quat`, `Plane`, `Ray`, `AABB`, `EPS 1e-9`, 132 deterministic property cases in 6 XCTest methods plus 6 acceptance tests, and inverse round-trips below 1e-12. The Intel gate executed 21 unit tests and 4 UI tests with zero failures. The first Intel run [42257558856](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42257558856) compiled the code and exposed two test defects (a negative normalization comparison and architecture-dependent image digests); both were fixed in `4900420` before this green run. On `main` at `5e37a1a`; the trunk gate [42265181937](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42265181937) also passed 21 unit and 4 UI tests, launched the app and uploaded the screenshot |
+| 6 | green | 2026-11-06 | [42273691227](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42273691227) | `FFCurves.swift`: `Bezier2D`, rational `NURBS2D`, `Curve2D`, `CurvePath2D`, analytic derivatives, 16-point Gauss–Legendre arc length with adaptive panels, split/reverse/join/transform and closest-point search. Ten `CurveKernelTests` methods hold 20 golden curves to 1e-6 and 1,000 random closest-point queries to 1e-7. Gate executed 31 unit and 4 UI tests with zero failures. The first run [42270092334](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42270092334) failed to compile the second-derivative expression at `769ae35`; `b64088b` split it. `9227a12` also brackets endpoint minima after a local 1,000-query reference check. On `main` at `9227a12`; trunk gate [42277731911](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42277731911) passed 31 unit and 4 UI tests and launched PID 19027 with a 2064×2752 screenshot |
+| 7 | green | 2026-11-06 | [42277777740](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42277777740) | `FFMeshes.swift`: indexed triangle mesh, welded vertex set, half-edge adjacency, manifold/watertight/orientation predicates, area-weighted normals, AABB bounds and signed volume, median-split `MeshBVH` ray casting. Six `MeshKernelTests` methods classify 25 fixtures, cover boundary and non-manifold counts, welding, normals and volume, 10,000 BVH/brute-force ray pairs and the empty mesh. Gate executed 37 unit and 4 UI tests with zero failures. Branch tip `704a7d8`; it is fast-forwarded to `main` and the trunk gate is recorded below |
 
 Status vocabulary:
 
@@ -32,6 +34,8 @@ Status vocabulary:
 | 3 | `phase-3-design-system` | `20be71d` | fast-forward |
 | 4 | `phase-4-adaptive-shell` | `b4b8860` | fast-forward |
 | 5 | `phase-5-math-core` | `5e37a1a` | fast-forward; tip contains verified code `4900420` and the PROGRESS commit |
+| 6 | `phase-6-curve-kernel` | `9227a12` | fast-forward; the tip is the verified code |
+| 7 | `phase-7-mesh-kernel` | `704a7d8` | fast-forward after the PROGRESS commit on top of the verified code |
 
 The red `phase-2-gate-teeth` branch (`aa42234`) is deliberately not merged; it exists only as
 evidence that the gate fails when an assertion breaks. The merged phase branches are deleted
@@ -39,9 +43,12 @@ after the mapping is recorded so the remote branch list stays readable.
 
 ## Known deviations
 
-- `main` now carries phases 0–4 at `b4b8860` and Phase 5 at `5e37a1a`, not just `README.md`.
-  The consolidation is a fast-forward, not a squash, so every phase commit remains inspectable.
-  The arm64 gate for the first consolidated head
+- `main` now carries phases 0–7. Phases 0–4 were consolidated with a fast-forward from
+  `b4b8860`, Phase 5 from `5e37a1a`, Phase 6 from `9227a12`, and Phase 7 from `704a7d8`.
+  No commit was squashed away, so every phase commit stays inspectable. The Phase 6 trunk
+  gate [42277731911](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42277731911)
+  passed 31 unit and 4 UI tests, launched `com.shahroodazerov.facetforge` as PID 19027 and
+  captured a 2064×2752 screenshot. The arm64 gate for the first consolidated head
   [42253433184](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42253433184)
   passed the static job and was then cancelled after 15 minutes queued for a macOS runner
   (`runner_id: 0`, zero steps). The Intel trunk gate
@@ -72,9 +79,23 @@ after the mapping is recorded so the remote branch list stays readable.
   executed 21 unit tests and 4 UI tests with zero failures; the first Intel attempt
   [42257558856](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42257558856)
   had exposed the two test defects fixed in `4900420`.
-- The PROGRESS updates after the verified trunk head are documentation-only and are marked
-  `[skip ci]`; the verified trunk head is `5e37a1a` (run 42265181937). `ci-local.sh --static`
-  passed on the docs head.
+
+- Phase 6 and Phase 7 are pure math modules with no user-facing screen. The app still shows
+  the Phase 7 identity label and the Phase 4 shell; the curve and mesh kernels are not yet used
+  by the viewport (that begins with tessellation and rendering in Phases 8–9).
+- Phase 6 needed two corrections before green. Run 42270092334 failed at `769ae35` because the
+  Swift compiler could not type-check the nested second-derivative expression in reasonable
+  time; `b64088b` split it into named intermediates. Run 42271824031 was cancelled when the
+  fix push superseded it, not for capacity. While that run was in flight, a local 1,000-query
+  reference check found that closest-point search ignored minima at a curve endpoint; `9227a12`
+  adds endpoint brackets. The green gate then executed `CurveKernelTests` for 10 tests and the
+  full suite for 31 unit and 4 UI tests with zero failures.
+- Phase 7 passed on its first gate: 37 unit tests (including 6 `MeshKernelTests`) and 4 UI
+  tests with zero failures. No capacity cancellation occurred on either phase; both gates ran
+  on the documented Intel image after the arm64 pool had failed to assign runners earlier.
+- PROGRESS updates after a verified trunk head are documentation-only and marked `[skip ci]`.
+  The latest code-and-docs trunk proof before this table update is Phase 6 at `9227a12`
+  (run 42277731911); `ci-local.sh --static` and the validators run on every docs head.
 - The Phase 4 test-only hardening `43a1754` was compiled and executed by the Intel gate
   [42257558856](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42257558856):
   all 4 UI tests passed, so it is verified. The last green Phase 4 run predates it because the
