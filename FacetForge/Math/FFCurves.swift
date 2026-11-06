@@ -628,6 +628,15 @@ enum Curve2D: Equatable, Sendable {
                 }
             }
         }
+        // The global minimum can sit between an endpoint and the first
+        // interior sample. A full-domain golden section is not unimodal on a
+        // closed curve, so bracket that boundary interval explicitly.
+        if sampleDistances[0] <= sampleDistances[1] {
+            ranges.append((0, 2 * step))
+        }
+        if sampleDistances[sampleCount] <= sampleDistances[sampleCount - 1] {
+            ranges.append((1 - 2 * step, 1))
+        }
         if ranges.isEmpty { ranges = [(0, 1)] }
 
         for range in ranges {

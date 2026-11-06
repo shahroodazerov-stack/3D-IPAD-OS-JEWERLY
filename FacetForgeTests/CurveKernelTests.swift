@@ -272,12 +272,15 @@ final class CurveKernelTests: XCTestCase {
             return
         }
 
+        let first = Vec2(x: 1, y: 2) - Vec2(x: 0, y: 0)
+        let second = Vec2(x: 3, y: 2) - Vec2(x: 1, y: 2)
+        let third = Vec2(x: 4, y: 0) - Vec2(x: 3, y: 2)
         for parameter in [0.0, 0.25, 0.5, 0.75, 1.0] {
             let t = parameter
             let oneMinus = 1 - t
-            let expected = (Vec2(x: 1, y: 2) - Vec2(x: 0, y: 0)) * (3 * oneMinus * oneMinus)
-                + (Vec2(x: 3, y: 2) - Vec2(x: 1, y: 2)) * (6 * oneMinus * t)
-                + (Vec2(x: 4, y: 0) - Vec2(x: 3, y: 2)) * (3 * t * t)
+            let expected = first * (3 * oneMinus * oneMinus)
+                + second * (6 * oneMinus * t)
+                + third * (3 * t * t)
             assertClose(curve.derivative(at: parameter), expected, accuracy: 1e-12)
         }
     }
