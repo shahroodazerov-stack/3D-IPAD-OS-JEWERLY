@@ -14,6 +14,65 @@ enum FFProjectionMode: String, CaseIterable, Sendable {
     }
 }
 
+/// The canonical orientations a jeweller asks for by name. A named view only
+/// changes the orientation; the projection mode and framing stay where the
+/// user left them, so the chip row never silently switches the lens.
+enum FFNamedView: String, CaseIterable, Identifiable, Sendable {
+    case iso
+    case front
+    case back
+    case left
+    case right
+    case top
+    case bottom
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .iso: "Isometric"
+        case .front: "Front"
+        case .back: "Back"
+        case .left: "Left"
+        case .right: "Right"
+        case .top: "Top"
+        case .bottom: "Bottom"
+        }
+    }
+
+    /// The short form used by the viewport chip row.
+    var shortLabel: String {
+        switch self {
+        case .iso: "Iso"
+        case .front: "Front"
+        case .back: "Back"
+        case .left: "Left"
+        case .right: "Right"
+        case .top: "Top"
+        case .bottom: "Bottom"
+        }
+    }
+
+    var yaw: Double {
+        switch self {
+        case .iso: FFMath.radians(-35)
+        case .front, .top, .bottom: 0
+        case .back: .pi
+        case .left: -Double.pi / 2
+        case .right: Double.pi / 2
+        }
+    }
+
+    var pitch: Double {
+        switch self {
+        case .iso: FFMath.radians(28)
+        case .front, .back, .left, .right: 0
+        case .top: FFCamera.pitchLimit
+        case .bottom: -FFCamera.pitchLimit
+        }
+    }
+}
+
 /// The orthonormal camera frame. Keeping it as a value makes the screen-space
 /// pan and the shader matrix use exactly the same basis.
 struct FFCameraBasis: Equatable, Sendable {
@@ -246,5 +305,103 @@ struct FFCamera: Equatable, Sendable {
 
     mutating func setProjection(_ mode: FFProjectionMode) {
         projection = mode
+    }
+
+    /// Points the camera along a named view without touching the lens, the
+    /// distance or the target.
+    mutating func apply(_ namedView: FFNamedView) {
+        setOrientation(yaw: namedView.yaw, pitch: namedView.pitch)
+    }
+
+    /// Sets the turntable angles and clamps the pitch to the gimbal-safe band.
+    mutating func setOrientation(yaw newYaw: Double, pitch newPitch: Double) {
+        if newYaw.isFinite { yaw = newYaw }
+        if newPitch.isFinite {
+            pitch = FFMath.clamp(newPitch, to: (-Self.pitchLimit)...Self.pitchLimit)
+        }
+    }
+
+    /// Moves the orbit centre to a point without changing the orientation.
+    mutating func focus(on point: Vec3) {
+        guard point.x.isFinite, point.y.isFinite, point.z.isFinite else { return }
+        target = point
+    }
+
+    /// The world point under a viewport pixel on the plane through the target.
+    /// This is the anchor used by cursor-anchored zoom: it is the point the
+    /// user expects to stay put while the wheel or pinch runs.
+    func pointOnTargetPlane(at screenPoint: Vec2, viewport: Vec2) -> Vec3? {
+        guard let ray = ray(at: screenPoint, viewport: viewport) else { return nil }
+        let normal = basis.forward
+        let denominator = ray.direction.dot(normal)
+        guard abs(denominator) > FFMath.eps else { return nil }
+        let distanceAlongRay = (target - ray.origin).dot(normal) / denominator
+        guard distanceAlongRay.isFinite else { return nil }
+        return ray.point(at: distanceAlongRay)
+    }
+
+    /// Cursor-anchored zoom. A factor above one moves the view closer to the
+    /// target. The world point under `anchor` is held on the same pixel by
+    /// applying the screen-space correction after the scale change, so the
+    /// result stays within a pixel even when the distance clamps.
+    mutating func zoom(by factor: Double, around anchor: Vec2, viewport: Vec2) {
+        guard factor.isFinite, factor > 0.01, factor < 100,
+              viewport.x > FFMath.eps, viewport.y > FFMath.eps
+        else { return }
+
+        guard let anchoredPoint = pointOnTargetPlane(at: anchor, viewport: viewport) else {
+            switch projection {
+            case .perspective:
+                distance = FFMath.clamp(
+                    distance / factor,
+                    to: Self.minimumDistance...Self.maximumDistance
+                )
+            case .orthographic:
+                orthographicHeight = max(1, orthographicHeight / factor)
+            }
+            return
+        }
+
+        switch projection {
+        case .perspective:
+            distance = FFMath.clamp(
+                distance / factor,
+                to: Self.minimumDistance...Self.maximumDistance
+            )
+        case .orthographic:
+            orthographicHeight = max(1, orthographicHeight / factor)
+        }
+
+        guard let corrected = screenPoint(for: anchoredPoint, viewport: viewport) else {
+            return
+        }
+        pan(
+            screenDelta: Vec2(x: anchor.x - corrected.x, y: anchor.y - corrected.y),
+            viewport: viewport
+        )
+    }
+
+    /// Human-readable camera state for the viewport HUD.
+    var summary: String {
+        let yawDegrees = yaw * 180 / .pi
+        let pitchDegrees = pitch * 180 / .pi
+        let scale = projection == .perspective
+            ? String(format: "%.0f mm", distance)
+            : String(format: "%.0f mm ortho", orthographicHeight)
+        let yawText = String(format: "%.0f", yawDegrees)
+        let pitchText = String(format: "%.0f", pitchDegrees)
+        return "\(projection.label) · yaw \(yawText)° · pitch \(pitchText)° · \(scale)"
+    }
+
+    /// Machine-readable state attached to the accessibility element so the UI
+    /// test can assert what the gesture actually changed.
+    var accessibilityState: String {
+        String(
+            format: "yaw=%.4f;pitch=%.4f;distance=%.4f;height=%.4f;projection=\(projection.rawValue)",
+            yaw,
+            pitch,
+            distance,
+            orthographicHeight
+        )
     }
 }

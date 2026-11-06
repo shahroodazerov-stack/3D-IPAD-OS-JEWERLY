@@ -40,6 +40,7 @@ required = [
     "FacetForge/Math/FFMeshes.swift",
     "FacetForge/Math/FFTessellation.swift",
     "FacetForge/Render/FFCamera.swift",
+    "FacetForge/Render/FFCameraNavigation.swift",
     "FacetForge/Render/FFMetalViewport.swift",
     "FacetForge/Assets.xcassets/Contents.json",
     "FacetForge/Assets.xcassets/AccentColor.colorset/Contents.json",
@@ -52,9 +53,11 @@ required = [
     "FacetForgeTests/MeshKernelTests.swift",
     "FacetForgeTests/TessellationTests.swift",
     "FacetForgeTests/RenderTests.swift",
+    "FacetForgeTests/CameraNavigationTests.swift",
     "FacetForgeUITests/LaunchTests.swift",
     "FacetForgeUITests/GalleryTests.swift",
     "FacetForgeUITests/AdaptiveShellTests.swift",
+    "FacetForgeUITests/CameraNavigationUITests.swift",
 ]
 for rel in required:
     if not (root / rel).exists():
@@ -128,10 +131,13 @@ if project.exists():
         "A2000000000000000000001B /* TessellationTests.swift in Sources */",
         "A10000000000000000000035 /* FFCamera.swift in Sources */",
         "A10000000000000000000037 /* FFMetalViewport.swift in Sources */",
+        "A1000000000000000000003B /* FFCameraNavigation.swift in Sources */",
         "A2000000000000000000001D /* RenderTests.swift in Sources */",
+        "A2000000000000000000001F /* CameraNavigationTests.swift in Sources */",
         "A20000000000000000000013 /* LayoutSnapshotTests.swift in Sources */",
         "A20000000000000000000015 /* MathPropertyTests.swift in Sources */",
         "A30000000000000000000011 /* AdaptiveShellTests.swift in Sources */",
+        "A30000000000000000000013 /* CameraNavigationUITests.swift in Sources */",
         "PRODUCT_BUNDLE_IDENTIFIER = com.shahroodazerov.facetforge.tests;",
         "PRODUCT_BUNDLE_IDENTIFIER = com.shahroodazerov.facetforge.uitests;",
         'TEST_HOST = "$(BUILT_PRODUCTS_DIR)/FacetForge.app/FacetForge";',

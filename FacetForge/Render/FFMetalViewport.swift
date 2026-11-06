@@ -443,13 +443,20 @@ private extension Mat4 {
 
 /// SwiftUI host for the Metal viewport. It rebuilds no renderer on every
 /// camera update: the coordinator owns the device pipeline and only swaps the
-/// camera value.
+/// camera value. Phase 10 adds the gesture layer; every gesture goes through
+/// `FFCameraNavigation`, so direct touch, Pencil and trackpad share one tested
+/// navigation rule set.
 struct FFMetalViewportView: UIViewRepresentable {
     var camera: FFCamera
+    var onCameraChange: (FFCamera) -> Void = { _ in }
     var onStatistics: (FFFrameStatistics) -> Void
 
     func makeCoordinator() -> Coordinator {
-        Coordinator(camera: camera, onStatistics: onStatistics)
+        Coordinator(
+            camera: camera,
+            onCameraChange: onCameraChange,
+            onStatistics: onStatistics
+        )
     }
 
     func makeUIView(context: Context) -> UIView {
@@ -471,13 +478,18 @@ struct FFMetalViewportView: UIViewRepresentable {
         view.isAccessibilityElement = true
         view.accessibilityIdentifier = "shell.viewport.metal"
         view.accessibilityLabel = "3D Metal viewport"
-        view.accessibilityValue = "Grid and world axes"
+        view.accessibilityValue = camera.accessibilityState
         context.coordinator.attach(renderer: renderer, view: view)
+        context.coordinator.installGestures(on: view)
         return view
     }
 
     func updateUIView(_ uiView: UIView, context: Context) {
+        if uiView.accessibilityIdentifier == "shell.viewport.metal" {
+            uiView.accessibilityValue = camera.accessibilityState
+        }
         context.coordinator.camera = camera
+        context.coordinator.onCameraChange = onCameraChange
         context.coordinator.onStatistics = onStatistics
     }
 
@@ -511,16 +523,22 @@ struct FFMetalViewportView: UIViewRepresentable {
         return container
     }
 
-    final class Coordinator: NSObject, MTKViewDelegate {
+    final class Coordinator: NSObject, MTKViewDelegate, UIGestureRecognizerDelegate {
         var camera: FFCamera
+        var onCameraChange: (FFCamera) -> Void
         var onStatistics: (FFFrameStatistics) -> Void
 
         private var renderer: FFMetalViewportRenderer?
         private weak var metalView: MTKView?
         private var lastReportTime: Double = 0
 
-        init(camera: FFCamera, onStatistics: @escaping (FFFrameStatistics) -> Void) {
+        init(
+            camera: FFCamera,
+            onCameraChange: @escaping (FFCamera) -> Void,
+            onStatistics: @escaping (FFFrameStatistics) -> Void
+        ) {
             self.camera = camera
+            self.onCameraChange = onCameraChange
             self.onStatistics = onStatistics
         }
 
@@ -533,6 +551,98 @@ struct FFMetalViewportView: UIViewRepresentable {
             metalView?.delegate = nil
             metalView = nil
             renderer = nil
+        }
+
+        /// One pan recogniser covers direct touch (one finger orbits, two
+        /// fingers pan), Pencil drags and indirect trackpad scrolling. Pinch
+        /// covers both touch and trackpad zoom. A two-finger double tap frames
+        /// the scene, matching the desktop shortcut a jeweller already knows.
+        func installGestures(on view: MTKView) {
+            let pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
+            pan.maximumNumberOfTouches = 2
+            pan.allowedScrollTypesMask = .all
+            pan.delegate = self
+            pan.cancelsTouchesInView = false
+            view.addGestureRecognizer(pan)
+
+            let pinch = UIPinchGestureRecognizer(target: self, action: #selector(handlePinch(_:)))
+            pinch.delegate = self
+            pinch.cancelsTouchesInView = false
+            view.addGestureRecognizer(pinch)
+
+            let frameTap = UITapGestureRecognizer(target: self, action: #selector(handleFrameTap(_:)))
+            frameTap.numberOfTapsRequired = 2
+            frameTap.numberOfTouchesRequired = 2
+            frameTap.delegate = self
+            view.addGestureRecognizer(frameTap)
+        }
+
+        @objc private func handlePan(_ recognizer: UIPanGestureRecognizer) {
+            guard let view = metalView else { return }
+            let translation = recognizer.translation(in: view)
+            recognizer.setTranslation(.zero, in: view)
+
+            let isIndirect = recognizer.numberOfTouches == 0
+            let isTwoFinger = recognizer.numberOfTouches >= 2
+            guard translation != .zero else { return }
+
+            var next = camera
+            let delta = Vec2(x: Double(translation.x), y: Double(translation.y))
+            if isIndirect || isTwoFinger {
+                FFCameraNavigation.pan(
+                    &next,
+                    screenDelta: delta,
+                    viewport: viewportSize(of: view)
+                )
+            } else {
+                FFCameraNavigation.orbit(&next, screenDelta: delta)
+            }
+            publish(next, in: view)
+        }
+
+        @objc private func handlePinch(_ recognizer: UIPinchGestureRecognizer) {
+            guard let view = metalView, recognizer.state == .changed else { return }
+            let factor = Double(recognizer.scale)
+            recognizer.scale = 1
+            guard abs(factor - 1) > 1e-4 else { return }
+
+            let location = recognizer.location(in: view)
+            var next = camera
+            FFCameraNavigation.zoom(
+                &next,
+                factor: factor,
+                around: Vec2(x: Double(location.x), y: Double(location.y)),
+                viewport: viewportSize(of: view)
+            )
+            publish(next, in: view)
+        }
+
+        @objc private func handleFrameTap(_ recognizer: UITapGestureRecognizer) {
+            guard let view = metalView, recognizer.state == .ended else { return }
+            var next = camera
+            FFCameraNavigation.frameAll(&next)
+            publish(next, in: view)
+        }
+
+        private func viewportSize(of view: UIView) -> Vec2 {
+            Vec2(x: Double(view.bounds.width), y: Double(view.bounds.height))
+        }
+
+        private func publish(_ next: FFCamera, in view: UIView) {
+            guard next != camera else { return }
+            camera = next
+            view.accessibilityValue = next.accessibilityState
+            let callback = onCameraChange
+            DispatchQueue.main.async {
+                callback(next)
+            }
+        }
+
+        func gestureRecognizer(
+            _ gestureRecognizer: UIGestureRecognizer,
+            shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer
+        ) -> Bool {
+            true
         }
 
         func mtkView(_ view: MTKView, drawableSizeWillChange size: CGSize) {

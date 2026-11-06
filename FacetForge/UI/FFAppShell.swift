@@ -126,6 +126,8 @@ struct FFAppShell: View {
     @State private var inspectorCollapsed = false
     @State private var bandWidth = "18.00"
     @State private var frameStatistics = FFFrameStatistics()
+    @State private var camera = FFCamera.standard
+    @State private var namedView: FFNamedView? = .iso
 
     private let tools: [FFTool] = [
         FFTool(id: "select", systemImage: "cursorarrow", label: "Select"),
@@ -164,6 +166,8 @@ struct FFAppShell: View {
                         toolsCollapsed: toolsCollapsed,
                         inspectorCollapsed: inspectorCollapsed,
                         frameStatistics: frameStatistics,
+                        camera: $camera,
+                        namedView: $namedView,
                         onFrameStatistics: { frameStatistics = $0 },
                         onShowTools: { toolsCollapsed = false },
                         onShowInspector: { inspectorCollapsed = false }
@@ -327,6 +331,8 @@ private struct FFViewport: View {
     let toolsCollapsed: Bool
     let inspectorCollapsed: Bool
     let frameStatistics: FFFrameStatistics
+    @Binding var camera: FFCamera
+    @Binding var namedView: FFNamedView?
     let onFrameStatistics: (FFFrameStatistics) -> Void
     let onShowTools: () -> Void
     let onShowInspector: () -> Void
@@ -336,12 +342,21 @@ private struct FFViewport: View {
         return String(format: "%.0f fps", frameStatistics.averageFPS)
     }
 
+    private var cameraLabel: String {
+        let prefix = namedView.map { "\($0.label) · " } ?? "Free · "
+        return prefix + camera.summary
+    }
+
     var body: some View {
         ZStack {
             FFPalette.canvas.color
 
             FFMetalViewportView(
-                camera: .standard,
+                camera: camera,
+                onCameraChange: { updated in
+                    camera = updated
+                    namedView = FFCameraNavigation.namedView(for: updated)
+                },
                 onStatistics: onFrameStatistics
             )
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -365,6 +380,42 @@ private struct FFViewport: View {
                 }
                 .padding(FFSpace.sm)
 
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: FFSpace.xxs) {
+                        ForEach([FFNamedView.iso, .front, .top]) { view in
+                            FFChip(
+                                title: view.shortLabel,
+                                isSelected: namedView == view,
+                                accessibilityIdentifier: "shell.viewport.namedView.\(view.rawValue)"
+                            ) {
+                                camera.apply(view)
+                                namedView = view
+                            }
+                        }
+
+                        FFChip(
+                            title: camera.projection.label,
+                            systemImage: "cube.transparent",
+                            accessibilityIdentifier: "shell.viewport.projection"
+                        ) {
+                            camera.setProjection(
+                                camera.projection == .perspective ? .orthographic : .perspective
+                            )
+                        }
+
+                        FFChip(
+                            title: "Frame",
+                            systemImage: "viewfinder",
+                            accessibilityIdentifier: "shell.viewport.frame"
+                        ) {
+                            FFCameraNavigation.frameAll(&camera)
+                            namedView = nil
+                        }
+                    }
+                    .padding(.horizontal, FFSpace.sm)
+                }
+                .scrollClipDisabled()
+
                 Spacer(minLength: FFSpace.sm)
 
                 HStack(alignment: .bottom, spacing: FFSpace.xs) {
@@ -372,13 +423,19 @@ private struct FFViewport: View {
                         Circle()
                             .fill(FFPalette.success.color)
                             .frame(width: 6, height: 6)
-                        Text("\(fpsLabel) · perspective")
+                        Text(cameraLabel)
                             .font(FFType.monoSmall)
                             .foregroundStyle(FFPalette.textTertiary.color)
+                            .lineLimit(1)
+                            .accessibilityIdentifier("shell.viewport.camera")
+                            .accessibilityLabel(cameraLabel)
+
+                        Text("\(fpsLabel) · \(camera.projection.label.lowercased())")
+                            .font(FFType.monoSmall)
+                            .foregroundStyle(FFPalette.textTertiary.color)
+                            .accessibilityIdentifier("shell.viewport.fps")
+                            .accessibilityLabel("Metal viewport, grid and world axes, \(fpsLabel)")
                     }
-                    .accessibilityElement(children: .combine)
-                    .accessibilityIdentifier("shell.viewport.fps")
-                    .accessibilityLabel("Metal viewport, grid and world axes, \(fpsLabel), perspective")
 
                     Spacer(minLength: 0)
 

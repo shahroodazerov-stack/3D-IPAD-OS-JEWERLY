@@ -25,6 +25,7 @@
 		A10000000000000000000033 /* FFTessellation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000032 /* FFTessellation.swift */; };
 		A10000000000000000000035 /* FFCamera.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000034 /* FFCamera.swift */; };
 		A10000000000000000000037 /* FFMetalViewport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000036 /* FFMetalViewport.swift */; };
+		A1000000000000000000003B /* FFCameraNavigation.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000003A /* FFCameraNavigation.swift */; };
 		A2000000000000000000000B /* AppIdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* AppIdentityTests.swift */; };
 		A2000000000000000000000F /* DesignSystemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* DesignSystemTests.swift */; };
 		A20000000000000000000011 /* ComponentSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* ComponentSnapshotTests.swift */; };
@@ -34,9 +35,11 @@
 		A20000000000000000000019 /* MeshKernelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000018 /* MeshKernelTests.swift */; };
 		A2000000000000000000001B /* TessellationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001A /* TessellationTests.swift */; };
 		A2000000000000000000001D /* RenderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001C /* RenderTests.swift */; };
+		A2000000000000000000001F /* CameraNavigationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001E /* CameraNavigationTests.swift */; };
 		A3000000000000000000000B /* LaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000002 /* LaunchTests.swift */; };
 		A3000000000000000000000F /* GalleryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3000000000000000000000E /* GalleryTests.swift */; };
 		A30000000000000000000011 /* AdaptiveShellTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000010 /* AdaptiveShellTests.swift */; };
+		A30000000000000000000013 /* CameraNavigationUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000012 /* CameraNavigationUITests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -76,6 +79,7 @@
 		A10000000000000000000032 /* FFTessellation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFTessellation.swift; sourceTree = "<group>"; };
 		A10000000000000000000034 /* FFCamera.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFCamera.swift; sourceTree = "<group>"; };
 		A10000000000000000000036 /* FFMetalViewport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFMetalViewport.swift; sourceTree = "<group>"; };
+		A1000000000000000000003A /* FFCameraNavigation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFCameraNavigation.swift; sourceTree = "<group>"; };
 		A20000000000000000000002 /* AppIdentityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIdentityTests.swift; sourceTree = "<group>"; };
 		A2000000000000000000000E /* DesignSystemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystemTests.swift; sourceTree = "<group>"; };
 		A20000000000000000000010 /* ComponentSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentSnapshotTests.swift; sourceTree = "<group>"; };
@@ -85,10 +89,12 @@
 		A20000000000000000000018 /* MeshKernelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MeshKernelTests.swift; sourceTree = "<group>"; };
 		A2000000000000000000001A /* TessellationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TessellationTests.swift; sourceTree = "<group>"; };
 		A2000000000000000000001C /* RenderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RenderTests.swift; sourceTree = "<group>"; };
+		A2000000000000000000001E /* CameraNavigationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraNavigationTests.swift; sourceTree = "<group>"; };
 		A20000000000000000000003 /* FacetForgeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FacetForgeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A30000000000000000000002 /* LaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchTests.swift; sourceTree = "<group>"; };
 		A3000000000000000000000E /* GalleryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryTests.swift; sourceTree = "<group>"; };
 		A30000000000000000000010 /* AdaptiveShellTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdaptiveShellTests.swift; sourceTree = "<group>"; };
+		A30000000000000000000012 /* CameraNavigationUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraNavigationUITests.swift; sourceTree = "<group>"; };
 		A30000000000000000000003 /* FacetForgeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FacetForgeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -189,6 +195,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000034 /* FFCamera.swift */,
+				A1000000000000000000003A /* FFCameraNavigation.swift */,
 				A10000000000000000000036 /* FFMetalViewport.swift */,
 			);
 			path = Render;
@@ -206,6 +213,7 @@
 				A20000000000000000000018 /* MeshKernelTests.swift */,
 				A2000000000000000000001A /* TessellationTests.swift */,
 				A2000000000000000000001C /* RenderTests.swift */,
+				A2000000000000000000001E /* CameraNavigationTests.swift */,
 			);
 			path = FacetForgeTests;
 			sourceTree = "<group>";
@@ -216,6 +224,7 @@
 				A30000000000000000000002 /* LaunchTests.swift */,
 				A3000000000000000000000E /* GalleryTests.swift */,
 				A30000000000000000000010 /* AdaptiveShellTests.swift */,
+				A30000000000000000000012 /* CameraNavigationUITests.swift */,
 			);
 			path = FacetForgeUITests;
 			sourceTree = "<group>";
@@ -366,6 +375,7 @@
 				A10000000000000000000033 /* FFTessellation.swift in Sources */,
 				A10000000000000000000035 /* FFCamera.swift in Sources */,
 				A10000000000000000000037 /* FFMetalViewport.swift in Sources */,
+				A1000000000000000000003B /* FFCameraNavigation.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -382,6 +392,7 @@
 				A20000000000000000000019 /* MeshKernelTests.swift in Sources */,
 				A2000000000000000000001B /* TessellationTests.swift in Sources */,
 				A2000000000000000000001D /* RenderTests.swift in Sources */,
+				A2000000000000000000001F /* CameraNavigationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -392,6 +403,7 @@
 				A3000000000000000000000B /* LaunchTests.swift in Sources */,
 				A3000000000000000000000F /* GalleryTests.swift in Sources */,
 				A30000000000000000000011 /* AdaptiveShellTests.swift in Sources */,
+				A30000000000000000000013 /* CameraNavigationUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
