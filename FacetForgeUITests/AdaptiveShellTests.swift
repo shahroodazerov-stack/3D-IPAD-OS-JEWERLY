@@ -3,7 +3,7 @@ import XCTest
 final class AdaptiveShellTests: XCTestCase {
     override func setUpWithError() throws {
         continueAfterFailure = false
-        XCUIDevice.shared.orientation = .landscapeLeft
+        XCUIDevice.shared.orientation = .portrait
     }
 
     override func tearDownWithError() throws {
@@ -108,6 +108,21 @@ final class AdaptiveShellTests: XCTestCase {
             element("layoutLab.title", app).waitForExistence(timeout: 30),
             "layout laboratory did not launch. Hierarchy:\n\(app.debugDescription)"
         )
+
+        // Rotate after launch and wait for the landscape window. Changing the
+        // orientation before launch leaves the app in a transient square
+        // window; screenshots then show the 1366 pt shell clipped even though
+        // the accessibility frames report the requested width.
+        XCUIDevice.shared.orientation = .landscapeLeft
+        let window = app.windows.firstMatch
+        for _ in 0..<40 {
+            if window.exists, window.frame.width > window.frame.height {
+                Thread.sleep(forTimeInterval: 0.5)
+                return app
+            }
+            Thread.sleep(forTimeInterval: 0.25)
+        }
+        XCTFail("app did not settle into a landscape window. Hierarchy:\n\(app.debugDescription)")
         return app
     }
 
