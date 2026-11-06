@@ -6,7 +6,7 @@ enum AppIdentity {
     static let displayName = "FacetForge"
     static let tagline = "iPad CAD for jewellers"
     static let bundleIdentifier = "com.shahroodazerov.facetforge"
-    static let phase = 6
+    static let phase = 7
 
-    static var phaseLabel: String { "Phase \(phase) · curve kernel" }
+    static var phaseLabel: String { "Phase \(phase) · mesh kernel" }
 }
