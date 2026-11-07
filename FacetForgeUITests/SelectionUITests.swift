@@ -41,11 +41,18 @@ final class SelectionUITests: XCTestCase {
         tapShank(metal)
         waitForLabel(summary, "Shank", "the shank click did not select")
 
+        // Zoom out before the window tests. At the default framing the ring is
+        // wider than the portrait pane and the stone sits close to the top
+        // overlay, so a box that contains every vertex is hard to aim by hand.
+        // One pinch gives both objects a margin, and the marquee still tests
+        // full containment rather than a bounding-box overlap.
+        metal.pinch(withScale: 0.7, velocity: 1)
+
         // Multi-select with the touch equivalent of Shift: keep the shank and
         // add the stone with a box around it.
         element("selection.filter.all", app).tap()
         element("selection.multi", app).tap()
-        drag(metal, from: CGVector(dx: 0.36, dy: 0.14), to: CGVector(dx: 0.54, dy: 0.30))
+        drag(metal, from: CGVector(dx: 0.35, dy: 0.42), to: CGVector(dx: 0.65, dy: 0.20))
         waitForLabel(summary, "2 selected", "multi-select marquee did not add the stone")
 
         // The selection sets panel stores the pair and recalls it.
@@ -60,7 +67,7 @@ final class SelectionUITests: XCTestCase {
         // selects the shank alone, proving the marquee is a real window test
         // and not a bounding-box intersection that would also catch the stone.
         element("selection.filter.solid", app).tap()
-        drag(metal, from: CGVector(dx: 0.02, dy: 0.15), to: CGVector(dx: 0.99, dy: 0.99))
+        drag(metal, from: CGVector(dx: 0.05, dy: 0.20), to: CGVector(dx: 0.95, dy: 0.95))
         waitForLabel(summary, "Shank", "marquee replace did not isolate the shank")
 
         // Isolate hides the stone; Show all brings it back.
