@@ -141,14 +141,16 @@ final class Phase18DisplayModeTests: XCTestCase {
         XCTAssertLessThan(wire.warmth, shaded.warmth * 0.5, "Wireframe drew shaded faces")
 
         // Shaded-with-edges is Shaded plus line work, not a different shading.
+        // The octahedron's twelve edges cover about a fifth of its silhouette,
+        // so a tenth is a floor that only real edge work can clear.
         XCTAssertGreaterThan(
             edges.difference(from: shaded),
-            0.015,
+            0.10,
             "Shaded with edges drew no extra edge pixels"
         )
         XCTAssertGreaterThan(
             shaded.difference(from: wire),
-            0.04,
+            0.50,
             "Wireframe is indistinguishable from Shaded"
         )
 
@@ -220,24 +222,28 @@ final class Phase18DisplayModeTests: XCTestCase {
         let warmth: Double
         let fingerprint: Int
         let pixels: [UInt8]
+        /// Pixel indices inside the fixture, so two modes are compared where
+        /// they compete and not over the empty studio around them.
+        let silhouetteOffsets: [Int]
 
         func difference(from other: Snapshot) -> Double {
-            guard pixels.count == other.pixels.count, !pixels.isEmpty else { return 1 }
+            guard pixels.count == other.pixels.count, !silhouetteOffsets.isEmpty else { return 1 }
             var changed = 0
-            for offset in stride(from: 0, to: pixels.count, by: 4) {
+            for pixel in silhouetteOffsets {
+                let offset = pixel * 4
                 let delta = abs(Int(pixels[offset]) - Int(other.pixels[offset]))
                     + abs(Int(pixels[offset + 1]) - Int(other.pixels[offset + 1]))
                     + abs(Int(pixels[offset + 2]) - Int(other.pixels[offset + 2]))
                 if delta > 24 { changed += 1 }
             }
-            return Double(changed) / Double(pixels.count / 4)
+            return Double(changed) / Double(silhouetteOffsets.count)
         }
     }
 
     private func signature(for readback: FFViewportReadback, ids: FFPickingReadback) -> Snapshot {
         let pixels = readback.pixels
         let corner = (Int(pixels[2]), Int(pixels[1]), Int(pixels[0]))
-        var silhouette = 0
+        var silhouetteOffsets: [Int] = []
         var filled = 0
         var warmth = 0
         var fingerprint = 0
@@ -248,7 +254,7 @@ final class Phase18DisplayModeTests: XCTestCase {
             let g = Int(pixels[offset + 1])
             let r = Int(pixels[offset + 2])
             if ids.objectID(atX: pixel % readback.width, y: pixel / readback.width) != 0 {
-                silhouette += 1
+                silhouetteOffsets.append(pixel)
                 warmth += r - b
                 let delta = abs(r - corner.0) + abs(g - corner.1) + abs(b - corner.2)
                 if delta > 24 { filled += 1 }
@@ -258,11 +264,12 @@ final class Phase18DisplayModeTests: XCTestCase {
 
         return Snapshot(
             corner: corner,
-            silhouette: silhouette,
-            filled: Double(filled) / Double(max(1, silhouette)),
-            warmth: Double(warmth) / Double(max(1, silhouette)),
+            silhouette: silhouetteOffsets.count,
+            filled: Double(filled) / Double(max(1, silhouetteOffsets.count)),
+            warmth: Double(warmth) / Double(max(1, silhouetteOffsets.count)),
             fingerprint: fingerprint,
-            pixels: pixels
+            pixels: pixels,
+            silhouetteOffsets: silhouetteOffsets
         )
     }
 
