@@ -83,12 +83,14 @@ final class Phase23SmokeUITests: XCTestCase {
         )
         attach(app, "phase23-orbit")
 
-        // Drag the X handle by its projected ten-millimetre length.
+        // Drag the X handle by its projected ten-millimetre length. The drag
+        // starts at the arrow tip and finishes past the pivot, so it is a
+        // negative-X move; Phase 15 asserts the same signed result.
         dragXHandle(metal: metal, app: app)
-        guard let moved = waitForPosition(readout, timeout: 20, matching: { abs($0.x - 10) < 1e-3 }) else {
-            return XCTFail("the drag did not land on X 10; readout is '\(readout.label)'")
+        guard let moved = waitForPosition(readout, timeout: 20, matching: { abs($0.x + 10) < 1e-3 }) else {
+            return XCTFail("the drag did not land on X -10; readout is '\(readout.label)'")
         }
-        XCTAssertEqual(moved.x, 10, accuracy: 1e-6)
+        XCTAssertEqual(moved.x, -10, accuracy: 1e-6)
         XCTAssertEqual(moved.y, 40, accuracy: 1e-6)
         attach(app, "phase23-drag-committed")
 
@@ -103,8 +105,8 @@ final class Phase23SmokeUITests: XCTestCase {
         // Drag again and save the committed transform, then reopen it.
         dragXHandle(metal: metal, app: app)
         XCTAssertNotNil(
-            waitForPosition(readout, timeout: 20, matching: { abs($0.x - 10) < 1e-3 }),
-            "the second drag did not land on X 10; readout is '\(readout.label)'"
+            waitForPosition(readout, timeout: 20, matching: { abs($0.x + 10) < 1e-3 }),
+            "the second drag did not land on X -10; readout is '\(readout.label)'"
         )
         choose("Save", app: app)
         waitForLabel(status, "Saved")
@@ -113,7 +115,7 @@ final class Phase23SmokeUITests: XCTestCase {
         choose("Reopen", app: app)
         waitForLabel(status, "Reopened")
         XCTAssertNotNil(
-            waitForPosition(readout, timeout: 15, matching: { abs($0.x - 10) < 1e-3 }),
+            waitForPosition(readout, timeout: 15, matching: { abs($0.x + 10) < 1e-3 }),
             "reopen lost the committed transform; readout is '\(readout.label)'"
         )
         attach(app, "phase23-reopened")
