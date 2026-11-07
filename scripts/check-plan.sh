@@ -37,12 +37,18 @@ REQUIRED = [
     "docs/branding.md",
     "docs/legal/provenance.md",
     "docs/adr/README.md",
+    "docs/research/README.md",
+    "docs/research/00-findings-and-constraints.md",
     "docs/research/a-matrixgold-product.md",
     "docs/research/b-matrixgold-ux.md",
     "docs/research/c-jeweler-domain.md",
     "docs/research/d-cad-kernel.md",
     "docs/research/e-ipados-stack-legal.md",
     "docs/research/f-engineering-delivery.md",
+    "docs/research/g-rendering-materials.md",
+    "docs/research/h-production-interchange.md",
+    "docs/research/i-competitive-kernels.md",
+    "docs/PLAN-RECONCILIATION.md",
 ]
 
 if not plan_path.exists():

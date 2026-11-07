@@ -1,6 +1,7 @@
-# Architecture Decision Records (ADR-001 … ADR-006)
+# Architecture Decision Records (ADR-001 … ADR-007)
 
-Status of all six: **accepted** for v1.0, dated 2026-11-06.
+Status of all seven: **accepted** for v1.0, dated 2026-11-06 (ADR-007 added in the
+2026-11-06 reconciliation).
 Each decision is traceable to a research dossier in `docs/research/`.
 
 ---
@@ -27,7 +28,9 @@ B-rep or licensing a desktop kernel (both incompatible with scope and clean-room
 and `LowLevelMesh`; raw Metal is still required for GPU picking and the studio renderer.
 
 **Decision.** UI in SwiftUI. Viewport behind `ViewportRendering`, implemented first with
-RealityKit and later by a Metal studio renderer. Exact geometry never leaves the kernel as
+RealityKit and later by a Metal studio renderer. RealityKit documents PBR, IBL and meshes but no
+gem refraction/dispersion, so the gem pass is a custom Metal shader, not a RealityKit material.
+Exact geometry never leaves the kernel as
 float; only tessellated display buffers cross the boundary.
 
 **Consequences.** Fast path to a good-looking viewport without rebuilding culling/tonemapping;
@@ -88,3 +91,22 @@ during `isInteractivelyResizing`.
 
 **Consequences.** Correct multitasking behaviour by construction; layout must be tested at every
 breakpoint, which phases 4 and 167 enforce with snapshots.
+
+---
+
+## ADR-007 — Dependency and exchange licence gate
+
+**Context.** The pass-2 research (dossier I) verified that OCCT is LGPL-2.1 plus an exception that
+does not cover App Store static linking, and that CGAL is GPLv3/LGPLv3. Both would require a
+commercial licence or counsel before shipping in a closed-source iPadOS app. GPL/AGPL code is
+incompatible with App Store distribution.
+
+**Decision.** v1 ships Apple frameworks only. Any third-party dependency must be permissive
+(MIT, BSD, Apache-2.0 or MPL-2.0 core), recorded in `docs/legal/provenance.md` before use, and
+listed in NOTICE. OCCT, CGAL and GPL/AGPL code are prohibited without a commercial licence and
+counsel. 3DM read/write is deferred to v1.1 and would require an openNURBS licence review; no v1
+phase depends on it. MatrixGold-documented parity is STL and OBJ; 3MF is our additional output,
+not parity, and SLC is out of scope.
+
+**Consequences.** No STEP/B-rep exchange in v1. The mesh-authoritative kernel (ADR-001) carries
+all v1 geometry. A future B-rep path is a separate, licensed decision, not a phase detail.

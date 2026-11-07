@@ -132,6 +132,10 @@ app can differentiate by exporting a mesh that is *proven* watertight, with the 
   without a source and a calibration note.
 - 3MF is worth supporting because it carries units and metadata; SLC is legacy and can wait.
 
+**Plan decision (v1.1):** STL and OBJ are the MatrixGold-documented parity set (phases 152 and
+154); 3MF is an additional FacetForge output (phase 153), not parity; 3DM is deferred to v1.1;
+SLC is out of v1 scope.
+
 ## 9. Open questions
 
 - Whether MatrixGold 4 writes any metadata into STL/OBJ (it does not appear to).

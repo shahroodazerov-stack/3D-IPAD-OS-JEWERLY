@@ -1,9 +1,9 @@
 # FacetForge — 200-Phase Master Implementation Plan
 
-**Version:** 1.0 · **Date:** 2026-11-06 · **Owner:** shahroodazerov-stack
+**Version:** 1.1 (reconciled 2026-11-06) · **Date:** 2026-11-06 · **Owner:** shahroodazerov-stack
 **Repo:** https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY
-**Inputs:** six research dossiers in `docs/research/` (A product, B UX, C domain, D kernel, E platform/legal, F delivery)
-**Status:** specification complete, no application code written yet.
+**Inputs:** the indexed research dossier in `docs/research/` (index: `docs/research/README.md`; files A–I)
+**Status:** Phases 0–12 are green on `main` (latest gate run #55); 188 phases remain. This v1.1 revision reconciles the plan with the pass-2 research constraints — see `docs/PLAN-RECONCILIATION.md`.
 
 ---
 
@@ -16,8 +16,8 @@ code and original assets.
 
 "Parity" means: a jeweller can do the eight-step MatrixGold quick-start workflow
 (ring rail → gem → head → profiles → sweep → resize → stone swap → render) in FacetForge, and can
-hand the result to a casting house as a watertight STL/3MF. It does **not** mean pixel-identical
-UI, and it explicitly excludes copying names, icons, libraries, help text or code.
+hand the result to a casting house as a watertight STL (3MF is an additional FacetForge output, not MatrixGold parity). It does **not** mean pixel-identical
+UI, and it explicitly excludes copying names, icons, libraries, help text or code. It is never marketed as "exactly like", "a clone of" or "the same as" MatrixGold; parity claims are behavioural and format-compatibility claims are limited to formats we actually implement.
 
 ### Product decisions (locked)
 
@@ -33,6 +33,10 @@ UI, and it explicitly excludes copying names, icons, libraries, help text or cod
 | Render | RealityKit viewport behind a renderer protocol; Metal studio renderer later (ADR-002) | Dossier E |
 | Minimum device | iPad Air (M3, 8 GB) as performance floor; iPad Pro (M5) as target | Dossier E |
 | Money model | One-time purchase, no subscription (decision; not a phase deliverable) | Differentiator vs $695/yr membership |
+| Default viewport | Single maximised Perspective with optional Top/Right inset; four-up is a preset | Dossier B has conflicting evidence (four-up vs single Perspective); this is a deliberate product choice, not an inherited fact. Phase 13 asserts it |
+| Render detail | RealityKit viewport plus a custom Metal gem pass; Metal studio/offline renderer | RealityKit documents PBR/IBL but no gem refraction/dispersion; the gem shader is ours (ADR-002, ADR-007) |
+| Dependencies | Apple frameworks only in v1; permissive third-party only after licence review | Dossier I: OCCT and CGAL are licence-blocked for a closed-source App Store app; GPL/AGPL prohibited |
+| Export formats | STL and OBJ (documented MatrixGold parity); 3MF is our addition; 3DM read/write deferred to v1.1 | Dossier H: MatrixGold documents STL/3DM/OBJ; 3MF/SLC are Rhino-side, not parity |
 
 ### Non-negotiables
 
@@ -51,6 +55,11 @@ UI, and it explicitly excludes copying names, icons, libraries, help text or cod
 6. **No placeholder phases.** Every phase below names deliverables and a machine-checkable proof.
 7. **Scope discipline.** Phases build on prior phases only; no phase reopens a shipped module
    without a tracked regression test.
+8. **Claims and licences.** Parity is behavioural, never identity: no "exactly like", "clone" or
+   "same as" claim in UI, store metadata or marketing. v1 ships Apple frameworks only; any
+   third-party dependency must be permissive and recorded in `docs/legal/provenance.md` before
+   use. GPL/AGPL is prohibited; OCCT and CGAL are prohibited without a commercial licence and
+   counsel. 3DM read is deferred to v1.1 pending an openNURBS licence review.
 
 ---
 
@@ -104,6 +113,12 @@ standards.
 7. If the phase touched Xcode/SwiftPM caches, `bash scripts/cache-audit.sh` shows no growth in
    `~/Library/Developer/Xcode/DerivedData`.
 
+### Performance evidence rule
+
+Simulator timings are regression baselines only. Any assertion about device frame rate, memory,
+thermal behaviour, startup or export time must cite a `docs/evidence/phase-NNN.json` record; a
+simulator number is never presented as a device-performance claim.
+
 ### Architecture at a glance
 
 ```
@@ -125,11 +140,12 @@ SwiftUI (FFUI) ── FacetForgeApp ── DocumentSession
 ```
 
 - **ADR-001** hybrid parametric → mesh-solid kernel.
-- **ADR-002** RealityKit viewport behind `ViewportRendering`; Metal for studio/offline render.
+- **ADR-002** RealityKit viewport behind `ViewportRendering`; gem refraction/dispersion is a custom Metal pass, not a RealityKit material; Metal for studio/offline render.
 - **ADR-003** raw Pencil `UITouch` pipeline; PencilKit only for markup.
 - **ADR-004** clean-room protocol; no vendor assets or marks.
 - **ADR-005** iPadOS 26+, iPhone companion from phase 167.
 - **ADR-006** one scene per document; adaptive 640 pt minimum; no fullscreen lock.
+- **ADR-007** dependency and exchange licence gate: Apple-first; no OCCT/CGAL/GPL/AGPL in v1; 3DM read deferred to v1.1.
 
 ### Milestones
 
@@ -144,7 +160,7 @@ SwiftUI (FFUI) ── FacetForgeApp ── DocumentSession
 | 7 | 95–114 | Ring builder | Eight-step quick-start workflow reproduced |
 | 8 | 115–128 | Assemblies and libraries | Instanced parts, anchors, patterns |
 | 9 | 129–146 | Rendering and presentation | Studio-quality stills and turntable |
-| 10 | 147–160 | Manufacturing | Validated STL/3MF/OBJ + print report |
+| 10 | 147–160 | Manufacturing | Validated STL + OBJ (parity) and 3MF (our addition) + print report |
 | 11 | 161–178 | iPad UX, Pencil, accessibility | VoiceOver/keyboard complete, onboarding |
 | 12 | 179–200 | Performance, reliability, release | v1.0 shipped |
 
@@ -164,19 +180,19 @@ SwiftUI (FFUI) ── FacetForgeApp ── DocumentSession
   (`actionlint` when installed); `scripts/check-plan.sh` invariant checker.
 - `scripts/check-evidence.sh` plus `docs/evidence/` schema for the few proofs that genuinely
   need a physical device or external review.
-- `docs/research/` six dossiers; `docs/MASTER-PLAN.md` (this file); `docs/PROGRESS.md` seed row.
+- `docs/research/` indexed dossier (A–I, index in `docs/research/README.md`); `docs/MASTER-PLAN.md` (this file); `docs/PROGRESS.md` seed row.
 - `docs/legal/provenance.md` with the clean-room protocol and the list of sources used.
 - Branding sheet: name, bundle id, palette seed, icon concept (original).
 - ADR-001…006 recorded in `docs/adr/README.md`.
 
 **Acceptance:** `git remote -v` shows `origin`; `.github/workflows/ios.yml` exists and passes
-`scripts/check-workflow.sh`; `scripts/ci-local.sh --static` passes; `docs/research/` has six
-files; `docs/MASTER-PLAN.md` contains exactly 200 continuous phase rows with backward-only
+`scripts/check-workflow.sh`; `scripts/ci-local.sh --static` passes; `docs/research/` matches the index
+in `docs/research/README.md`; `docs/MASTER-PLAN.md` contains exactly 200 continuous phase rows with backward-only
 dependencies (checked by `scripts/check-plan.sh`); every Phase 0 deliverable listed above exists;
 no file outside `.dev-cache/` holds generated cache data.
 
-**Note:** the remote `main` currently contains only `README.md` (commit `1a8d68b`). Phase 0 is
-pushed on its own branch for the first Actions run; it is not merged to `main` without review.
+**Note:** Phase 0 was gated on `phase-0-gate` and fast-forwarded to `main`; `main` now carries
+phases 0–12. The original bootstrap commit `1a8d68b` is historical.
 
 ---
 
@@ -194,27 +210,27 @@ pushed on its own branch for the first Actions run; it is not merged to `main` w
 | 6 | Curve kernel v1 | `FFGeometry`: Bézier + NURBS evaluation, derivatives, Gauss–Legendre arc length, split, join, closest point, 2-D transforms | CI: 20 golden curves within 1e-6 of analytic length; closest-point on 1 000 random samples within 1e-7 | 5 | correctness |
 | 7 | Mesh kernel v1 | Indexed triangle mesh, half-edge adjacency, normals, welding, manifold/watertight/orientation predicates, AABB tree, ray casting | CI: 25 mesh fixtures classified correctly; BVH ray hits match brute force across 10 000 rays | 5 | correctness |
 | 8 | Tessellation pipeline | Chordal + angular tessellator, display and export LOD, triangle budget manager, deviation measurement | CI: tessellating a 20 mm-diameter circle at 0.005 mm chordal yields exactly ceil(pi / acos(1 - 0.005/10)) = 100 segments, and the maximum deviation at 20 sampled arcs is < 0.005 mm | 6, 7 | correctness |
-| 9 | Metal-backed viewport bootstrap | `FFRender` projection/camera stack, `MTKView` host in SwiftUI, resize handling, sRGB output, MSAA 4x, FPS overlay | CI: Grid + axes draw at 60 fps in the simulator; Metal validation layer reports zero errors | 4, 7 | correctness |
+| 9 | Metal-backed viewport bootstrap | `FFRender` projection/camera stack, `MTKView` host in SwiftUI, resize handling, sRGB output, MSAA 4x, FPS overlay | CI: Grid + axes render at the default layout; frame-time samples are stored as a regression baseline (simulator timings are not device-performance claims); Metal validation layer reports zero errors | 4, 7 | correctness |
 | 10 | Camera and navigation | Orbit/pan/zoom (touch, trackpad, Pencil), orthographic/perspective, focus/frame, cursor-anchored zoom, named views | CI: Camera unit tests pass; UI test orbits and zooms then asserts camera state; zoom stays anchored within 1 px of the cursor | 9 | design |
-| 11 | Units, grid, world space | Millimetre model, display units (mm, in, US size), 1 mm grid, world origin, scale bar, `RingSize` type | CI: Conversion tests (mm↔in↔US size) pass to 1e-6; grid snap at 0.1/0.5/1 mm; scale bar legible at 4 zoom levels | 10 | spec |
+| 11 | Units, grid, world space | Millimetre model, display units (mm, in, US size), 1 mm grid, world origin, scale bar, `RingSize` type | CI: Conversion tests (mm↔in↔US size) pass to 1e-6; grid snap at 0.1/0.5/1 mm; scale bar text is >= 9 pt and unclipped at 4 zoom levels | 10 | spec |
 | 12 | Document model v0 and undo | `FFDocument`: Codable scene tree (nodes, transforms, curves, meshes, material refs), atomic save stub, command stack with coalescing and 100-step cap | CI: Save/load round-trip equality on 3 fixtures; 100 random edits undo then redo to an identical state hash | 11 | correctness |
 
 ### Arc 2 — Viewport and interaction (phases 13–24)
 
 | # | Goal | Deliverables | Acceptance | Deps | Axis |
 | --- | --- | --- | --- | --- | --- |
-| 13 | Real rendering of kernel meshes | RealityKit scene host, `LowLevelMesh` feed, PBR-lite shading, selection outline pass, ground shadow, `ViewportRendering` protocol | CI: A 100k-triangle mesh renders with shading; screenshot test shows outline on selection; CPU submit < 8 ms | 9 | correctness |
+| 13 | Real rendering of kernel meshes | RealityKit scene host, `LowLevelMesh` feed, PBR-lite shading, selection outline pass, ground shadow, `ViewportRendering` protocol; fresh documents open in the deliberate default (single maximised Perspective, four-up preset one action away) | CI: A 100k-triangle mesh renders with shading; screenshot test shows outline on selection; the default-layout snapshot matches and the four-up preset restores; CPU submit is measured and stored as a baseline (device budget is phase 143 evidence) | 9 | correctness |
 | 14 | Picking | GPU ID-buffer picking, analytic fallback for curves, hover/drag states, pick filters (curve, solid, stone) | CI: 500 synthetic picks match expected object within 1 px; hidden objects are never picked; curves pick within 6 pt | 13 | correctness |
 | 15 | Gumball transform | Move/rotate/scale gizmo, axis and plane constraints, numeric entry, pivot editing, snap increments | CI: UI test drags X handle 10 mm with 1 mm snap and asserts exactly 10 mm; single undo restores the prior transform | 14 | design |
 | 16 | Snapping engine | Grid, endpoint, midpoint, centre, intersection, on-curve, perpendicular, tangent, vertex, angle snap; marker graphics | CI: 30 headless snap cases pass; markers appear within 40 ms of hover and survive zoom | 15 | correctness |
 | 17 | Selection and visibility | Click, shift-click, marquee selection; isolate, hide/show, show all; selection sets panel | CI: UI tests cover multi-select, marquee and isolate; filtered selection excludes other object types | 14 | design |
 | 18 | Display modes | Shaded, shaded+edges, clay, wireframe, technical; per-viewport mode chip; material override | CI: Snapshot render per mode; mode persists across save/reopen | 13 | design |
-| 19 | Measurement tools | Distance, angle, radius, diameter, ring inner diameter; unit-aware labels; snapped measurement points | CI: Measurements within 0.01 mm of fixture truth; labels remain legible at 3 zoom levels | 16 | spec |
+| 19 | Measurement tools | Distance, angle, radius, diameter, ring inner diameter; unit-aware labels; snapped measurement points | CI: Measurements within 0.01 mm of fixture truth; labels are >= 9 pt and unclipped at 3 zoom levels | 16 | spec |
 | 20 | Layers v1 | Layers with visibility, lock, colour, current-layer; assign and select by layer; layer panel | CI: Locked layers reject edits; hidden layers are unpickable; wireframe uses layer colour | 12, 17 | design |
 | 21 | Performance instrumentation | Overlay with FPS, frame ms, draw calls, triangles, `os_proc_available_memory` headroom, `thermalState` | CI: the overlay toggles from the HUD and its triangle/draw-call counters equal the synthetic scene's known counts exactly; thermalState is a valid enum case and available memory is > 0 | 13 | correctness |
 | 22 | Render snapshot harness | Deterministic offscreen render, perceptual-hash comparison, baseline manifest, review workflow | CI: six scene hashes are identical across three consecutive runs; a baseline change is rejected unless --update-baselines is passed and writes a diff artifact plus a git-tracked note | 13 | correctness |
 | 23 | UI smoke suite | XCUITest: launch, create document, load fixture, orbit, select, undo, save, reopen, attach screenshots | CI: Suite green in CI under 8 minutes; every test leaves a screenshot attachment | 2, 12 | correctness |
-| 24 | Touch interaction pass | Gesture arbitration (orbit vs selection), palm rejection, ProMotion pacing, snap haptics, 44 pt hit targets | CI: 100 synthetic touch/Pencil gesture sequences drive the arbitration state machine with zero unintended camera moves; a view-hierarchy audit fails on any control smaller than 44x44 pt; physical palm rejection is recorded in evidence/024.json | 19 | design |
+| 24 | Touch interaction pass | Gesture arbitration (orbit vs selection), palm rejection, ProMotion pacing, snap haptics, 44 pt hit targets | CI: 100 synthetic touch/Pencil gesture sequences drive the arbitration state machine with zero unintended camera moves; a view-hierarchy audit fails on any control smaller than 44x44 pt; check-evidence.sh 24 accepts a physical palm-rejection record in docs/evidence/phase-024.json | 19 | design |
 
 ### Arc 3 — Document, files and data (phases 25–38)
 
@@ -254,7 +270,7 @@ pushed on its own branch for the first Actions run; it is not merged to `main` w
 | 51 | Constraint solver v1 | Horizontal, vertical, tangent, equal-length constraints, solver loop with residual display | CI: 15 constraint fixtures converge in < 10 iterations; over-constrained cases report which constraint conflicts | 50 | correctness |
 | 52 | Constraint solver v2 | Coincident, perpendicular, parallel, concentric, dimensional (distance, radius, angle) constraints | CI: Solver passes 40 fixtures including two-dimensional constraint chains; edits respect all constraints | 51 | correctness |
 | 53 | Driving dimensions | Dimension annotations that edit geometry, lock/unlock, unit-aware display | CI: Editing a dimension updates geometry to within 1e-6 of the typed value; locked dimensions survive accidental drags | 52 | design |
-| 54 | Profile to surface preview | Live extrude/revolve preview from an open or closed profile without committing a solid | CI: preview updates on every drag event in an XCUITest; a CPU benchmark on a 200-point profile stays under 16 ms per update on the runner | 53 | design |
+| 54 | Profile to surface preview | Live extrude/revolve preview from an open or closed profile without committing a solid | CI: preview updates on every drag event in an XCUITest; a runner-relative CPU benchmark on a 200-point profile stays under 16 ms per update (not a device-performance claim) | 53 | design |
 | 55 | Curve library | Save, name, tag and insert curves; drag-and-drop into the viewport; user library location inside the document container | CI: Inserted curve matches saved geometry exactly; library survives app restart | 49 | design |
 | 56 | Curve performance pass | Spatial indexing for curve picking, incremental tessellation, benchmark harness with 10 000-point curves | CI: 10 000-point curve edits stay at 60 fps; picking under 2 ms; benchmarks committed with thresholds | 48 | concision |
 
@@ -280,7 +296,7 @@ pushed on its own branch for the first Actions run; it is not merged to `main` w
 | 72 | Mass properties | Volume, surface area, bounding box, centroid, metal weight per alloy using SG table, carat weight stub | CI: Computed volume of 20 fixtures within 0.1 % of analytic; 18K yellow weight matches hand calculation ± 0.001 g | 69 | correctness |
 | 73 | Tessellation quality controls | Per-document chordal/angle tolerance, preview vs export quality, triangle count estimate | CI: Export mesh deviation measured < tolerance on 20 curved solids; changing quality does not change volume by more than 0.1 % | 72 | spec |
 | 74 | Subdivision smoothing | Catmull-Clark subdivision with crease weights, smoothing preview, convert to solid | CI: Subdivided cube converges to expected limit volume; crease edges remain sharp within 1e-4 | 71 | correctness |
-| 75 | Boolean performance | BVH refactor, parallel narrow phase, culling of interior triangles, benchmark suite | CI: A 200k-triangle boolean completes < 1.5 s on device class hardware; benchmark thresholds enforced in CI | 64 | concision |
+| 75 | Boolean performance | BVH refactor, parallel narrow phase, culling of interior triangles, benchmark suite | CI: runner benchmark thresholds for a 200k-triangle boolean are enforced; device-class timing is recorded in check-evidence.sh 75 | 64 | concision |
 | 76 | Feature tree evaluation | History graph with parameters, rebuild propagation, cache invalidation, failed-feature state | CI: Editing a base profile rebuilds 20 dependent features in < 300 ms; a failed feature keeps the last good mesh visible | 75 | correctness |
 | 77 | Feature tree UI | Timeline with feature rows, edit/suppress/reorder/delete, error badges, preview on hover | CI: UI test edits a revolve angle and sees the model update; suppressed feature is skipped in rebuild | 76 | design |
 | 78 | Kernel regression suite | 200 golden solid cases (JSON fixtures + expected volumes/hashes), CI job, tolerances documented | CI: all 200 cases are green in CI within 10 minutes; expected volumes come from fixture JSON rather than the kernel under test; hashes are regression-only and never substitute for a volume failure | 77 | correctness |
@@ -319,7 +335,7 @@ pushed on its own branch for the first Actions run; it is not merged to `main` w
 | 101 | Stone seat cutting | Bearing cone, girdle support ledge, pavilion clearance, seat-depth validation against the 25 % Stuller vendor rule (overridable) | CI: Seat depth measured on section is within 0.01 mm of the configured value; stones placed in seats show ≥ 0.02 mm clearance | 80, 100 | correctness |
 | 102 | Bezel setting | Full and partial bezel, wall thickness ≥ 0.45 mm (Stuller vendor minimum), height, inside relief, bright-cut edge option | CI: Bezel wall measured 0.45–1.2 mm; stone enters the bezel in a collision test with no interpenetration | 101 | correctness |
 | 103 | Galleries and under-galleries | Gallery rails, decorative under-gallery, bridge supports, 0.4 mm rail-gap default (Stuller vendor rule) | CI: Gallery generation keeps the specified gap and stays watertight; missing support is flagged in the manufacturing check | 102 | correctness |
-| 104 | Halo generator | Round/oval/cushion halos, melee count derivation, shared-prong rules, inner bezel or prong centre | CI: halo spacing is >= 0.15 mm on 10 fixtures (the 0.15-0.30 mm band is a trade convention with no published standard; only the lower bound is enforced); changing the centre stone size rebuilds the halo count correctly | 87, 103 | correctness |
+| 104 | Halo generator | Round/oval/cushion halos, melee count derivation, shared-prong rules, inner bezel or prong centre | CI: halo spacing is >= 0.15 mm on 10 fixtures (the 0.15-0.30 mm band is a trade convention with no published standard; only the lower bound is enforced); changing the centre stone size rebuilds the halo count to the fixture table's expected value | 87, 103 | correctness |
 | 105 | Pavé and bead layout | Placement along curves and on surfaces, spacing rules, bead size 0.4–0.5 mm (craft/vendor practice, not a standard), seat per stone, auto-prong | CI: 0.15 mm minimum stone-to-stone enforced; 200-stone pavé field all seats cut and no collisions in interference test | 87, 104 | correctness |
 | 106 | Channel setting | Channel walls ≥ 0.4 mm (Stuller vendor rule), seat cutting, stone spacing, flat vs domed channel, end caps | CI: Channel cut width is 0.25–0.5 mm narrower than stones on 8 fixtures; stones sit below the wall edge by the specified amount | 105 | correctness |
 | 107 | Tension setting (expert) | Tension-style ring with explicit structural warning, hardened-alloy preset, minimum cross-section validation | CI: The feature is unavailable unless the user accepts the risk dialog; minimum cross-section check blocks unsafe geometry | 106 | spec |
@@ -328,7 +344,7 @@ pushed on its own branch for the first Actions run; it is not merged to `main` w
 | 110 | Manufacturing checks for rings | Min wall, prong thickness, stone clearance, culet clearance, ring bore roundness, castability report per ring | CI: Report flags a deliberately thin 0.30 mm test wall (fixture, not a manufacturing minimum) and passes a 1.8 mm shank; each finding names the offending feature | 109 | correctness |
 | 111 | Canonical workflow test | Automated end-to-end scenario mirroring the documented eight-step jeweller workflow, as an XCUITest plus geometry assertions | CI: Test completes in < 3 minutes in CI and ends with a watertight ring whose bore is 18.95 mm and whose stone is 8.5×6.5 mm | 110 | correctness |
 | 112 | Ring presets | Ten original designs (solitaire, three-stone, halo, pavé band, signet, men's band, twist, bypass, vintage, eternity) | CI: Each preset opens, rebuilds and exports as watertight STL; snapshot per preset | 111 | design |
-| 113 | Builder performance | Incremental rebuild of unaffected features, mesh caching, preview LOD during parameter drags | CI: check-evidence.sh 97 accepts a full-ring rebuild < 300 ms and drag preview < 16 ms on iPad Air (M3); a unit test proves an unchanged feature is not rebuilt | 112 | concision |
+| 113 | Builder performance | Incremental rebuild of unaffected features, mesh caching, preview LOD during parameter drags | CI: check-evidence.sh 113 accepts a full-ring rebuild < 300 ms and drag preview < 16 ms on iPad Air (M3); a unit test proves an unchanged feature is not rebuilt | 112 | concision |
 | 114 | Ring golden suite | 40 golden ring fixtures with expected volume, bore, stone positions and render hashes | CI: all 40 fixtures match expected volume, bore and stone positions from fixture JSON within 0.05 mm; hashes are regression-only | 113 | correctness |
 
 ### Arc 8 — Assemblies and libraries (phases 115–128)
@@ -344,7 +360,7 @@ pushed on its own branch for the first Actions run; it is not merged to `main` w
 | 121 | Assembly tree | Nested parts, overrides, visibility per node, selection sync, expand/collapse state persistence | CI: Assembly tree edits round-trip through save/load; per-node visibility does not affect siblings | 120 | design |
 | 122 | Pattern tools | Pattern along curve, on surface, polar with orientation rules, spacing/count modes, merge option | CI: 24 stones along a 60 mm curve space at 2.5 mm ± 0.01; on-surface pattern keeps stones normal to the surface | 121 | correctness |
 | 123 | Symmetry editing | Mirror assemblies, symmetry plane display, linked symmetric edits where safe | CI: Symmetric pair stays mirrored after 20 edits; breaking symmetry requires an explicit action | 122 | correctness |
-| 124 | Exploded view | Explode distance, per-part direction, animation scrubbing, return to assembled state | CI: Explode/assemble restores exact transforms (hash equality); scrubbing is smooth at 60 fps | 121 | design |
+| 124 | Exploded view | Explode distance, per-part direction, animation scrubbing, return to assembled state | CI: Explode/assemble restores exact transforms (hash equality); scrubbing holds p95 frame time <= 16.7 ms on the runner baseline | 121 | design |
 | 125 | Assembly interference | Pairwise and assembly-wide collision checks with BVH, report list, highlight offending pairs | CI: Detects 20 planted interpenetrations and reports zero for 20 clean assemblies; check under 500 ms for 200 parts | 122 | correctness |
 | 126 | Assembly mass report | Per-material totals, stone totals, total estimated weight, cost field stub | CI: Mass totals equal the sum of part masses ± 1e-6 g; report exports to CSV | 125 | spec |
 | 127 | External part import | Import OBJ/STL as reference or solid, unit confirmation, cleanup, provenance tag | CI: Imported 50k-triangle mesh becomes watertight after repair and is tagged external in metadata | 125 | spec |
@@ -355,39 +371,39 @@ pushed on its own branch for the first Actions run; it is not merged to `main` w
 | # | Goal | Deliverables | Acceptance | Deps | Axis |
 | --- | --- | --- | --- | --- | --- |
 | 129 | Physical material model | Metallic/roughness PBR parameters, IOR, clearcoat, normal strength; material editor with preview sphere | CI: Material edits persist and survive export; preview sphere matches the applied material's parameters exactly | 35, 93 | spec |
-| 130 | Image-based lighting | Three original generated environments (studio, softbox, window) as HDRIs, intensity/rotation controls | CI: Environment rotation is continuous; no seams in the reflection; HDRI shipped inside the app bundle under 6 MB each | 129 | design |
-| 131 | Alloy materials | 18K yellow/white/rose, 14K yellow/white/rose, platinum 950, palladium, sterling silver with measured albedo and roughness ranges | CI: the alloy table has 10 entries each with a source URL; gold base colour is within 0.02 of the cited Filament value (1.00, 0.85, 0.57); every swatch renders with all channels <= 1.0 | 130 | spec |
-| 132 | Gem shader v1 | Fresnel, internal reflection approximation, facet-edge brightening, per-material IOR/dispersion parameters | CI: Diamond renders with visible brilliance and fire in a still; ruby and emerald show correct body colour under all three environments | 130 | correctness |
-| 133 | Gem shader v2 | Screen-space refraction, dispersion by wavelength, sparkle modulation, performance budget | CI: check-evidence.sh 133 accepts the gem pass < 4 ms at 1080p on the baseline device; CI asserts no NaN/Inf pixels and identical sparkle output for two fixed frames | 132 | correctness |
-| 134 | Lighting and shadows | Directional key light, area fill, rim light, contact shadows, shadow bias controls | CI: Shadow acne -free on a 0.1 mm feature at default bias; contact shadow follows object motion without lag | 131 | design |
+| 130 | Image-based lighting | Three original generated environments (studio, softbox, window) as HDRIs, intensity/rotation controls | CI: environment rotation through 360° advances in 1° steps; adjacent frames differ by <= 2 % luminance across the seam column; each HDRI is under 6 MB in the app bundle | 129 | design |
+| 131 | Alloy materials | 18K yellow/white/rose, 14K yellow/white/rose, platinum 950, palladium, sterling silver with measured albedo and roughness ranges | CI: the alloy table has 10 entries each with a source URL; gold base colour is within 0.02 of the table's cited reference value; every swatch renders with all channels <= 1.0 | 130 | spec |
+| 132 | Gem shader v1 | Custom Metal gem shader (not a RealityKit built-in): Fresnel, single-scatter internal-reflection approximation, facet-edge brightening, per-material IOR/dispersion parameters | CI: a golden gem fixture fails if the internal-reflection term is disabled; ruby and emerald body colour stay within ΔE < 3 of their material preset under all three environments | 130 | correctness |
+| 133 | Gem shader v2 | Custom Metal pass: screen-space refraction, dispersion by wavelength (approximation, not spectral path tracing), sparkle modulation, performance budget | CI: check-evidence.sh 133 accepts the gem pass < 4 ms at 1080p on the baseline device; CI asserts no NaN/Inf pixels and identical sparkle output for two fixed frames | 132 | correctness |
+| 134 | Lighting and shadows | Directional key light, area fill, rim light, contact shadows, shadow bias controls | CI: a depth-bias sweep shows no shadow-acne pixels on the 0.1 mm fixture; the contact shadow's screen offset stays <= 1 px over 30 frames at 60 Hz | 131 | design |
 | 135 | Ambient occlusion | SSAO with radius control, cavity shading for technical mode, AO in clay render | CI: ambient occlusion on versus off changes mean luminance inside the cavity fixture by >= 3 % and leaves vertex positions byte-identical | 134 | design |
-| 136 | Studio presets | Five lighting/camera presets (catalogue, lifestyle, macro, flat-lay, dramatic), turntable rig | CI: each of the five presets renders a non-degenerate image (no NaN/Inf, > 1 % non-background pixels); device render time is recorded in evidence/136.json | 135 | design |
-| 137 | Quality tiers and refinement | Draft/standard/high tiers, progressive sample accumulation, cancel and resume | CI: Draft shows a frame in < 300 ms; high-quality render refines until cancelled; resuming continues without restarting | 136 | concision |
+| 136 | Studio presets | Five lighting/camera presets (catalogue, lifestyle, macro, flat-lay, dramatic), turntable rig | CI: each of the five presets renders a non-degenerate image (no NaN/Inf, > 1 % non-background pixels); device render time is recorded in docs/evidence/phase-136.json and accepted by check-evidence.sh 136 | 135 | design |
+| 137 | Quality tiers and refinement | Draft/standard/high tiers, progressive sample accumulation, cancel and resume | CI: Draft produces a frame within 300 ms on the runner (runner-relative); high-quality render refines until cancelled; resuming continues without restarting | 136 | concision |
 | 138 | Offline high-resolution render | Offscreen renderer at 1×/2×/4× device scale, PNG and HEIC export, metadata embed | CI: 4× render of a 200k-triangle scene completes < 20 s; exported PNG has correct dimensions and colour profile | 137 | correctness |
 | 139 | Backdrops and shadow catcher | Original backdrops (paper, stone, gradient), shadow-catcher floor, product-shot framing | CI: Backdrop change does not alter object materials; shadow catcher produces a grounded shadow in all presets | 138 | design |
 | 140 | Material library | Save, name, tag, apply, copy/paste materials, per-face assignment retained | CI: Material applied to a subset survives render and reopen; copying a material does not copy geometry | 129 | design |
-| 141 | Annotated renders | Overlay measurements, stone labels, dimensions, scale bar into the exported image with placement controls | CI: Overlay text is legible at 2× and never clipped; toggling annotations does not change the render hash of the scene itself | 139 | spec |
+| 141 | Annotated renders | Overlay measurements, stone labels, dimensions, scale bar into the exported image with placement controls | CI: overlay text has a computed height >= 12 pt at 2× and is fully inside the image bounds in snapshot tests; toggling annotations does not change the render hash of the scene itself | 139 | spec |
 | 142 | Compare views | Side-by-side and slider compare of metal-only vs stones vs final; per-viewport material override | CI: Compare view renders both variants from the same camera exactly; slider position restores after rotation | 141 | design |
 | 143 | Preview performance budget | Frame budget enforcement, resolution scaling, dynamic quality during interaction | CI: check-evidence.sh 143 accepts sustained 60 fps at 1 M triangles on iPad Pro; a synthetic 20 ms frame triggers resolution scaling and quality downgrade in a unit test | 137 | concision |
-| 144 | Colour management | sRGB/P3 handling, tone mapping, white balance, consistent colour between viewport and export | CI: Rendered swatch and exported PNG differ by ΔE < 2 in a measured comparison; P3 screens do not oversaturate | 138 | correctness |
+| 144 | Colour management | sRGB/P3 handling, tone mapping, white balance, consistent colour between viewport and export | CI: rendered swatch and exported PNG differ by ΔE < 2 in a measured comparison; a P3 fixture conversion keeps saturated primaries in gamut and no channel clips (hardware display accuracy is not claimed) | 138 | correctness |
 | 145 | Render determinism suite | Fixed-seed renderer, golden images with perceptual tolerance, CI job | CI: six golden renders are stable across three runs within the perceptual threshold; a material change flags exactly the expected images, verified against fixture hashes | 144 | correctness |
-| 146 | Turntable video | `AVAssetWriter` export of a turntable, duration/fps/resolution controls, progress and cancel | CI: an 8-second 1080p turntable export completes and reports exactly 240 frames at 30 fps; wall-clock time is recorded in evidence/146.json | 143 | design |
+| 146 | Turntable video | `AVAssetWriter` export of a turntable, duration/fps/resolution controls, progress and cancel | CI: an 8-second 1080p turntable export completes and reports exactly 240 frames at 30 fps; wall-clock time is recorded in docs/evidence/phase-146.json and accepted by check-evidence.sh 146 | 143 | design |
 
 ### Arc 10 — Manufacturing output (phases 147–160)
 
 | # | Goal | Deliverables | Acceptance | Deps | Axis |
 | --- | --- | --- | --- | --- | --- |
-| 147 | Wall thickness analysis | Ray-cast min-wall per sample point, heat map overlay, threshold slider, report list of thin regions | CI: A 0.30 mm test wall is flagged red and a 1.0 mm wall green; measured thickness matches a calliper fixture within 0.02 mm | 72, 110 | correctness |
+| 147 | Wall thickness analysis | Ray-cast min-wall per sample point, heat map overlay, threshold slider, report list of thin regions | CI: A 0.30 mm test wall is flagged red and a 1.0 mm wall green; measured thickness matches the fixture's analytic wall thickness within 0.02 mm | 72, 110 | correctness |
 | 148 | Undercut and draft analysis | Casting pull-direction analysis, undercut heat map, draft angle report per face group | CI: 15 planted undercuts all detected; a clean ring reports zero; direction change updates in < 300 ms | 147 | correctness |
 | 149 | Shrinkage compensation | Per-alloy linear shrink table (gold 1.2–1.5 %, silver 1.5–2.0 %, platinum 2.5–3.0 %; vendor/process guidance, not standards), uniform apply, per-axis override, calibration note | CI: Applying 1.5 % increases bore by 1.5 % ± 0.001 mm; the compensation is a reversible history step | 69, 148 | spec |
 | 150 | Print mesh preparation | Watertight check, orientation normalisation, degenerate removal, self-intersection repair, repair log | CI: 25 corrupt fixtures become watertight with a log of changes; unrepaired cases fail with a specific reason | 68, 149 | correctness |
 | 151 | Hollowing and drain holes | Hollow shell with 0.7 mm minimum wall, drain hole placement, interior cleanup | CI: Hollowed ring weighs within 5 % of the analytic estimate; holes are 1.0–2.0 mm and fully through the shell | 150 | correctness |
-| 152 | STL export | Binary and ASCII STL, unit note, watertight assertion, triangle budget check | CI: Exported STL imports into two independent slicers with zero repair warnings; units explicitly mm | 150 | spec |
-| 153 | 3MF export | 3MF with units, materials, colours, object names, per-part grouping | CI: A 3MF writer validation fixture round-trips units and colours; part names preserved | 152 | spec |
-| 154 | OBJ export | OBJ + MTL with groups per part, material names, unit header | CI: Reimport into FacetForge yields identical bounds and group count; MTL opens in a third-party viewer | 152 | spec |
+| 152 | STL export | Binary and ASCII STL, unit note, watertight assertion, triangle budget check | CI: a spec-independent STL reader in the test target welds coincident vertices and parses the export as a closed 2-manifold with positive signed volume and mm units; two independent slicer imports are recorded in docs/evidence/phase-152.json and accepted by check-evidence.sh 152 | 150 | spec |
+| 153 | 3MF export (additional format) | 3MF with units, materials, colours, object names, per-part grouping; 3MF is a FacetForge addition, not MatrixGold parity (MatrixGold documents STL/3DM/OBJ only) | CI: A 3MF writer validation fixture round-trips units and colours; part names preserved; the report labels 3MF as an additional format | 152 | spec |
+| 154 | OBJ export | OBJ + MTL with groups per part, material names, unit header | CI: reimport into FacetForge yields identical bounds and group count; an independent MTL fixture parser resolves every material and map path; a third-party viewer import is recorded in docs/evidence/phase-154.json and accepted by check-evidence.sh 154 | 152 | spec |
 | 155 | Print validation report | PDF report: dimensions, volume, weight, wall minimums, undercut result, watertight status, checksum | CI: Report values match the geometry queries exactly; PDF renders on iPhone and iPad without clipping | 151 | spec |
-| 156 | Resin print guidance | Orientation suggestion, support-hint regions (overhang angle), estimated print height, suction-risk note | CI: Suggestion reduces overhang area measurably versus the worst orientation on 10 fixtures | 151 | design |
-| 157 | Casting tree suggestion | Simple sprue/runner layout proposal, button placement, per-tree part list | CI: Proposed tree connects every placed part with no intersections; the user can accept or discard | 156 | design |
+| 156 | Resin print guidance | Orientation suggestion, support-hint regions (overhang angle), estimated print height, suction-risk note | CI: Suggestion reduces overhang area by >= 20 % versus the worst orientation on 10 fixtures | 151 | design |
+| 157 | Casting tree suggestion | Simple sprue/runner layout proposal, button placement, per-tree part list, responsibility note per manufacturer profile | CI: Proposed tree connects every placed part with no intersections; the user can accept or discard; the proposal states who adds supports/sprue for the selected profile | 156 | design |
 | 158 | Unit and scale guardrails | mm-only export assertion, filename convention with unit tag, pre-export checklist, scale sanity warnings | CI: Exporting an object at 10× expected scale triggers a blocking confirmation; every export name includes `mm` | 152 | correctness |
 | 159 | Manufacturer presets | Casting-house, resin-printer and CNC profiles with wall/prong minimums and shrinkage defaults | CI: Selecting a profile changes validation thresholds and the report header; presets are data-driven, not hard-coded | 155 | spec |
 | 160 | Export regression suite | 30 export fixtures with hashes, watertight assertions, slicer-compatibility checks | CI: Suite green in CI; any export change that breaks a fixture fails with the offending triangle index | 159 | correctness |
@@ -398,19 +414,19 @@ pushed on its own branch for the first Actions run; it is not merged to `main` w
 | --- | --- | --- | --- | --- | --- |
 | 161 | Task-first tool palette | Contextual palette of at most 8 tools that changes with selection, floating and repositionable, thumb/Pencil reachability zones | CI: Every primary task is reachable in 2 taps from a fresh document; palette never covers the selected object | 112 | design |
 | 162 | Radial and context menus | Long-press radial menu with adaptive tool sets, per-context commands, Pencil hover expansion | CI: Radial menu opens in < 100 ms; selecting a wedge performs the same action as the toolbar equivalent | 161 | design |
-| 163 | Pencil-native input | Pressure/tilt shaping for sketch tools, double-tap tool swap, Apple Pencil Pro squeeze with `preferredSqueezeAction` respected | CI: 100 drawn strokes show pressure response without jitter; squeeze shows the palette only when the system preference allows | 42 | design |
+| 163 | Pencil-native input | Pressure/tilt shaping for sketch tools, double-tap tool swap, Apple Pencil Pro squeeze with `preferredSqueezeAction` respected | CI: 100 drawn strokes show monotonic width across 10 fixed pressures with < 5 % width variation at constant pressure; squeeze shows the palette only when the system preference allows | 42 | design |
 | 164 | Hover previews | Tool ghost, snap-point preview, dimension preview before commit | CI: a hover/pencil-hover event shows the preview before commit and cancel leaves the document hash unchanged; hovering commits no geometry | 163 | design |
 | 165 | Keyboard and command palette | Full shortcut map, fuzzy command palette, shortcut cheat sheet, external-keyboard focus system | CI: Every menu command is invokable from the palette; 30 shortcuts verified by UI test | 161 | design |
 | 166 | Pointer and trackpad | Hover states, right-click menus, scroll-wheel zoom, two-finger pan, pointer shape per tool | CI: Trackpad navigation matches touch navigation; context menu appears at the pointer | 165 | design |
 | 167 | Multitasking and iPhone companion | Multi-window per document, scene state restoration, iPhone read/edit-lite layout down to 390 pt, Files handoff | CI: Two windows edit different documents without state bleed; iPhone layout passes the 5-width snapshot suite | 4, 166 | design |
 | 168 | Themes and motion | Light/dark/high-contrast themes, reduce-motion and reduce-transparency support, accent colour | CI: Theme switch live-updates every screen; reduced-motion setting disables all non-essential animation | 161 | design |
-| 169 | VoiceOver and Dynamic Type | Labels, values, hints, traits and rotor actions on every control; Dynamic Type to XXXL without truncation | CI: an XCUITest audit finds zero unlabelled interactive elements; every label fits at Dynamic Type XXXL in a layout test; the manual VoiceOver script is recorded in evidence/169.json | 167 | design |
-| 170 | Keyboard and switch access audit | Full Keyboard Access on every screen, Switch Control ordering, visible focus indicators | CI: every command has a key equivalent and a focus path (unit inventory = 100 %); a keyboard-only ring build is recorded in evidence/170.json | 169 | design |
+| 169 | VoiceOver and Dynamic Type | Labels, values, hints, traits and rotor actions on every control; Dynamic Type to XXXL without truncation | CI: an XCUITest audit finds zero unlabelled interactive elements; every label fits at Dynamic Type XXXL in a layout test; the manual VoiceOver script is recorded in docs/evidence/phase-169.json and accepted by check-evidence.sh 169 | 167 | design |
+| 170 | Keyboard and switch access audit | Full Keyboard Access on every screen, Switch Control ordering, visible focus indicators | CI: every command has a key equivalent and a focus path (unit inventory = 100 %); a keyboard-only ring build is recorded in docs/evidence/phase-170.json and accepted by check-evidence.sh 170 | 169 | design |
 | 171 | Onboarding | Interactive tour, sample project, five-minute first-ring walkthrough, skip and replay | CI: an XCUITest completes the sample ring tutorial in < 5 minutes; skip and replay never block the UI | 169 | design |
 | 172 | In-context help | Tool help sheets, inline tips, jeweller glossary, searchable offline help index | CI: Every tool has a help entry; search returns the tool for 40 common queries | 171 | spec |
 | 173 | Error and recovery UX | Recoverable dialogs, undo affordances, cancellable progress, destructive-action confirmation, error codes with fixes | CI: No error path loses user data; every dialog has a cancel and a stated consequence | 167 | design |
-| 174 | Localisation infrastructure | String Catalog, pluralisation, RTL layout, English + Persian strings, pseudo-localisation test | CI: Pseudo-localisation reveals no clipped strings; RTL mirrors navigation and toolbars correctly | 167 | spec |
-| 175 | Visual identity | Original app icon set, tool glyph family, launch screen, marketing screenshots from original renders only | CI: Icon legible at 1024 px and small sizes; no third-party marks anywhere in assets | 168 | design |
+| 174 | Localisation infrastructure | String Catalog, pluralisation, RTL layout, English + Persian strings, pseudo-localisation test | CI: pseudo-localisation produces zero clipped strings; RTL layout snapshots match the mirrored baseline for navigation and toolbars | 167 | spec |
+| 175 | Visual identity | Original app icon set, tool glyph family, launch screen, marketing screenshots from original renders only | CI: an asset scan finds no third-party marks; icon snapshots at 1024/60/29 px are non-blank and inside safe-area margins; visual review is recorded in check-evidence.sh 175 | 168 | design |
 | 176 | State completeness | Empty states, loading skeletons, cancellable long-operation progress, offline and zero-stone states | CI: every screen has empty and error state snapshots; cancelling a long operation returns to idle within 500 ms in a unit test | 173 | design |
 | 177 | Accessibility regression suite | Automated audit in CI, label inventory, Dynamic Type and contrast checks | CI: Suite blocks merges that remove a label or break contrast; runs under 5 minutes | 169 | correctness |
 | 178 | Usability study | Five timed jeweller tasks, screen recordings, findings list, every P1 fixed | CI: check-evidence.sh 178 accepts a record with 4 participants x 5 tasks, timings and an empty P1 list | 177 | spec |
@@ -423,24 +439,25 @@ pushed on its own branch for the first Actions run; it is not merged to `main` w
 | 180 | Memory discipline | Streaming meshes, texture compression, purgeable caches, memory guard, jetsam-safe behaviour | CI: check-evidence.sh 180 accepts peak resident < 2.5 GB at 1 M triangles and a 30-minute soak without jetsam; the memory-guard policy passes a unit test | 179 | concision |
 | 181 | Thermal and battery | Thermal-state adaptive quality, frame cap at serious, battery profiling, idle suspension | CI: check-evidence.sh 181 accepts a 20-minute session below serious thermal state with battery drain recorded; the thermal policy selects the documented quality tier per state in a unit test | 180 | concision |
 | 182 | Startup performance | Launch instrumentation, lazy module loading, precomputed caches, cold-start budget | CI: check-evidence.sh 182 accepts cold start < 2 s on iPad Air; a simulator launch smoke records timestamps and fails if the app is not interactive within 5 s | 179 | concision |
-| 183 | Large document stress | 500-part assembly fixture, load/save/render benchmarks, editor responsiveness under load | CI: 500-part document opens < 8 s, orbits at 30 fps, saves < 3 s, no data loss | 180 | correctness |
+| 183 | Large document stress | 500-part assembly fixture, load/save/render benchmarks, editor responsiveness under load | CI: 500-part document opens < 8 s, saves < 3 s and orbits without frame-time regression against the phase-183 runner baseline; no data loss; device performance is phase 179/180 evidence | 180 | correctness |
 | 184 | Document robustness | Fuzz harness for `.ffp` and imported files, crash-free session tests, defensive decoding | CI: 10 000 mutated documents produce zero crashes; every failure surfaces a recoverable message | 38, 183 | correctness |
 | 185 | Diagnostics | Local log viewer, exportable diagnostics bundle (device, build, scene stats), no telemetry | CI: Bundle exports without personal data; log viewer filters by subsystem and phase | 184 | spec |
-| 186 | Privacy and compliance | Privacy manifest, required-reason APIs, data-not-collected declaration, file-access strings | CI: App Store validation passes with zero privacy warnings; manifest lists every required API | 185 | spec |
+| 186 | Privacy and compliance | Privacy manifest, required-reason APIs, data-not-collected declaration, file-access strings | CI: privacy manifest schema and required-reason API inventory pass; App Store Connect validation is recorded in check-evidence.sh 186 | 185 | spec |
 | 187 | Data migration policy | Versioning policy, migration tests across v1→current, deprecation window | CI: three frozen schema fixtures (v1.0, v1.1, malformed) are committed; each valid fixture opens and the malformed one is refused with a specific error and no data loss | 184 | correctness |
-| 188 | Backup and iCloud Drive | Document backup/restore, iCloud Drive container support (files, not a sync service), conflict-copy rules | CI: Restore reproduces identical hashes; a two-device conflict produces a copy, never a silent overwrite | 187 | spec |
-| 189 | One-command verification | `scripts/verify.sh` covering format, build, unit, kernel, UI smoke, accessibility and plan checks | CI: Clean checkout verifies green in < 15 minutes locally; CI calls the same script | 177, 188 | concision |
-| 190 | CI hardening | Job matrix (unit, kernel, UI, accessibility), flaky-test quarantine policy, cache tuning, timeouts, actionlint | CI: Ten consecutive green runs; no job exceeds 45 minutes; quarantined tests are tracked, not ignored | 189 | concision |
+| 188 | Backup and iCloud Drive | Document backup/restore, iCloud Drive container support (files, not a sync service), conflict-copy rules | CI: restore reproduces identical hashes; a two-container conflict simulation produces a copy, never a silent overwrite; a physical two-device conflict is recorded in check-evidence.sh 188 | 187 | spec |
+| 189 | One-command verification | `scripts/verify.sh` covering format, build, unit, kernel, UI smoke, accessibility and plan checks | CI: a clean checkout runs `scripts/verify.sh` green and records its wall-clock duration; the same script is the local entry point | 177, 188 | concision |
+| 190 | CI hardening | Job matrix (unit, kernel, UI, accessibility), flaky-test quarantine policy, cache tuning, timeouts, actionlint, `scripts/check-ci-history.sh` | CI: `scripts/check-ci-history.sh` verifies the last ten `ios.yml` runs on `main` are green and none exceeded 45 minutes; every quarantined test has an owner and expiry | 189 | concision |
 | 191 | Release configuration | Release settings, symbol handling, optimisation, app thinning, launch screen, versioning from tags | CI: Archive builds with zero warnings; dSYMs produced; version and build derive from git tags | 190 | correctness |
 | 192 | TestFlight pipeline | Manually triggered archive/export workflow, signing secrets documented, internal group, release checklist | CI: check-workflow.sh validates the archive/export workflow; check-evidence.sh 192 accepts a record with the TestFlight upload run URL and a physical-iPad install | 191 | spec |
-| 193 | Store presence | App Store metadata, original screenshots and preview copy, keywords, support URL, age rating, export compliance | CI: Submission packet complete; no competitor marks in any asset or keyword | 175, 192 | design |
-| 194 | Legal review | Freedom-to-operate screen, trademark search for FacetForge, NOTICE/licenses screen, clean-room attestation, provenance audit | CI: check-evidence.sh 194 accepts the signed attestation; NOTICE is generated from the dependency graph and fails if any package is unlisted | 193 | spec |
-| 195 | User guide | In-app help book, printable PDF guide, tutorial project files, release-notes template | CI: Guide covers every tool; a jeweller completes the canonical workflow using only the guide | 172, 193 | spec |
-| 196 | Architecture handoff | Consolidated ADRs, module map, contributor guide, cache/CI documentation, known limitations | CI: A new contributor builds and ships a change using the docs alone | 189 | concision |
-| 197 | Feature parity audit | Traceability matrix scored against dossier A §4; gap list with explicit decisions | CI: Every capability marked shipped, deferred or rejected with a reason; no unexplained gaps | 195 | spec |
-| 198 | Full sign-off run | On-device and simulator verification, accessibility audit, performance report, manufacturing validation | CI: scripts/release-report.sh regenerates every Appendix A bar from CI results and evidence, and any missing or failing bar fails the phase | 197 | correctness |
-| 199 | Release candidate freeze | Bug bash, P0/P1 burn-down, final regression, release notes, rollback plan | CI: Zero open P0/P1; release notes approved; rollback plan tested | 198 | correctness |
+| 193 | Store presence | App Store metadata, original screenshots and preview copy, keywords, support URL, age rating, export compliance, `scripts/check-release.sh` metadata and claims scan | CI: `scripts/check-release.sh` validates required fields and fails on any competitor mark or "exactly like"/"clone"/"same as" claim in assets or keywords | 175, 192 | design |
+| 194 | Legal review | Freedom-to-operate screen, trademark search for FacetForge, NOTICE/licenses screen, dependency licence gate, clean-room attestation, provenance audit | CI: check-evidence.sh 194 accepts the signed attestation; NOTICE is generated from the dependency graph and fails if any package is unlisted, outside the recorded MIT/BSD/Apache-2.0/MPL-2.0-core allowlist, or GPL/AGPL; OCCT/CGAL additionally require a commercial licence and counsel sign-off | 193 | spec |
+| 195 | User guide | In-app help book, printable PDF guide, tutorial project files, release-notes template | CI: every tool has a guide entry; check-evidence.sh 195 accepts a record of a jeweller completing the canonical workflow using only the guide | 172, 193 | spec |
+| 196 | Architecture handoff | Consolidated ADRs, module map, contributor guide, cache/CI documentation, known limitations | CI: docs links and module map validate; check-evidence.sh 196 accepts a new-contributor build-and-ship record | 189 | concision |
+| 197 | Feature parity audit | Traceability matrix scored against dossier A §4; gap list with explicit decisions; `scripts/check-traceability.sh` | CI: `scripts/check-traceability.sh` fails if any dossier A §4 capability lacks a shipped, deferred or rejected status and a phase reference | 195 | spec |
+| 198 | Full sign-off run | On-device and simulator verification, accessibility audit, performance report, manufacturing validation, `scripts/release-report.sh` | CI: `scripts/release-report.sh` regenerates every Appendix A bar; check-evidence.sh 198 accepts the on-device verification record; any missing or failing bar fails the phase | 197 | correctness |
+| 199 | Release candidate freeze | Bug bash, P0/P1 burn-down, final regression, release notes, rollback plan | CI: `scripts/check-release.sh` reports zero open P0/P1; check-evidence.sh 199 accepts release approval and a tested rollback drill | 198 | correctness |
 | 200 | v1.0 ship packet | Tagged release, App Store submission packet, TestFlight build, documentation bundle, post-launch checklist | CI: tag v1.0.0 matches the bundle version; scripts/check-release.sh validates the submission packet; check-evidence.sh 200 accepts App Store Connect acceptance and a TestFlight install | 199 | spec |
+
 ## 4. Feature traceability (MatrixGold capability → FacetForge phases)
 
 | MatrixGold capability (dossier A §4) | FacetForge | Phases |
@@ -459,7 +476,9 @@ pushed on its own branch for the first Actions run; it is not merged to `main` w
 | Render Studio / Batch Render | Studio renderer + offline export | 129–146 |
 | Animation Studio | Turntable video only; keyframe animation deferred to v1.1 | 146 |
 | Tech Report | Print/validation PDF | 155 |
-| STL / 3DM / OBJ export | STL/3MF/OBJ + 3DM read (3DM write deferred to v1.1) | 152–154 |
+| STL / OBJ export (MatrixGold-documented set) | STL (152) + OBJ (154); 3MF (153) is an additional FacetForge output, not claimed as MatrixGold parity | 152–154 |
+| 3DM export/read | Deferred to v1.1; requires an openNURBS licence and provenance review; no v1 phase depends on it | — |
+| SLC export | Not in v1.0; Rhino-side legacy format, not MatrixGold-documented parity | — |
 | Clayoo SubD/Emboss/Sculpt | Catmull-Clark smoothing + creases only; sculpt/emboss deferred to v1.1 | 74 |
 | Bend / Twist / Shear / Polar Array | Polar/linear arrays only; bend/twist/shear deferred to v1.1 | 34, 71, 122 |
 | Thickness Analysis / Bounding Box | Wall-thickness heat map + mass properties | 72, 147 |
@@ -477,7 +496,7 @@ pushed on its own branch for the first Actions run; it is not merged to `main` w
 | Boolean | < 1.5 s for a 200k-triangle pair | 75 |
 | Save / load | < 3 s for a 500-part document | 183 |
 | Memory | < 2.5 GB peak resident at 1 M triangles | 180 |
-| Export | Watertight STL/3MF at 0.005–0.01 mm chordal deviation | 152–153 |
+| Export | Watertight STL (and 3MF, our additional format) at 0.005–0.01 mm chordal deviation | 152–153 |
 | Accessibility | 100 % labelled controls, AA contrast, Dynamic Type to XXXL | 169, 177 |
 | Legal | Zero vendor assets, marks or code; NOTICE complete | 194 |
 | Gate | Every phase green before the next starts | Phase 0, all phases |

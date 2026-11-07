@@ -121,6 +121,8 @@ A second public-source pass confirmed most of the anatomy above and added these 
 - **Conflict, unresolved:** section 1 records a four-up default layout, but one published review
   states MatrixGold opens with a **single maximised Perspective viewport** (Rhino's own default is
   four views). No vendor page settles it. The plan must not encode either as a fact.
+  **Plan decision (v1.1):** FacetForge deliberately opens in a single maximised Perspective with
+  four-up as a preset (phase 13). That is our product choice, not a claim about MatrixGold.
 - **FACT** The panel set also includes **Project Manager**, **Content Manager** and
   **Ring Resizer**. Quick Commands became user-tabbed in 3.9 (custom tabs, save/import/share
   templates) and gained tab colours in 3.11.

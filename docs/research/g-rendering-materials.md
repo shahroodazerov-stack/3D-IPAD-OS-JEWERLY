@@ -120,6 +120,10 @@ gem shader with single-scatter refraction and an approximate dispersion term, or
 gem appearance variants and is honest about it. A full spectral path tracer is a separate product
 decision, not a phase detail.
 
+**Plan decision (v1.1):** v1 takes option (a): a custom Metal gem pass with single-scatter
+internal reflection and an approximate dispersion term (phases 132–133). No RealityKit gem
+refraction or dispersion is claimed; RealityKit remains the PBR/IBL viewport and host.
+
 ## 8. Clean-room material rules
 
 1. Derive alloy colour/roughness from published physical data or our own measurements; do not

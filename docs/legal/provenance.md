@@ -75,7 +75,13 @@ rather than a standard, the dossier says so and the plan marks it INFERENCE.
 - **Open question:** whether to vendor openNURBS for 3DM import (MIT-style, notice required,
   no express patent grant) or ship mesh-only import in v1. Decided at phase 152/154.
 
-## 6. Statement
+## 6. Plan reconciliation
+
+On 2026-11-06 the 200-phase plan was audited against this dossier and amended to v1.1. The
+phase-by-phase decisions are recorded in `docs/PLAN-RECONCILIATION.md`; ADR-007 records the
+dependency and exchange licence gate. That pass added no new sources and implemented no phase.
+
+## 7. Statement
 
 As of 2026-11-06, no MatrixGold, Rhino, Gemvision or Clayoo binary, source file, asset or
 licensed library has been accessed, decompiled, copied or redistributed in the production of

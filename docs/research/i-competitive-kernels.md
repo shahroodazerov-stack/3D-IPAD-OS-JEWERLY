@@ -102,6 +102,10 @@ feature timeline that a jeweller can read.
 - Do not adopt a dependency just because it is permissive: binary size, thermal cost and
   App Store review surface all matter on iPad.
 
+**Plan decision (v1.1):** v1 ships Apple frameworks only. Manifold, openNURBS and libigl remain
+research options, not approved dependencies until ADR-007's provenance and licence gate is
+satisfied; OCCT, CGAL and GPL/AGPL are blocked absent a commercial licence and counsel.
+
 ## 6. What this means for positioning and claims
 
 - "Exactly like MatrixGold" is not a shippable claim: different platform, different kernel, and

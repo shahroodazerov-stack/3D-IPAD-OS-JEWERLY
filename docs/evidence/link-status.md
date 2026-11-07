@@ -9,8 +9,8 @@ A status is what the server returned, not a judgement about whether the claim is
 
 | Status | Count |
 | --- | --- |
-| `http_4xx` | 2 |
-| `ok` | 172 |
+| `http_4xx` | 1 |
+| `ok` | 173 |
 | `ok_suspect` | 2 |
 
 ## Citation repairs applied
@@ -29,9 +29,8 @@ A status is what the server returned, not a judgement about whether the claim is
 | HTTP | Status | URL | Sources | Note |
 | --- | --- | --- | --- | --- |
 | 206 | `ok_suspect` | https://gemvision.com/ | a-matrixgold-product.md:136 | bare host (no specific page); vendor homepage; 206 is a valid ranged response |
-| 206 | `ok_suspect` | https://www.3mf.io/ | h-production-interchange.md:147 | bare host (no specific page); redirected to https://3mf.io/ |
+| 200 | `ok_suspect` | https://www.3mf.io/ | h-production-interchange.md:147 | bare host (no specific page); redirected to https://3mf.io/ |
 | 403 | `http_4xx` | https://www.cadjewelleryskills.com/jewellery-tech-blog-topics/jewellery-learning-resources/rhino-cad-rendering-comparison-test-part-1 | g-rendering-materials.md:145 | independent rendering comparison; 403 is bot blocking; the Cycles claim is corroborated by the 2.5 release note linking Render Studio to Rhino Cycles Settings |
-| 403 | `http_4xx` | https://www.iso.org/standard/65408.html | c-jeweler-domain.md:195 | official ISO catalogue page; 403 is bot blocking, not a missing page |
 
 ## All URLs
 
@@ -42,7 +41,7 @@ A status is what the server returned, not a judgement about whether the claim is
 | 206 | `ok` | http://help.tdmsolutions.com/rhinogold/6.5/en/Introduction.html | h-production-interchange.md:164 |
 | 206 | `ok` | http://jewelcadpro.com/techsup.html | i-competitive-kernels.md:130 |
 | 206 | `ok` | http://www.jewelcadpro.com/program/Jcad51_Specifications.htm | h-production-interchange.md:166, i-competitive-kernels.md:131 |
-| 206 | `ok` | https://3mf.io/resources/faq | h-production-interchange.md:148 |
+| 200 | `ok` | https://3mf.io/resources/faq | h-production-interchange.md:148 |
 | 206 | `ok` | https://aleos.dev/posts/2026-02-17-xcode-ci-build-caching/ | f-engineering-delivery.md:169 |
 | 200 | `ok` | https://apexjewelrycasting.com/policies-terms-conditions | h-production-interchange.md:159 |
 | 206 | `ok` | https://assets.stullercloud.com/web/apps/images/kbpdfs/CADCAMProductionStandards.pdf | c-jeweler-domain.md:200 |
@@ -89,9 +88,9 @@ A status is what the server returned, not a judgement about whether the claim is
 | 206 | `ok` | https://developer.apple.com/documentation/xcode/organizing-your-code-with-local-packages | f-engineering-delivery.md:159 |
 | 206 | `ok` | https://developer.apple.com/documentation/xcode/testing | f-engineering-delivery.md:160 |
 | 206 | `ok` | https://developer.apple.com/documentation/xcode/xcode-command-line-tool-reference | f-engineering-delivery.md:163 |
-| 206 | `ok` | https://developer.apple.com/metal/ | i-competitive-kernels.md:143 |
-| 206 | `ok` | https://developer.apple.com/support/terms/apple-developer-program-license-agreement | i-competitive-kernels.md:158 |
-| 206 | `ok` | https://developer.apple.com/videos/play/wwdc2021/10296/ | f-engineering-delivery.md:164 |
+| 200 | `ok` | https://developer.apple.com/metal/ | i-competitive-kernels.md:143 |
+| 200 | `ok` | https://developer.apple.com/support/terms/apple-developer-program-license-agreement | i-competitive-kernels.md:158 |
+| 200 | `ok` | https://developer.apple.com/videos/play/wwdc2021/10296/ | f-engineering-delivery.md:164 |
 | 200 | `ok` | https://developer.rhino3d.com/api/rhinocommon/rhino.fileio.file3dmsettings | d-cad-kernel.md:173 |
 | 200 | `ok` | https://developer.rhino3d.com/api/rhinocommon/rhino.geometry.brep/createbooleandifference | d-cad-kernel.md:170 |
 | 200 | `ok` | https://developer.rhino3d.com/api/rhinocommon/rhino.geometry.meshingparameters | d-cad-kernel.md:171 |
@@ -166,13 +165,13 @@ A status is what the server returned, not a judgement about whether the claim is
 | 206 | `ok` | https://stuller.scene7.com/is/content/Stuller/DAS/09b4e2e2-e12e-45f8-a2ed-a4f80104aa9f.pdf | c-jeweler-domain.md:201 |
 | 200 | `ok` | https://support.apple.com/en-us/122242 | e-ipados-stack-legal.md:137 |
 | 206 | `ok` | https://support.maxon.net/hc/en-us/articles/4716058124444-How-do-I-subscribe-to-ZBrush | i-competitive-kernels.md:133 |
-| 206 | `ok_suspect` | https://www.3mf.io/ | h-production-interchange.md:147 |
+| 200 | `ok_suspect` | https://www.3mf.io/ | h-production-interchange.md:147 |
 | 200 | `ok` | https://www.apple.com/ipad-pro/specs/ | e-ipados-stack-legal.md:136 |
 | 206 | `ok` | https://www.autodesk.com/products/fusion-360/pricing | i-competitive-kernels.md:138 |
 | 200 | `ok` | https://www.cad-cast.com/post/matrixgold-and-ijewel3d-integration | g-rendering-materials.md:160 |
 | 403 | `http_4xx` | https://www.cadjewelleryskills.com/jewellery-tech-blog-topics/jewellery-learning-resources/rhino-cad-rendering-comparison-test-part-1 | g-rendering-materials.md:145 |
 | 206 | `ok` | https://www.cati.com/wp-content/uploads/2022/01/objet30-v3-user-guide-english.pdf | h-production-interchange.md:151 |
-| 206 | `ok` | https://www.cgal.org/license.html | i-competitive-kernels.md:150 |
+| 200 | `ok` | https://www.cgal.org/license.html | i-competitive-kernels.md:150 |
 | 200 | `ok` | https://www.cgchannel.com/2025/05/maxon-discontinues-zbrushcore-and-zbrushcoremini-but-new-freemium-edition-of-zbrush-coming-soon/ | i-competitive-kernels.md:134 |
 | 200 | `ok` | https://www.diamondscreener.com/education/recommended-depth-table-and-length-width-ratio-for-fancy-shape-diamonds | c-jeweler-domain.md:205 |
 | 206 | `ok` | https://www.eff.org/issues/coders/reverse-engineering-faq | e-ipados-stack-legal.md:141 |
@@ -184,7 +183,7 @@ A status is what the server returned, not a judgement about whether the claim is
 | 200 | `ok` | https://www.gia.edu/facetware-help | c-jeweler-domain.md:203 |
 | 200 | `ok` | https://www.haywoodsjewellery.co.uk/learning-cad-for-jewellery | b-matrixgold-ux.md:148 |
 | 200 | `ok` | https://www.icreatia.es/producto/matrixgold | a-matrixgold-product.md:148 |
-| 403 | `http_4xx` | https://www.iso.org/standard/65408.html | c-jeweler-domain.md:195 |
+| 200 | `ok` | https://www.iso.org/standard/65408.html | c-jeweler-domain.md:195 |
 | 206 | `ok` | https://www.law.cornell.edu/uscode/text/15/1125 | e-ipados-stack-legal.md:143 |
 | 206 | `ok` | https://www.law.cornell.edu/uscode/text/17/102 | e-ipados-stack-legal.md:140 |
 | 206 | `ok` | https://www.law.cornell.edu/uscode/text/17/1201 | e-ipados-stack-legal.md:142 |

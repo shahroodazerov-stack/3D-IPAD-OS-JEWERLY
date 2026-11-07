@@ -5,6 +5,10 @@
 repository can actually build. **This file does not contain a phase plan.** It records findings,
 verified facts and constraints that the plan must respect.
 
+**Plan status:** `docs/MASTER-PLAN.md` v1.1 was reconciled against this file on 2026-11-06. The
+phase-by-phase decision trail is `docs/PLAN-RECONCILIATION.md`; this file remains the constraint
+record, not a second plan.
+
 **Verification vocabulary used here**
 
 - **VERIFIED IN THIS ENVIRONMENT** — a command was run or a page was fetched during this pass,
