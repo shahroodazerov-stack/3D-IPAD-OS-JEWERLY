@@ -174,6 +174,22 @@ generator (see MASTER-PLAN phases 72, 84, 149).
 - Tension-setting stress limits are alloy- and geometry-specific; no public formula found.
 - Pavé bead rules are craft practice, not standards; vendor guidance varies (0.4 vs 0.5 mm).
 
+## 10. Verification pass (2026-11-06)
+
+- **FACT** **Ring Rail** is a parametric **curve**, not a solid: finger size and diameter drive it,
+  and 3.11 rebuilt it as a degree-2 curve so the output is perfectly round. The solid appears
+  only after a profile is swept along it. “Ring Builder” in marketing is shorthand for that
+  pipeline, not a documented standalone command.
+- **FACT** **Ring Resizer** exposes tolerance and angle, and resizes gems, prongs and cutters with
+  the ring; invalid-geometry warnings are part of the command. A finger-size change on the rail
+  re-lifts the centre gem to hold its Z offset and updates heads and profiles.
+- **FACT** Finishing removes 0.10–0.20 mm, so dimension-critical fits must be modelled oversize;
+  this belongs in the manufacturing profile, not in a hidden fudge factor.
+- **FLAG** **Milgrain** is named in tutorials but its parameters are not publicly documented.
+  Any milgrain in FacetForge is our own bead/sphere-array design, not a parity claim.
+- **INFERENCE:** the domain constants above are inputs to builders, not hard-coded truths; each
+  must be overridable per casting house and labelled with its source.
+
 ## Sources
 
 - ISO 8653:2016 — https://www.iso.org/standard/65408.html (official catalogue page; it returns

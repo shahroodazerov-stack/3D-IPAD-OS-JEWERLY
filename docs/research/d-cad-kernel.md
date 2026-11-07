@@ -135,6 +135,30 @@ need analytic definitions, or edits would accumulate error.
 - Exact float precision strategy for booleans on device: double-precision CPU kernel vs
   GPU float narrow phase.
 
+## 9. Verification pass (2026-11-06)
+
+A second public-source pass confirmed the kernel picture and corrected two details that matter to
+our own design:
+
+- **FACT — tolerance:** Rhino's default absolute tolerance is **0.01 mm** (units default to
+  millimetres), not 0.001 mm. Section 3's 0.001 mm figure is our own modelling choice for jewelry
+  work, not a Rhino default; the two must never be conflated in the plan or the UI.
+- **FACT — no mesh→NURBS path:** Rhino documents no easy conversion from mesh to NURBS. A
+  mesh-authoritative solid layer therefore cannot be “upgraded” later by a converter; any B-rep
+  exchange would require a different kernel.
+- **FACT — boolean failure causes:** open intersection loops from coincident seams,
+  coplanar/near-tangent faces, invalid or non-manifold objects, or too-loose tolerance. Rhino
+  leaves diagnostic text dots; MatrixGold adds a Nudge retry whose algorithm is undocumented.
+- **FACT — history is breakable and conditional:** Rhino History links inputs to outputs, but
+  booleans record only with `DeleteInput=No`; MatrixGold exposes an explicit Break History
+  command. This is a per-command dependency graph, not a replayable global feature script.
+- **FACT — SubD:** Rhino SubD is Catmull-Clark and convertible to NURBS or mesh; Clayoo is
+  bundled with MatrixGold. MatrixGold's static surface prong explicitly targets meshes, surfaces
+  and SubD objects.
+- **INFERENCE:** the earlier architectural decision (exact parametric front end over mesh solids)
+  is strengthened, not weakened: the host product's robustness comes from a mature B-rep kernel
+  we are not licensing, and its own history model is per-command and breakable.
+
 ## Sources
 
 - Rhino geometry types — https://www.rhino3d.com/en/docs/guides/modeling/rhino-geometry-types

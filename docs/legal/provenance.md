@@ -34,6 +34,9 @@ that no claim of copied code, assets or confidential material can be made agains
 | D — CAD kernel | `docs/research/d-cad-kernel.md` | Rhino developer + help docs, release notes, format specs (LoC), openNURBS docs |
 | E — platform + law | `docs/research/e-ipados-stack-legal.md` | Apple developer docs, U.S. Code (Cornell LII), EFF FAQ, openNURBS licence |
 | F — engineering/delivery | `docs/research/f-engineering-delivery.md` | Apple Xcode docs, GitHub Actions docs/changelog, runner-image repo, CI post-mortems |
+| G — rendering/materials | `docs/research/g-rendering-materials.md` | Gemvision/Stuller release notes, Rhino render docs, iJewel3D docs, Apple RealityKit/Metal/MetalFX docs |
+| H — production/interchange | `docs/research/h-production-interchange.md` | Format specs (LoC, 3MF), Rhino file I/O help, casting-house guidelines, Stuller material data |
+| I — competition/kernels | `docs/research/i-competitive-kernels.md` | Vendor pricing pages, official licence texts (OCCT, CGAL, MPL, Apache), Apple developer docs |
 
 ## 3. Facts that came from standards or vendors (not invented)
 
@@ -76,5 +79,5 @@ rather than a standard, the dossier says so and the plan marks it INFERENCE.
 
 As of 2026-11-06, no MatrixGold, Rhino, Gemvision or Clayoo binary, source file, asset or
 licensed library has been accessed, decompiled, copied or redistributed in the production of
-this specification. All requirements were derived from the public sources listed in the six
-research dossiers.
+this specification. All requirements were derived from the public sources listed in the research
+dossiers under `docs/research/` (index: `docs/research/README.md`).

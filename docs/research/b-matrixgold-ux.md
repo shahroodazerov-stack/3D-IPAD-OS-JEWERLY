@@ -114,6 +114,27 @@ Esc-to-cancel is INFERENCE (Rhino convention), not documented.
 - Whether 4.1 changed the ribbon structure vs 3.x is unverified; release notes are bug-fix oriented.
 - Job Bag file structure is proprietary/undocumented; we design our own document bundle (phase 25).
 
+## 10. Verification pass (2026-11-06)
+
+A second public-source pass confirmed most of the anatomy above and added these points:
+
+- **Conflict, unresolved:** section 1 records a four-up default layout, but one published review
+  states MatrixGold opens with a **single maximised Perspective viewport** (Rhino's own default is
+  four views). No vendor page settles it. The plan must not encode either as a fact.
+- **FACT** The panel set also includes **Project Manager**, **Content Manager** and
+  **Ring Resizer**. Quick Commands became user-tabbed in 3.9 (custom tabs, save/import/share
+  templates) and gained tab colours in 3.11.
+- **FACT** Rhino's **SelectionFilter** (points, curves, surfaces, polysurfaces, meshes, SubDs,
+  blocks, sub-objects) is available; no jewelry-specific filter set is documented. Selection is
+  therefore layer-driven in practice.
+- **FACT** The Tech Report exports CSV, and metal weights were added to that CSV in 3.11.
+- **FACT** VPCH defects are documented across releases: missing handles, a handle attached to the
+  wrong gem, panel/handle desync and text-scaling problems. This is evidence that in-viewport
+  parametric handles are hard to keep in sync, not evidence against the idea.
+- **INFERENCE:** the ribbon is a discoverability layer over Rhino commands. Cloning the ribbon
+  would import the discovery problem; the transferable idea is contextual, task-first tool
+  surfacing with the same parametric depth.
+
 ## Sources
 
 - Quick Start Guide (PDF): https://s3.amazonaws.com/gemvision.com/Images/MatrixGold/GettingStarted/MatrixGold%20Quick%20Start%20Guide.pdf

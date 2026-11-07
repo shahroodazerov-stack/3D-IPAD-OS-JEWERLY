@@ -35,6 +35,8 @@ URL_RE = re.compile(r"https?://[^\s)\]<>\"'`]+")
 KNOWN_NOTES = {
     "https://www.iso.org/standard/65408.html": "official ISO catalogue page; 403 is bot blocking, not a missing page",
     "https://gemvision.com/": "vendor homepage; 206 is a valid ranged response",
+    "https://www.autodesk.com/products/fusion-360/pricing": "vendor pricing page; 403 is bot blocking, not a missing page",
+    "https://www.cadjewelleryskills.com/jewellery-tech-blog-topics/jewellery-learning-resources/rhino-cad-rendering-comparison-test-part-1": "independent rendering comparison; 403 is bot blocking; the Cycles claim is corroborated by the 2.5 release note linking Render Studio to Rhino Cycles Settings",
 }
 
 
