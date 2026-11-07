@@ -354,6 +354,27 @@ private struct FFAppBar: View {
         width < 820
     }
 
+    private func documentButton(
+        _ systemImage: String,
+        label: String,
+        identifier: String,
+        action: @escaping () -> Void,
+        isEnabled: Bool = true
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(FFPalette.textSecondary.color)
+                .frame(width: 40, height: 44)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(FFPressStyle())
+        .disabled(!isEnabled)
+        .accessibilityIdentifier(identifier)
+        .accessibilityLabel(label)
+        .accessibilityHint(isEnabled ? label : "\(label), unavailable")
+    }
+
     var body: some View {
         HStack(spacing: FFSpace.sm) {
             Image(systemName: "diamond.fill")
@@ -375,28 +396,17 @@ private struct FFAppBar: View {
 
             Spacer(minLength: FFSpace.xs)
 
-            Menu {
-                Button("New document", action: onNewDocument)
-                    .accessibilityIdentifier("shell.document.new")
-                Button("Load fixture", action: onLoadFixture)
-                    .accessibilityIdentifier("shell.document.fixture")
-                Button("Save", action: onSave)
-                    .accessibilityIdentifier("shell.document.save")
-                Button("Reopen", action: onReopen)
-                    .accessibilityIdentifier("shell.document.reopen")
-                Divider()
-                Button("Undo", action: onUndo)
-                    .disabled(!canUndo)
-                    .accessibilityIdentifier("shell.document.undo")
-            } label: {
-                Label("File", systemImage: "folder")
-                    .font(FFType.caption)
-                    .foregroundStyle(FFPalette.textSecondary.color)
-                    .frame(width: isCompact ? 44 : 86, height: 44)
-                    .contentShape(Rectangle())
+            // Document commands are explicit buttons, not a Menu. A Menu's
+            // items exist in the accessibility tree before it presents, so a
+            // touch driver could find an item it cannot actually hit; these
+            // buttons are visible and hittable on the bar itself.
+            HStack(spacing: 0) {
+                documentButton("doc.badge.plus", label: "New document", identifier: "shell.document.new", action: onNewDocument)
+                documentButton("shippingbox", label: "Load fixture", identifier: "shell.document.fixture", action: onLoadFixture)
+                documentButton("square.and.arrow.down", label: "Save", identifier: "shell.document.save", action: onSave)
+                documentButton("arrow.clockwise", label: "Reopen", identifier: "shell.document.reopen", action: onReopen)
+                documentButton("arrow.uturn.backward", label: "Undo", identifier: "shell.document.undo", action: onUndo, isEnabled: canUndo)
             }
-            .accessibilityIdentifier("shell.document.menu")
-            .accessibilityLabel("Document")
 
             if !isCompact {
                 Text(status)

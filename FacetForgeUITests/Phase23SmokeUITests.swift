@@ -125,29 +125,19 @@ final class Phase23SmokeUITests: XCTestCase {
 
     @MainActor
     private func choose(_ title: String, app: XCUIApplication) {
-        let menu = element("shell.document.menu", app)
-        XCTAssertTrue(menu.waitForExistence(timeout: 15), "document menu did not appear")
-        menu.tap()
-
-        let identified = element("shell.document.\(identifier(for: title))", app)
-        if identified.waitForExistence(timeout: 3) {
-            identified.tap()
-            return
-        }
-        let labelled = app.buttons[title]
-        XCTAssertTrue(labelled.waitForExistence(timeout: 10), "menu item '\(title)' did not appear")
-        labelled.tap()
-    }
-
-    private func identifier(for title: String) -> String {
+        let identifier: String
         switch title {
-        case "New document": return "new"
-        case "Load fixture": return "fixture"
-        case "Save": return "save"
-        case "Reopen": return "reopen"
-        case "Undo": return "undo"
-        default: return title.lowercased()
+        case "New document": identifier = "shell.document.new"
+        case "Load fixture": identifier = "shell.document.fixture"
+        case "Save": identifier = "shell.document.save"
+        case "Reopen": identifier = "shell.document.reopen"
+        case "Undo": identifier = "shell.document.undo"
+        default: identifier = title
         }
+        let button = element(identifier, app)
+        XCTAssertTrue(button.waitForExistence(timeout: 15), "document command '\(title)' did not appear")
+        XCTAssertTrue(button.isHittable, "document command '\(title)' is not hittable")
+        button.tap()
     }
 
     // MARK: - Gizmo drag
