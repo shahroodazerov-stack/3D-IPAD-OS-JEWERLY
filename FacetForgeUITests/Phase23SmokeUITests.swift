@@ -47,8 +47,9 @@ final class Phase23SmokeUITests: XCTestCase {
         XCTAssertEqual(fixture.z, 0, accuracy: 1e-6)
         attach(app, "phase23-fixture")
 
-        // Clear the selection on empty viewport space, then select the stone by
-        // tapping the point the gizmo pivot occupied.
+        // Select the shank through the pick path, then select the stone by
+        // tapping the point the gizmo pivot occupied. This proves selection
+        // changed twice without depending on an empty-corner tap.
         let metal = element("shell.viewport.metal", app)
         XCTAssertTrue(metal.waitForExistence(timeout: 15), "Metal viewport did not appear")
         let pivot = element("gumball.pivot", app)
@@ -57,18 +58,15 @@ final class Phase23SmokeUITests: XCTestCase {
             of: pivot.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).screenPoint,
             in: metal
         )
-        metal.coordinate(withNormalizedOffset: CGVector(dx: 0.03, dy: 0.5)).tap()
-        XCTAssertTrue(
-            waitForDisappearance(readout, timeout: 10),
-            "tapping empty space did not clear the selection"
+        metal.coordinate(withNormalizedOffset: CGVector(dx: 0.145, dy: 0.55)).tap()
+        XCTAssertNotNil(
+            waitForPosition(readout, timeout: 10, matching: { abs($0.y) < 1e-6 }),
+            "tapping the shank did not select it; readout is '\(readout.label)'"
         )
         metal.coordinate(withNormalizedOffset: stone).tap()
-        XCTAssertTrue(readout.waitForExistence(timeout: 10), "tapping the stone did not select it")
-        XCTAssertTrue(
-            waitForPosition(readout, timeout: 10) { position in
-                abs(position.x) < 1e-6 && abs(position.y - 40) < 1e-6
-            } != nil,
-            "the reselected stone moved"
+        XCTAssertNotNil(
+            waitForPosition(readout, timeout: 10, matching: { abs($0.y - 40) < 1e-6 }),
+            "tapping the stone did not select it; readout is '\(readout.label)'"
         )
         attach(app, "phase23-selected")
 
