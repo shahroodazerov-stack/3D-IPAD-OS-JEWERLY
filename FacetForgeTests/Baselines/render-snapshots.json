@@ -1,6 +1,31 @@
 {
-  "version": 1,
-  "algorithm": "dhash-17x16-256",
-  "budgetBits": 8,
-  "scenes": []
+  "algorithm" : "dhash-17x16-256",
+  "budgetBits" : 8,
+  "scenes" : [
+    {
+      "hash" : "000000000000008000c000e000e004f004dc049c01b018c01d801f000e000400",
+      "name" : "bench-edges"
+    },
+    {
+      "hash" : "000000000000008000c000e000e004f004bc003c027019c01d801f000e000400",
+      "name" : "bench-shaded"
+    },
+    {
+      "hash" : "00000000000001000300070006c00c400cc00c800d8006000000000000000000",
+      "name" : "bench-technical"
+    },
+    {
+      "hash" : "000000000000008000c000e00120032002200260026001c00000000000000000",
+      "name" : "bench-wireframe"
+    },
+    {
+      "hash" : "00000000008000800080006000f004bc020e001c02f801e00180000000000000",
+      "name" : "empty-grid"
+    },
+    {
+      "hash" : "000000000000008000800080008000c000e000e003300738061c031c033801e0",
+      "name" : "fixture-clay"
+    }
+  ],
+  "version" : 1
 }
