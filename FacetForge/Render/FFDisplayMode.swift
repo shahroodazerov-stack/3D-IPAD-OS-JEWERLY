@@ -80,8 +80,11 @@ enum FFDisplayMode: String, CaseIterable, Codable, Identifiable, Sendable {
         switch self {
         case .wireframe: FFRGBA(red: 0.72, green: 0.78, blue: 0.82)
         case .technical: FFRGBA(red: 0.12, green: 0.13, blue: 0.15)
-        case .shadedEdges: FFRGBA(red: 0.045, green: 0.05, blue: 0.06)
-        case .shaded, .clay: FFRGBA(red: 0.045, green: 0.05, blue: 0.06)
+        // Edges are darker than the gold but lighter than the studio void: a
+        // line the same value as the background erases the object's silhouette
+        // on a dense mesh, which is every mesh the bench sample ships.
+        case .shadedEdges: FFRGBA(red: 0.09, green: 0.095, blue: 0.11)
+        case .shaded, .clay: FFRGBA(red: 0.09, green: 0.095, blue: 0.11)
         }
     }
 
@@ -106,8 +109,6 @@ enum FFDisplayMode: String, CaseIterable, Codable, Identifiable, Sendable {
             nil
         }
     }
-
-    var isFlatShaded: Bool { self == .technical }
 
     /// Passed to the shader in `material.w`. The shader only branches for the
     /// flat technical look; every other mode uses the same PBR-lite path.
