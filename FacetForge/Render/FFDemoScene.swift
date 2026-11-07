@@ -101,7 +101,8 @@ extension FFViewportScene {
                 mesh: mesh,
                 transform: Mat4.translation(Vec3(x: 0, y: 40, z: 0)),
                 material: .gem,
-                isSelected: true
+                isSelected: true,
+                kind: .stone
             ))
         }
 

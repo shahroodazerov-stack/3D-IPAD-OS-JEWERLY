@@ -189,6 +189,7 @@ final class FFMetalViewportRenderer {
     private let meshPipelineState: MTLRenderPipelineState
     private let outlinePipelineState: MTLRenderPipelineState
     private let shadowPipelineState: MTLRenderPipelineState
+    private let pickPipelineState: MTLRenderPipelineState
     private let meshDepthState: MTLDepthStencilState
     private let outlineDepthState: MTLDepthStencilState
     private let shadowDepthState: MTLDepthStencilState
@@ -280,6 +281,19 @@ final class FFMetalViewportRenderer {
             blending: true
         ) else { return nil }
 
+        guard let pickVertexFunction = library.makeFunction(name: "ff_pick_vertex"),
+              let pickFragmentFunction = library.makeFunction(name: "ff_pick_fragment")
+        else { return nil }
+        let pickDescriptor = MTLRenderPipelineDescriptor()
+        pickDescriptor.label = "FacetForge viewport picking"
+        pickDescriptor.vertexFunction = pickVertexFunction
+        pickDescriptor.fragmentFunction = pickFragmentFunction
+        pickDescriptor.rasterSampleCount = 1
+        pickDescriptor.depthAttachmentPixelFormat = Self.depthPixelFormat
+        pickDescriptor.colorAttachments[0].pixelFormat = .r32Uint
+        guard let pickPipelineState = try? device.makeRenderPipelineState(descriptor: pickDescriptor)
+        else { return nil }
+
         func makeDepthState(
             label: String,
             compare: MTLCompareFunction,
@@ -331,6 +345,7 @@ final class FFMetalViewportRenderer {
         self.meshPipelineState = meshPipelineState
         self.outlinePipelineState = outlinePipelineState
         self.shadowPipelineState = shadowPipelineState
+        self.pickPipelineState = pickPipelineState
         self.meshDepthState = meshDepthState
         self.outlineDepthState = outlineDepthState
         self.shadowDepthState = shadowDepthState
@@ -492,6 +507,177 @@ final class FFMetalViewportRenderer {
         return FFViewportReadback(width: width, height: height, pixels: pixels)
     }
 
+    /// Renders object IDs into an `r32Uint` texture and reads them back. The
+    /// ID pass has no MSAA and no shading: a pick needs one integer per pixel,
+    /// and keeping it single-sample makes the readback cheap enough to run on
+    /// a tap. Hidden nodes are skipped but keep their index, so the ID for
+    /// every visible node is stable.
+    func pickBuffer(
+        width: Int,
+        height: Int,
+        camera: FFCamera,
+        scene: FFViewportScene
+    ) -> FFPickingReadback? {
+        guard width > 0, height > 0, width <= 4_096, height <= 4_096 else {
+            return nil
+        }
+
+        let colorDescriptor = MTLTextureDescriptor.texture2DDescriptor(
+            pixelFormat: .r32Uint,
+            width: width,
+            height: height,
+            mipmapped: false
+        )
+        colorDescriptor.usage = .renderTarget
+        colorDescriptor.storageMode = .private
+        guard let idTexture = device.makeTexture(descriptor: colorDescriptor) else {
+            return nil
+        }
+
+        let depthDescriptor = MTLTextureDescriptor.texture2DDescriptor(
+            pixelFormat: Self.depthPixelFormat,
+            width: width,
+            height: height,
+            mipmapped: false
+        )
+        depthDescriptor.usage = .renderTarget
+        depthDescriptor.storageMode = .private
+        guard let depthTexture = device.makeTexture(descriptor: depthDescriptor) else {
+            return nil
+        }
+
+        let pass = MTLRenderPassDescriptor()
+        pass.colorAttachments[0].texture = idTexture
+        pass.colorAttachments[0].loadAction = .clear
+        pass.colorAttachments[0].storeAction = .store
+        pass.colorAttachments[0].clearColor = MTLClearColor(red: 0, green: 0, blue: 0, alpha: 0)
+        pass.depthAttachment.texture = depthTexture
+        pass.depthAttachment.loadAction = .clear
+        pass.depthAttachment.clearDepth = 1
+        pass.depthAttachment.storeAction = .dontCare
+
+        guard let commandBuffer = commandQueue.makeCommandBuffer(),
+              let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: pass)
+        else { return nil }
+        encoder.label = "FacetForge picking"
+        encoder.setRenderPipelineState(pickPipelineState)
+        encoder.setDepthStencilState(meshDepthState)
+        encoder.setCullMode(.back)
+
+        let submitStart = CACurrentMediaTime()
+        let viewProjection = camera.viewProjectionMatrix(aspect: Double(width) / Double(height))
+        let viewport = SIMD2<Float>(Float(width), Float(height))
+        for (index, node) in scene.nodes.enumerated() where node.isVisible {
+            guard let buffers = buffers(for: node.mesh, nodeID: node.id) else { continue }
+            var uniforms = meshUniforms(
+                node: node,
+                camera: camera,
+                viewProjection: viewProjection,
+                viewport: viewport
+            )
+            var objectID = UInt32(index + 1)
+            encoder.setVertexBuffer(buffers.vertices, offset: 0, index: 0)
+            encoder.setVertexBuffer(buffers.indices, offset: 0, index: 2)
+            encoder.setVertexBytes(
+                &uniforms,
+                length: MemoryLayout<FFMeshUniforms>.stride,
+                index: 1
+            )
+            encoder.setFragmentBytes(
+                &objectID,
+                length: MemoryLayout<UInt32>.stride,
+                index: 2
+            )
+            encoder.drawIndexedPrimitives(
+                type: .triangle,
+                indexCount: buffers.indexCount,
+                indexType: .uint32,
+                indexBuffer: buffers.indices,
+                indexBufferOffset: 0
+            )
+        }
+        encoder.endEncoding()
+
+        let bytesPerRow = width * 4
+        guard let readbackBuffer = device.makeBuffer(
+            length: bytesPerRow * height,
+            options: .storageModeShared
+        ), let blit = commandBuffer.makeBlitCommandEncoder()
+        else { return nil }
+
+        blit.copy(
+            from: idTexture,
+            sourceSlice: 0,
+            sourceLevel: 0,
+            sourceOrigin: MTLOrigin(x: 0, y: 0, z: 0),
+            sourceSize: MTLSize(width: width, height: height, depth: 1),
+            to: readbackBuffer,
+            destinationOffset: 0,
+            destinationBytesPerRow: bytesPerRow,
+            destinationBytesPerImage: bytesPerRow * height
+        )
+        blit.endEncoding()
+        commandBuffer.commit()
+        lastSubmitMilliseconds = (CACurrentMediaTime() - submitStart) * 1_000
+        commandBuffer.waitUntilCompleted()
+
+        if let error = commandBuffer.error {
+            lastCommandBufferError = error.localizedDescription
+            return nil
+        }
+
+        let count = width * height
+        let pointer = readbackBuffer.contents().bindMemory(to: UInt32.self, capacity: count)
+        let objectIDs = Array(UnsafeBufferPointer(start: pointer, count: count))
+        return FFPickingReadback(width: width, height: height, objectIDs: objectIDs)
+    }
+
+    /// One ID pass resolves a whole batch of points. A drag selection or a
+    /// dense test sweep must not pay a full render per pixel.
+    func pick(
+        at points: [Vec2],
+        width: Int,
+        height: Int,
+        camera: FFCamera,
+        scene: FFViewportScene,
+        filter: FFPickFilter = .all
+    ) -> [FFPickResult?] {
+        guard let buffer = pickBuffer(
+            width: width,
+            height: height,
+            camera: camera,
+            scene: scene
+        ) else {
+            return Array(repeating: nil, count: points.count)
+        }
+        return points.map {
+            FFPickResolver.resolve(
+                buffer: buffer,
+                scene: scene,
+                point: $0,
+                filter: filter
+            )
+        }
+    }
+
+    func pick(
+        at point: Vec2,
+        width: Int,
+        height: Int,
+        camera: FFCamera,
+        scene: FFViewportScene,
+        filter: FFPickFilter = .all
+    ) -> FFPickResult? {
+        pick(
+            at: [point],
+            width: width,
+            height: height,
+            camera: camera,
+            scene: scene,
+            filter: filter
+        ).first ?? nil
+    }
+
     private func encode(
         pass: MTLRenderPassDescriptor,
         commandBuffer: MTLCommandBuffer,
@@ -562,7 +748,7 @@ final class FFMetalViewportRenderer {
             encoder.setRenderPipelineState(outlinePipelineState)
             encoder.setDepthStencilState(outlineDepthState)
             encoder.setCullMode(.back)
-            for node in scene.nodes where node.isSelected {
+            for node in scene.nodes where node.isSelected && node.isVisible {
                 guard let buffers = buffers(for: node.mesh, nodeID: node.id) else { continue }
                 var uniforms = meshUniforms(
                     node: node,
@@ -596,7 +782,7 @@ final class FFMetalViewportRenderer {
             encoder.setRenderPipelineState(meshPipelineState)
             encoder.setDepthStencilState(meshDepthState)
             encoder.setCullMode(.back)
-            for node in scene.nodes {
+            for node in scene.nodes where node.isVisible {
                 guard let buffers = buffers(for: node.mesh, nodeID: node.id) else { continue }
                 var uniforms = meshUniforms(
                     node: node,
@@ -795,6 +981,28 @@ final class FFMetalViewportRenderer {
         return float4(color, 1.0);
     }
 
+    struct FFPickVaryings {
+        float4 position [[position]];
+    };
+
+    vertex FFPickVaryings ff_pick_vertex(
+        uint vertexID [[vertex_id]],
+        device const FFMeshVertex *vertices [[buffer(0)]],
+        constant FFMeshUniforms &u [[buffer(1)]]
+    ) {
+        FFMeshVertex value = vertices[vertexID];
+        FFPickVaryings out;
+        out.position = u.viewProjection * u.model * float4(float3(value.position), 1.0);
+        return out;
+    }
+
+    fragment uint ff_pick_fragment(
+        FFPickVaryings in [[stage_in]],
+        constant uint &objectID [[buffer(2)]]
+    ) {
+        return objectID;
+    }
+
     vertex float4 ff_outline_vertex(
         uint vertexID [[vertex_id]],
         device const FFMeshVertex *vertices [[buffer(0)]],
@@ -881,6 +1089,7 @@ struct FFMetalViewportView: UIViewRepresentable {
     /// identifier for the existing camera navigation tests.
     var accessibilityIdentifier: String = "shell.viewport.metal"
     var onCameraChange: (FFCamera) -> Void = { _ in }
+    var onPick: (FFPickResult?) -> Void = { _ in }
     var onStatistics: (FFFrameStatistics) -> Void
 
     func makeCoordinator() -> Coordinator {
@@ -888,6 +1097,7 @@ struct FFMetalViewportView: UIViewRepresentable {
             camera: camera,
             scene: scene,
             onCameraChange: onCameraChange,
+            onPick: onPick,
             onStatistics: onStatistics
         )
     }
@@ -934,6 +1144,7 @@ struct FFMetalViewportView: UIViewRepresentable {
         context.coordinator.camera = camera
         context.coordinator.scene = scene
         context.coordinator.onCameraChange = onCameraChange
+        context.coordinator.onPick = onPick
         context.coordinator.onStatistics = onStatistics
     }
 
@@ -971,9 +1182,11 @@ struct FFMetalViewportView: UIViewRepresentable {
         var camera: FFCamera
         var scene: FFViewportScene
         var onCameraChange: (FFCamera) -> Void
+        var onPick: (FFPickResult?) -> Void
         var onStatistics: (FFFrameStatistics) -> Void
 
         private var renderer: FFMetalViewportRenderer?
+        private(set) var pickInteraction = FFPickInteraction()
         private weak var metalView: MTKView?
         private var lastReportTime: Double = 0
 
@@ -981,11 +1194,13 @@ struct FFMetalViewportView: UIViewRepresentable {
             camera: FFCamera,
             scene: FFViewportScene,
             onCameraChange: @escaping (FFCamera) -> Void,
+            onPick: @escaping (FFPickResult?) -> Void,
             onStatistics: @escaping (FFFrameStatistics) -> Void
         ) {
             self.camera = camera
             self.scene = scene
             self.onCameraChange = onCameraChange
+            self.onPick = onPick
             self.onStatistics = onStatistics
         }
 
@@ -1022,6 +1237,11 @@ struct FFMetalViewportView: UIViewRepresentable {
             frameTap.numberOfTouchesRequired = 2
             frameTap.delegate = self
             view.addGestureRecognizer(frameTap)
+
+            let pickTap = UITapGestureRecognizer(target: self, action: #selector(handlePickTap(_:)))
+            pickTap.numberOfTapsRequired = 1
+            pickTap.delegate = self
+            view.addGestureRecognizer(pickTap)
         }
 
         @objc private func handlePan(_ recognizer: UIPanGestureRecognizer) {
@@ -1069,6 +1289,31 @@ struct FFMetalViewportView: UIViewRepresentable {
             var next = camera
             FFCameraNavigation.frameAll(&next)
             publish(next, in: view)
+        }
+
+        /// A tap resolves through the ID buffer and publishes the hover result.
+        /// The drag gesture keeps its own pick, so a moving finger cannot be
+        /// re-targeted by a hover event.
+        @objc private func handlePickTap(_ recognizer: UITapGestureRecognizer) {
+            guard let view = metalView,
+                  recognizer.state == .ended,
+                  let renderer
+            else { return }
+            let location = recognizer.location(in: view)
+            let size = view.bounds.size
+            guard size.width >= 1, size.height >= 1 else { return }
+            let result = renderer.pick(
+                at: Vec2(x: Double(location.x), y: Double(location.y)),
+                width: Int(size.width),
+                height: Int(size.height),
+                camera: camera,
+                scene: scene
+            )
+            pickInteraction.hover(result)
+            let callback = onPick
+            DispatchQueue.main.async {
+                callback(result)
+            }
         }
 
         private func viewportSize(of view: UIView) -> Vec2 {

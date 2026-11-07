@@ -75,6 +75,10 @@ struct FFRenderNode: Equatable, Sendable, Identifiable {
     var transform: Mat4
     var material: FFRenderMaterial
     var isSelected: Bool
+    var kind: FFPickKind
+    /// Hidden nodes are neither drawn nor written to the picking buffer. They
+    /// keep their scene index so the ID mapping stays stable.
+    var isVisible: Bool
 
     init(
         id: UUID = UUID(),
@@ -82,7 +86,9 @@ struct FFRenderNode: Equatable, Sendable, Identifiable {
         mesh: FFRenderMesh,
         transform: Mat4 = .identity,
         material: FFRenderMaterial = .gold,
-        isSelected: Bool = false
+        isSelected: Bool = false,
+        kind: FFPickKind = .solid,
+        isVisible: Bool = true
     ) {
         self.id = id
         self.name = name
@@ -90,6 +96,8 @@ struct FFRenderNode: Equatable, Sendable, Identifiable {
         self.transform = transform
         self.material = material
         self.isSelected = isSelected
+        self.kind = kind
+        self.isVisible = isVisible
     }
 }
 

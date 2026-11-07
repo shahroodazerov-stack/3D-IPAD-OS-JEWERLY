@@ -13,8 +13,8 @@ final class AppIdentityTests: XCTestCase {
     }
 
     func testPhaseThirteenIsTheRenderHost() {
-        XCTAssertEqual(AppIdentity.phase, 13)
-        XCTAssertEqual(AppIdentity.phaseLabel, "Phase 13 · render host")
+        XCTAssertEqual(AppIdentity.phase, 14)
+        XCTAssertEqual(AppIdentity.phaseLabel, "Phase 14 · picking")
     }
 
     func testTheHostAppSupportsTheIPadLayout() {
