@@ -508,9 +508,9 @@ final class FFMetalViewportRenderer {
 
         if let bounds = scene.bounds {
             var shadowUniforms = FFMeshUniforms(
-                model: .identity,
+                model: Mat4.identity.simdMatrix,
                 viewProjection: viewProjection.simdMatrix,
-                normalMatrix: .identity,
+                normalMatrix: Mat4.identity.simdMatrix,
                 baseColor: SIMD4<Float>(0, 0, 0, 1),
                 cameraPosition: SIMD4<Float>(0, 0, 0, 1),
                 material: SIMD4<Float>(0, 1, 0, 0),
@@ -927,7 +927,7 @@ struct FFMetalViewportView: UIViewRepresentable {
         }
         if uiView.accessibilityIdentifier == accessibilityIdentifier {
             let state = camera.accessibilityState
-            if uiView.accessibilityValue as? String != state {
+            if uiView.accessibilityValue != state {
                 uiView.accessibilityValue = state
             }
         }
