@@ -748,6 +748,7 @@ private struct FFViewportPane: View {
                     scene: displayScene,
                     accessibilityIdentifier: metalIdentifier,
                     allowsCameraGestures: !gizmoDragging && !selection.isMarquee,
+                    pickFilter: selection.filter,
                     onHover: { point in
                         updateHover(point, viewport: paneSize)
                     },

@@ -1093,6 +1093,9 @@ struct FFMetalViewportView: UIViewRepresentable {
     /// break the snap, so the overlay switches camera gestures off until the
     /// drag ends.
     var allowsCameraGestures = true
+    /// Which object kinds a tap may resolve. Filtered-out geometry still
+    /// occludes, so a stone-only filter does not select the gold behind it.
+    var pickFilter: FFPickFilter = .all
     /// A hover sample in top-left-origin viewport points, or `nil` when the
     /// pointer leaves. Taps publish one too, so a finger gets the same markers
     /// on a simulator without a trackpad.
@@ -1105,6 +1108,7 @@ struct FFMetalViewportView: UIViewRepresentable {
         Coordinator(
             camera: camera,
             scene: scene,
+            pickFilter: pickFilter,
             onCameraChange: onCameraChange,
             onPick: onPick,
             onHover: onHover,
@@ -1153,6 +1157,7 @@ struct FFMetalViewportView: UIViewRepresentable {
         }
         context.coordinator.camera = camera
         context.coordinator.scene = scene
+        context.coordinator.pickFilter = pickFilter
         context.coordinator.onCameraChange = onCameraChange
         context.coordinator.onPick = onPick
         context.coordinator.onHover = onHover
@@ -1193,6 +1198,7 @@ struct FFMetalViewportView: UIViewRepresentable {
     final class Coordinator: NSObject, MTKViewDelegate, UIGestureRecognizerDelegate {
         var camera: FFCamera
         var scene: FFViewportScene
+        var pickFilter: FFPickFilter
         var onCameraChange: (FFCamera) -> Void
         var onPick: (FFPickResult?) -> Void
         var onHover: (Vec2?) -> Void
@@ -1206,6 +1212,7 @@ struct FFMetalViewportView: UIViewRepresentable {
         init(
             camera: FFCamera,
             scene: FFViewportScene,
+            pickFilter: FFPickFilter,
             onCameraChange: @escaping (FFCamera) -> Void,
             onPick: @escaping (FFPickResult?) -> Void,
             onHover: @escaping (Vec2?) -> Void,
@@ -1213,6 +1220,7 @@ struct FFMetalViewportView: UIViewRepresentable {
         ) {
             self.camera = camera
             self.scene = scene
+            self.pickFilter = pickFilter
             self.onCameraChange = onCameraChange
             self.onPick = onPick
             self.onHover = onHover
@@ -1361,7 +1369,8 @@ struct FFMetalViewportView: UIViewRepresentable {
                 width: Int(size.width),
                 height: Int(size.height),
                 camera: camera,
-                scene: scene
+                scene: scene,
+                filter: pickFilter
             )
             pickInteraction.hover(result)
             let callback = onPick
