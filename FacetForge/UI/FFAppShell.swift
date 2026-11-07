@@ -688,33 +688,23 @@ private struct FFViewportPane: View {
     let onStatistics: (FFFrameStatistics) -> Void
 
     var body: some View {
-        ZStack(alignment: .bottomTrailing) {
-            FFMetalViewportView(
-                camera: camera,
-                scene: scene,
-                accessibilityIdentifier: metalIdentifier,
-                onCameraChange: { updated in
-                    camera = updated
-                    onCameraChange(updated)
-                },
-                onStatistics: onStatistics
-            )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-            Text(plan.title)
-                .font(FFType.monoSmall)
-                .foregroundStyle(FFPalette.textSecondary.color)
-                .padding(.horizontal, FFSpace.xs)
-                .padding(.vertical, FFSpace.xxs)
-                .background(
-                    FFPalette.panel.color.opacity(0.88),
-                    in: RoundedRectangle(cornerRadius: FFRadius.sm, style: .continuous)
-                )
-                .padding(FFSpace.xs)
-                .accessibilityHidden(true)
-        }
+        FFMetalViewportView(
+            camera: camera,
+            scene: scene,
+            accessibilityIdentifier: metalIdentifier,
+            onCameraChange: { updated in
+                camera = updated
+                onCameraChange(updated)
+            },
+            onStatistics: onStatistics
+        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        // The pane name is a label, not a floating badge. The bottom HUD already
+        // names the layout and every pane, and a badge in the corner printed on
+        // top of that HUD in the Phase 13 snapshots at 749 pt.
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(plan.accessibilityIdentifier)
+        .accessibilityLabel(plan.title)
     }
 }
 
