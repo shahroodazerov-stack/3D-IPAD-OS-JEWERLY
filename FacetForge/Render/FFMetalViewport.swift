@@ -1093,6 +1093,10 @@ struct FFMetalViewportView: UIViewRepresentable {
     /// break the snap, so the overlay switches camera gestures off until the
     /// drag ends.
     var allowsCameraGestures = true
+    /// A hover sample in top-left-origin viewport points, or `nil` when the
+    /// pointer leaves. Taps publish one too, so a finger gets the same markers
+    /// on a simulator without a trackpad.
+    var onHover: (Vec2?) -> Void = { _ in }
     var onCameraChange: (FFCamera) -> Void = { _ in }
     var onPick: (FFPickResult?) -> Void = { _ in }
     var onStatistics: (FFFrameStatistics) -> Void
@@ -1103,6 +1107,7 @@ struct FFMetalViewportView: UIViewRepresentable {
             scene: scene,
             onCameraChange: onCameraChange,
             onPick: onPick,
+            onHover: onHover,
             onStatistics: onStatistics
         )
     }
@@ -1150,6 +1155,7 @@ struct FFMetalViewportView: UIViewRepresentable {
         context.coordinator.scene = scene
         context.coordinator.onCameraChange = onCameraChange
         context.coordinator.onPick = onPick
+        context.coordinator.onHover = onHover
         context.coordinator.onStatistics = onStatistics
         context.coordinator.setCameraGesturesEnabled(allowsCameraGestures)
     }
@@ -1189,6 +1195,7 @@ struct FFMetalViewportView: UIViewRepresentable {
         var scene: FFViewportScene
         var onCameraChange: (FFCamera) -> Void
         var onPick: (FFPickResult?) -> Void
+        var onHover: (Vec2?) -> Void
         var onStatistics: (FFFrameStatistics) -> Void
 
         private var renderer: FFMetalViewportRenderer?
@@ -1201,12 +1208,14 @@ struct FFMetalViewportView: UIViewRepresentable {
             scene: FFViewportScene,
             onCameraChange: @escaping (FFCamera) -> Void,
             onPick: @escaping (FFPickResult?) -> Void,
+            onHover: @escaping (Vec2?) -> Void,
             onStatistics: @escaping (FFFrameStatistics) -> Void
         ) {
             self.camera = camera
             self.scene = scene
             self.onCameraChange = onCameraChange
             self.onPick = onPick
+            self.onHover = onHover
             self.onStatistics = onStatistics
         }
 
@@ -1249,7 +1258,11 @@ struct FFMetalViewportView: UIViewRepresentable {
             pickTap.delegate = self
             view.addGestureRecognizer(pickTap)
 
-            cameraGestureRecognizers = [pan, pinch, frameTap, pickTap]
+            let hover = UIHoverGestureRecognizer(target: self, action: #selector(handleHover(_:)))
+            hover.delegate = self
+            view.addGestureRecognizer(hover)
+
+            cameraGestureRecognizers = [pan, pinch, frameTap, pickTap, hover]
         }
 
         private var cameraGestureRecognizers: [UIGestureRecognizer] = []
@@ -1310,6 +1323,25 @@ struct FFMetalViewportView: UIViewRepresentable {
             publish(next, in: view)
         }
 
+        /// A pointer hover publishes the snap sample. On a simulator without a
+        /// trackpad no `.changed` event ever arrives, so the tap below publishes
+        /// the same sample and the markers are still observable in UI tests.
+        @objc private func handleHover(_ recognizer: UIHoverGestureRecognizer) {
+            guard let view = metalView else { return }
+            switch recognizer.state {
+            case .changed, .began:
+                let location = recognizer.location(in: view)
+                let callback = onHover
+                let point = Vec2(x: Double(location.x), y: Double(location.y))
+                DispatchQueue.main.async { callback(point) }
+            case .ended, .cancelled, .failed:
+                let callback = onHover
+                DispatchQueue.main.async { callback(nil) }
+            default:
+                break
+            }
+        }
+
         /// A tap resolves through the ID buffer and publishes the hover result.
         /// The drag gesture keeps its own pick, so a moving finger cannot be
         /// re-targeted by a hover event.
@@ -1319,6 +1351,9 @@ struct FFMetalViewportView: UIViewRepresentable {
                   let renderer
             else { return }
             let location = recognizer.location(in: view)
+            let hoverCallback = onHover
+            let hoverPoint = Vec2(x: Double(location.x), y: Double(location.y))
+            DispatchQueue.main.async { hoverCallback(hoverPoint) }
             let size = view.bounds.size
             guard size.width >= 1, size.height >= 1 else { return }
             let result = renderer.pick(

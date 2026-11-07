@@ -689,6 +689,9 @@ private struct FFViewportPane: View {
 
     @State private var gumball = FFGumballSession()
     @State private var gizmoDragging = false
+    @State private var snapMarkers: [FFSnapMarker] = []
+    @State private var hoverPoint: Vec2?
+    @State private var paneSize = CGSize(width: 1, height: 1)
 
     /// The four-up panes are camera previews, not editing surfaces. The gizmo
     /// lives in the maximised Perspective pane, the one a document opens in.
@@ -731,12 +734,17 @@ private struct FFViewportPane: View {
                     scene: displayScene,
                     accessibilityIdentifier: metalIdentifier,
                     allowsCameraGestures: !gizmoDragging,
+                    onHover: { point in
+                        updateHover(point, viewport: paneSize)
+                    },
                     onCameraChange: { updated in
                         camera = updated
                         onCameraChange(updated)
                     },
                     onStatistics: onStatistics
                 )
+
+                FFSnapOverlay(markers: snapMarkers)
 
                 if showsGumball, gumball.nodeID != nil {
                     FFGumballOverlay(
@@ -747,6 +755,17 @@ private struct FFViewportPane: View {
                         onDragStateChange: { gizmoDragging = $0 }
                     )
                 }
+            }
+            .onGeometryChange(for: CGSize.self) { geometry in
+                geometry.size
+            } action: { size in
+                paneSize = size
+            }
+            // Markers are world points. Re-resolving on a camera change keeps
+            // them under the same cursor after a zoom instead of leaving stale
+            // screen coordinates behind.
+            .onChange(of: camera) { _, _ in
+                refreshSnapMarkers(viewport: paneSize)
             }
         }
         .onAppear(perform: configureGumball)
@@ -761,6 +780,26 @@ private struct FFViewportPane: View {
     private func configureGumball() {
         guard gumball.nodeID == nil, let node = selectedNode else { return }
         gumball.select(nodeID: node.id, transform: node.transform)
+    }
+
+    private func updateHover(_ point: Vec2?, viewport: CGSize) {
+        hoverPoint = point
+        refreshSnapMarkers(viewport: viewport)
+    }
+
+    private func refreshSnapMarkers(viewport: CGSize) {
+        guard let hoverPoint, viewport.width > 1, viewport.height > 1 else {
+            snapMarkers = []
+            return
+        }
+        snapMarkers = FFSnapHover.markers(
+            hover: hoverPoint,
+            scene: displayScene,
+            selectedID: gumball.nodeID,
+            reference: gizmoDragging ? gumball.pivot : nil,
+            camera: camera,
+            viewport: Vec2(x: Double(viewport.width), y: Double(viewport.height))
+        )
     }
 }
 
