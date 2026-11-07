@@ -133,11 +133,11 @@ struct FFCurveSegment: Codable, Equatable, Sendable {
     init(_ curve: Curve2D) {
         switch curve {
         case .bezier(let bezier):
-            self.init(kind: .bezier, controlPoints: bezier.controlPoints.map(FFPoint2.init))
+            self.init(kind: .bezier, controlPoints: bezier.controlPoints.map { FFPoint2($0) })
         case .nurbs(let nurbs):
             self.init(
                 kind: .nurbs,
-                controlPoints: nurbs.controlPoints.map(FFPoint2.init),
+                controlPoints: nurbs.controlPoints.map { FFPoint2($0) },
                 weights: nurbs.weights,
                 degree: nurbs.degree,
                 knots: nurbs.knots
@@ -179,7 +179,7 @@ struct FFCurvePayload: Codable, Equatable, Sendable {
     }
 
     init(_ path: CurvePath2D) {
-        self.init(segments: path.curves.map(FFCurveSegment.init), isClosed: path.isClosed())
+        self.init(segments: path.curves.map { FFCurveSegment($0) }, isClosed: path.isClosed())
     }
 
     func path(tolerance: Double = 1e-7) -> CurvePath2D? {
@@ -220,8 +220,8 @@ struct FFMeshPayload: Codable, Equatable, Sendable {
 
     init(_ mesh: IndexedMesh) {
         self.init(
-            positions: mesh.positions.map(FFPoint3.init),
-            triangles: mesh.triangles.map(FFTriangleIndex.init)
+            positions: mesh.positions.map { FFPoint3($0) },
+            triangles: mesh.triangles.map { FFTriangleIndex($0) }
         )
     }
 
