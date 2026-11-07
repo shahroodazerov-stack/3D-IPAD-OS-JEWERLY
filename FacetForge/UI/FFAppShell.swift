@@ -607,15 +607,26 @@ private struct FFViewport: View {
 
     private var fourUpGrid: some View {
         let panes = FFViewportLayout.fourUp.panes
-        return VStack(spacing: 1) {
-            HStack(spacing: 1) {
-                fourUpPane(panes[0])
-                fourUpPane(panes[1])
+        return GeometryReader { proxy in
+            let gap: CGFloat = 1
+            let paneWidth = max(1, (proxy.size.width - gap) / 2)
+            let paneHeight = max(1, (proxy.size.height - gap) / 2)
+
+            VStack(spacing: gap) {
+                HStack(spacing: gap) {
+                    fourUpPane(panes[0])
+                        .frame(width: paneWidth, height: paneHeight)
+                    fourUpPane(panes[1])
+                        .frame(width: paneWidth, height: paneHeight)
+                }
+                HStack(spacing: gap) {
+                    fourUpPane(panes[2])
+                        .frame(width: paneWidth, height: paneHeight)
+                    fourUpPane(panes[3])
+                        .frame(width: paneWidth, height: paneHeight)
+                }
             }
-            HStack(spacing: 1) {
-                fourUpPane(panes[2])
-                fourUpPane(panes[3])
-            }
+            .frame(width: proxy.size.width, height: proxy.size.height)
         }
         .background(FFPalette.separator.color)
     }
