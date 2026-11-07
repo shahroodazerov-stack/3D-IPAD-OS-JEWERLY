@@ -702,7 +702,6 @@ private struct FFViewportPane: View {
     @State private var snapMarkers: [FFSnapMarker] = []
     @State private var hoverPoint: Vec2?
     @State private var paneSize = CGSize(width: 1, height: 1)
-    @State private var shiftHeld = false
 
     /// The four-up panes are camera previews, not editing surfaces. The gizmo
     /// lives in the maximised Perspective pane, the one a document opens in.
@@ -758,10 +757,11 @@ private struct FFViewportPane: View {
                     },
                     onPick: { result in
                         // Phase 14's pick becomes Phase 17's selection here.
-                        // Shift and the Multi chip are the same extend flag.
+                        // iPadOS has no Shift-click on touch, so the Multi
+                        // chip is the extend contract the CI drives.
                         selection.click(
                             result?.nodeID,
-                            extend: selection.isMultiSelect || shiftHeld
+                            extend: selection.isMultiSelect
                         )
                     },
                     onStatistics: onStatistics
@@ -808,9 +808,6 @@ private struct FFViewportPane: View {
             }
         }
         .onAppear(perform: configureGumball)
-        .onModifierKeysChanged(mask: .shift) { _, modifiers in
-            shiftHeld = modifiers.contains(.shift)
-        }
         .onChange(of: selection.selectedIDs) { _, ids in
             // A gizmo cannot outlive its selection or float over a node the
             // jeweller just hid. Follow the primary selection, or clear.
@@ -893,11 +890,11 @@ private struct FFInspector: View {
                     .accessibilityLabel("Hide inspector")
                 }
 
-                // Phase 17's touch controls. Shift-click still extends on a
-                // hardware keyboard; the Multi chip is the same contract for a
-                // finger, which is what the CI UI tests drive. Keeping them in
-                // the inspector leaves the viewport's top strip free for the
-                // marquee's start above the stone.
+                // Phase 17's touch controls. iPadOS has no Shift-click on
+                // touch and no modifier-click API, so Multi is the extend
+                // contract; the CI drives it. Keeping them in the inspector
+                // leaves the viewport's top strip free for the marquee's start
+                // above the stone.
                 FFPanel(title: "Select", subtitle: "Touch mode and pick filter") {
                     HStack(spacing: FFSpace.xxs) {
                         FFChip(
