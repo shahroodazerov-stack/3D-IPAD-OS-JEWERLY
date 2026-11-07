@@ -212,7 +212,7 @@ struct FFAppShell: View {
     @State private var toolsCollapsed = false
     @State private var inspectorCollapsed = false
     @State private var bandWidth = "18.00"
-    @State private var frameStatistics = FFFrameStatistics()
+    @State private var performance = FFPerformanceReport()
     @State private var camera = FFCamera.standard
     @State private var namedView: FFNamedView? = .iso
     @State private var lengthUnit: FFLengthUnit = .millimetres
@@ -255,7 +255,7 @@ struct FFAppShell: View {
                         selectedTool: selectedTool,
                         toolsCollapsed: toolsCollapsed,
                         inspectorCollapsed: inspectorCollapsed,
-                        frameStatistics: frameStatistics,
+                        performance: performance,
                         lengthUnit: lengthUnit,
                         camera: $camera,
                         namedView: $namedView,
@@ -264,7 +264,7 @@ struct FFAppShell: View {
                         lockedNodeIDs: session.lockedNodeIDs,
                         selection: $session.selection,
                         onCycleDisplayMode: { session.cycleDisplayMode(for: $0) },
-                        onFrameStatistics: { frameStatistics = $0 },
+                        onPerformance: { performance = $0 },
                         onShowTools: { toolsCollapsed = false },
                         onShowInspector: { inspectorCollapsed = false }
                     )
@@ -449,7 +449,7 @@ private struct FFViewport: View {
     let selectedTool: String
     let toolsCollapsed: Bool
     let inspectorCollapsed: Bool
-    let frameStatistics: FFFrameStatistics
+    let performance: FFPerformanceReport
     let lengthUnit: FFLengthUnit
     @Binding var camera: FFCamera
     @Binding var namedView: FFNamedView?
@@ -458,7 +458,7 @@ private struct FFViewport: View {
     let lockedNodeIDs: Set<UUID>
     @Binding var selection: FFSelectionState
     let onCycleDisplayMode: (String) -> Void
-    let onFrameStatistics: (FFFrameStatistics) -> Void
+    let onPerformance: (FFPerformanceReport) -> Void
     let onShowTools: () -> Void
     let onShowInspector: () -> Void
     @State private var viewportSize = CGSize(width: 800, height: 600)
@@ -468,6 +468,9 @@ private struct FFViewport: View {
     /// than to one pane. The row asks for the tool and its labels; annotations
     /// are not part of the saved document.
     @State private var measurement = FFMeasurementSession()
+    /// The Phase 21 readout is a view of the renderer's own counters, so the
+    /// switch that shows it is pane UI state, not document state.
+    @State private var showsPerformanceOverlay = false
 
     private var isMeasuring: Bool { selectedTool == "measure" }
 
@@ -479,8 +482,7 @@ private struct FFViewport: View {
     }
 
     private var fpsLabel: String {
-        guard frameStatistics.averageFPS > 0 else { return "starting" }
-        return String(format: "%.0f fps", frameStatistics.averageFPS)
+        performance.fpsLabel
     }
 
     private var cameraLabel: String {
@@ -594,6 +596,34 @@ private struct FFViewport: View {
                                 .accessibilityIdentifier("shell.viewport.fps")
                                 .accessibilityLabel("Metal viewport, grid and world axes, \(fpsLabel)")
 
+                            Button {
+                                showsPerformanceOverlay.toggle()
+                            } label: {
+                                HStack(spacing: 2) {
+                                    Image(systemName: "gauge.with.dots.needle.50percent")
+                                        .accessibilityHidden(true)
+                                    Text("Perf")
+                                }
+                                .font(FFType.monoSmall)
+                                .foregroundStyle(
+                                    showsPerformanceOverlay
+                                        ? FFPalette.onAccent.color
+                                        : FFPalette.textSecondary.color
+                                )
+                                .padding(.horizontal, FFSpace.xs)
+                                .frame(minHeight: 44)
+                                .background(
+                                    showsPerformanceOverlay
+                                        ? FFPalette.accent.color
+                                        : FFPalette.raised.color,
+                                    in: Capsule()
+                                )
+                            }
+                            .buttonStyle(FFPressStyle())
+                            .accessibilityIdentifier("hud.performance.toggle")
+                            .accessibilityLabel("Performance overlay")
+                            .accessibilityValue(showsPerformanceOverlay ? "On" : "Off")
+
                             // The layout chips above already show the current layout
                             // with their selected state. A duplicate label here
                             // overflowed the 749 pt viewport and printed on top of
@@ -611,6 +641,19 @@ private struct FFViewport: View {
                     }
                 }
                 .padding(FFSpace.sm)
+            }
+
+            if showsPerformanceOverlay {
+                VStack {
+                    Spacer(minLength: 0)
+                    HStack(alignment: .bottom) {
+                        FFPerformanceOverlay(report: performance)
+                        Spacer(minLength: 0)
+                    }
+                    .padding(.horizontal, FFSpace.sm)
+                    .padding(.bottom, 64)
+                }
+                .allowsHitTesting(false)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -643,7 +686,7 @@ private struct FFViewport: View {
                         camera = updated
                         namedView = FFCameraNavigation.namedView(for: updated)
                     },
-                    onStatistics: onFrameStatistics
+                    onPerformance: onPerformance
                 )
             }
         case .fourUp:
@@ -701,7 +744,7 @@ private struct FFViewport: View {
             onCameraChange: { updated in
                 fourUpCameras[pane.id] = updated
             },
-            onStatistics: onFrameStatistics
+            onPerformance: onPerformance
         )
     }
 
@@ -754,7 +797,7 @@ private struct FFViewportPane: View {
     let metalIdentifier: String
     let onCycleDisplayMode: () -> Void
     let onCameraChange: (FFCamera) -> Void
-    let onStatistics: (FFFrameStatistics) -> Void
+    let onPerformance: (FFPerformanceReport) -> Void
 
     @State private var gumball = FFGumballSession()
     @State private var gizmoDragging = false
@@ -849,7 +892,7 @@ private struct FFViewportPane: View {
                             extend: selection.isMultiSelect
                         )
                     },
-                    onStatistics: onStatistics
+                    onPerformance: onPerformance
                 )
 
                 FFSnapOverlay(markers: snapMarkers)

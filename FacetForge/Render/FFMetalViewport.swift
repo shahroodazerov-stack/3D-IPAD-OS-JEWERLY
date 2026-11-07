@@ -19,6 +19,10 @@ struct FFLineVertex: Equatable {
 struct FFFrameStatistics: Equatable, Sendable {
     private(set) var frameCount = 0
     private(set) var averageFPS = 0.0
+    /// Wall time between the last two accepted frames. Phase 21's overlay reads
+    /// it directly so a slow frame is visible even when the one-second FPS
+    /// window still averages sixty.
+    private(set) var lastFrameMilliseconds = 0.0
 
     private var windowStart: Double?
     private var framesInWindow = 0
@@ -26,8 +30,9 @@ struct FFFrameStatistics: Equatable, Sendable {
 
     mutating func record(frameAt time: Double) {
         guard time.isFinite else { return }
-        if let last = lastFrameTime, time <= last {
-            return
+        if let last = lastFrameTime {
+            if time <= last { return }
+            lastFrameMilliseconds = (time - last) * 1_000
         }
         lastFrameTime = time
         frameCount += 1
@@ -213,6 +218,12 @@ final class FFMetalViewportRenderer {
     private let vertexBuffer: MTLBuffer
     private var meshBuffers: [UUID: FFMeshGPUBuffer] = [:]
     private(set) var statistics = FFFrameStatistics()
+    /// Draw calls and triangles submitted by the last encoded pass. Phase 21's
+    /// overlay and its exact-count test read this; the counters are incremented
+    /// at each draw the encoder issues, so they describe the frame that was
+    /// actually sent to Metal rather than a parallel estimate.
+    private(set) var lastCounters = FFRenderCounters()
+    /// Draw calls in the last frame (kept as the protocol's name).
     private(set) var drawCallCount = 0
     private(set) var lastCommandBufferError: String?
     private(set) var lastSubmitMilliseconds = 0.0
@@ -423,7 +434,7 @@ final class FFMetalViewportRenderer {
         commandBuffer.commit()
         lastSubmitMilliseconds = (CACurrentMediaTime() - submitStart) * 1_000
 
-        drawCallCount += 1
+        drawCallCount = lastCounters.drawCalls
         statistics.record(frameAt: time)
     }
 
@@ -723,6 +734,7 @@ final class FFMetalViewportRenderer {
             return
         }
         encoder.label = "FacetForge viewport"
+        var counters = FFRenderCounters()
         let viewProjection = camera.viewProjectionMatrix(aspect: aspect)
 
         if mode.showsShadow, let bounds = scene.bounds {
@@ -757,6 +769,7 @@ final class FFMetalViewportRenderer {
                 index: 1
             )
             encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
+            counters.recordTriangles(2)
         }
 
         if mode.showsGrid {
@@ -772,6 +785,7 @@ final class FFMetalViewportRenderer {
                 index: 1
             )
             encoder.drawPrimitives(type: .line, vertexStart: 0, vertexCount: lineCount * 2)
+            counters.recordLines()
         }
 
         // The outline is drawn before the meshes. Culling the back faces and
@@ -812,6 +826,7 @@ final class FFMetalViewportRenderer {
                     indexBuffer: buffers.indices,
                     indexBufferOffset: 0
                 )
+                counters.recordTriangles(buffers.indexCount / 3)
             }
         }
 
@@ -847,6 +862,7 @@ final class FFMetalViewportRenderer {
                     indexBuffer: buffers.indices,
                     indexBufferOffset: 0
                 )
+                counters.recordTriangles(buffers.indexCount / 3)
             }
         }
 
@@ -885,9 +901,11 @@ final class FFMetalViewportRenderer {
                     indexBuffer: buffers.edges,
                     indexBufferOffset: 0
                 )
+                counters.recordLines()
             }
         }
 
+        lastCounters = counters
         encoder.endEncoding()
     }
 
@@ -1242,7 +1260,7 @@ struct FFMetalViewportView: UIViewRepresentable {
     var onHover: (Vec2?) -> Void = { _ in }
     var onCameraChange: (FFCamera) -> Void = { _ in }
     var onPick: (FFPickResult?) -> Void = { _ in }
-    var onStatistics: (FFFrameStatistics) -> Void
+    var onPerformance: (FFPerformanceReport) -> Void
 
     func makeCoordinator() -> Coordinator {
         Coordinator(
@@ -1253,7 +1271,7 @@ struct FFMetalViewportView: UIViewRepresentable {
             onCameraChange: onCameraChange,
             onPick: onPick,
             onHover: onHover,
-            onStatistics: onStatistics
+            onPerformance: onPerformance
         )
     }
 
@@ -1304,7 +1322,7 @@ struct FFMetalViewportView: UIViewRepresentable {
         context.coordinator.onCameraChange = onCameraChange
         context.coordinator.onPick = onPick
         context.coordinator.onHover = onHover
-        context.coordinator.onStatistics = onStatistics
+        context.coordinator.onPerformance = onPerformance
         context.coordinator.setCameraGesturesEnabled(allowsCameraGestures)
     }
 
@@ -1346,7 +1364,7 @@ struct FFMetalViewportView: UIViewRepresentable {
         var onCameraChange: (FFCamera) -> Void
         var onPick: (FFPickResult?) -> Void
         var onHover: (Vec2?) -> Void
-        var onStatistics: (FFFrameStatistics) -> Void
+        var onPerformance: (FFPerformanceReport) -> Void
 
         private var renderer: FFMetalViewportRenderer?
         private(set) var pickInteraction = FFPickInteraction()
@@ -1361,7 +1379,7 @@ struct FFMetalViewportView: UIViewRepresentable {
             onCameraChange: @escaping (FFCamera) -> Void,
             onPick: @escaping (FFPickResult?) -> Void,
             onHover: @escaping (Vec2?) -> Void,
-            onStatistics: @escaping (FFFrameStatistics) -> Void
+            onPerformance: @escaping (FFPerformanceReport) -> Void
         ) {
             self.camera = camera
             self.scene = scene
@@ -1370,7 +1388,7 @@ struct FFMetalViewportView: UIViewRepresentable {
             self.onCameraChange = onCameraChange
             self.onPick = onPick
             self.onHover = onHover
-            self.onStatistics = onStatistics
+            self.onPerformance = onPerformance
         }
 
         func attach(renderer: FFMetalViewportRenderer, view: MTKView) {
@@ -1558,9 +1576,9 @@ struct FFMetalViewportView: UIViewRepresentable {
 
             guard now - lastReportTime >= 0.5 else { return }
             lastReportTime = now
-            let statistics = renderer.statistics
+            let report = renderer.performanceReport
             DispatchQueue.main.async { [weak self] in
-                self?.onStatistics(statistics)
+                self?.onPerformance(report)
             }
         }
     }
