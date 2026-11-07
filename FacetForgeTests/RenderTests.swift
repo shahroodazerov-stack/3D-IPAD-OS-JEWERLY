@@ -222,7 +222,13 @@ final class RenderTests: XCTestCase {
             let counts = classifyPixels(readback)
             XCTAssertGreaterThan(counts.red, 20, "x axis missing at \(size)")
             XCTAssertGreaterThan(counts.green, 20, "y axis missing at \(size)")
-            XCTAssertGreaterThan(counts.blue, 20, "z axis missing at \(size)")
+            // The z axis points toward the camera at the standard yaw, so it is
+            // foreshortened. Since Phase 11 the grid is 40 mm wide instead of
+            // 60 mm, which leaves about a dozen antialiased blue pixels at the
+            // 160×120 probe; the axis is still present, so the floor is lower
+            // only at that size and stays 20 at the two readable sizes.
+            let blueFloor = size.0 <= 160 ? 8 : 20
+            XCTAssertGreaterThan(counts.blue, blueFloor, "z axis missing at \(size)")
             XCTAssertGreaterThan(counts.lit, 400, "grid missing at \(size)")
             XCTAssertNil(renderer.lastCommandBufferError)
         }

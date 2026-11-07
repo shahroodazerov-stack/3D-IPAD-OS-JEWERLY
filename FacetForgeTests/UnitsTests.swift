@@ -110,10 +110,13 @@ final class UnitsTests: XCTestCase {
 
         let vertices = FFViewportGeometry.gridAndAxes()
         XCTAssertEqual(vertices.count, (4 * 40 + 3) * 2)
-        let zLines = vertices.filter {
-            $0.position.x == 0 && $0.position.z < 0
-        }
-        XCTAssertEqual(zLines.count, 2, "the z axis should be the only line at x = 0")
+        let zAxis = vertices.filter { $0.position.x == 0 }
+        // The z axis is the only geometry at x = 0 because the grid loop skips
+        // index 0. It runs from -40 to +40, so it contributes exactly two
+        // endpoints and only one of them has a negative z.
+        XCTAssertEqual(zAxis.count, 2, "the z axis should be the only line at x = 0")
+        XCTAssertEqual(zAxis.filter { $0.position.z < 0 }.count, 1)
+        XCTAssertEqual(zAxis.filter { $0.position.z > 0 }.count, 1)
     }
 
     func testScaleBarIsLegibleAtFourPerspectiveAndFourOrthographicZooms() throws {
