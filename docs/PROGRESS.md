@@ -15,6 +15,8 @@ not green yet. Update this file in the same commit as the phase.
 | 6 | green | 2026-11-06 | [42273691227](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42273691227) | `FFCurves.swift`: `Bezier2D`, rational `NURBS2D`, `Curve2D`, `CurvePath2D`, analytic derivatives, 16-point Gauss–Legendre arc length with adaptive panels, split/reverse/join/transform and closest-point search. Ten `CurveKernelTests` methods hold 20 golden curves to 1e-6 and 1,000 random closest-point queries to 1e-7. Gate executed 31 unit and 4 UI tests with zero failures. The first run [42270092334](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42270092334) failed to compile the second-derivative expression at `769ae35`; `b64088b` split it. `9227a12` also brackets endpoint minima after a local 1,000-query reference check. On `main` at `9227a12`; trunk gate [42277731911](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42277731911) passed 31 unit and 4 UI tests and launched PID 19027 with a 2064×2752 screenshot |
 | 7 | green | 2026-11-06 | [42277777740](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42277777740) | `FFMeshes.swift`: indexed triangle mesh, welded vertex set, half-edge adjacency, manifold/watertight/orientation predicates, area-weighted normals, AABB bounds and signed volume, median-split `MeshBVH` ray casting. Six `MeshKernelTests` methods classify 25 fixtures, cover boundary and non-manifold counts, welding, normals and volume, 10,000 BVH/brute-force ray pairs and the empty mesh. Gate executed 37 unit and 4 UI tests with zero failures. Fast-forwarded to `main` at `8f36b36`; trunk gate [42289181614](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42289181614) passed 37 unit and 4 UI tests with zero failures, launched PID 21430 and captured a 2064×2752 screenshot. The first trunk dispatch [42281233168](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42281233168) hung in the test step for over 46 minutes without producing a log and was cancelled; it is an infrastructure hang, not a code failure |
 | 8 | green | 2026-11-06 | [42304119386](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42304119386) | `FFTessellation.swift`: chordal and angular tessellation, display/export LOD, triangle budgets, closed and open curve paths, arc-length and deviation measurement. Eight `TessellationTests` methods prove that a 20 mm circle at 0.005 mm chordal is exactly 100 segments, all 20 sampled arc deviations stay below 5 µm, adaptive budgets are bounded, closed paths keep their seam and invalid quality settings are rejected. Gate executed 45 unit and 4 UI tests with zero failures, launched PID 34107 and captured a 2064×2752 screenshot. Fast-forwarded to `main` at `e6d55f9`. The earlier `b479466` attempts in run 42296551133 failed twice without a geometry failure: first the artifact upload timed out after all 45+4 tests passed, then the Phase 4 collapse test sampled the inspector before SwiftUI removed it; `e6d55f9` replaces that check with a disappearance predicate. Trunk gate is reported below |
+| 9 | green | 2026-11-07 | [42304186052](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42304186052) | Metal viewport bootstrap: `FFCamera` perspective/orthographic projections, `FFCameraNavigation` named views and frame-all, an `MTKView` host with grid, world axes, MSAA 4×, sRGB output and a 0.5 s FPS HUD. The run on `phase-9-metal-viewport` at `ba95eae` executed 56 unit tests and 4 UI tests with zero failures, launched `com.shahroodazerov.facetforge` as PID 36065 and captured a 2064×2752 screenshot. The two later fixes in the rebased chain (`c1234b0` lets the Metal surface fill the viewport, `57b6015` repairs the camera test) are covered by the Phase 10 gate below. Now on `main`. |
+| 10 | green | 2026-11-07 | [42322972031](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42322972031) | Camera and navigation: orbit/pan/pinch/focus with pitch and yaw clamps, cursor-anchored zoom, orthographic/perspective switching, named views, and 11 `CameraNavigationTests` plus a UI test that orbits, pinches and changes projection while reading the camera state back. The gate ran at `677f8a2` (Phase 10 code plus the arm64 runner change below) and executed 67 unit tests and 5 UI tests with zero failures, launched PID 24900 and captured a 2064×2752 screenshot. The Intel attempt [42319162840](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42319162840) passed all 67 unit tests but four UI queries timed out after 2–5 minutes each while the simulator took 8 minutes to boot. Now on `main`. |
 Status vocabulary:
 
 - `pending` — not started.
@@ -37,6 +39,8 @@ Status vocabulary:
 | 6 | `phase-6-curve-kernel` | `9227a12` | fast-forward; the tip is the verified code |
 | 7 | `phase-7-mesh-kernel` | `8f36b36` | fast-forward; tip contains verified code `704a7d8` and the Phase 6/7 PROGRESS commit |
 | 8 | `phase-8-tessellation` | `e6d55f9` | fast-forward; verified code `b479466` plus the test-only collapse-wait fix `e6d55f9` |
+| 9 | `phase-9-metal-viewport` | `ba95eae` | fast-forward of the rebased commits `04157c7`, `c1234b0`, `57b6015`; the original tip was green separately, and the two later fixes are covered by the Phase 10 gate |
+| 10 | `phase-10-camera-navigation` | `8322ec1` | fast-forward; its gate ran on `677f8a2`, which adds only the arm64 workflow change |
 
 The red `phase-2-gate-teeth` branch (`aa42234`) is deliberately not merged; it exists only as
 evidence that the gate fails when an assertion breaks. The merged phase branches are deleted
@@ -44,7 +48,7 @@ after the mapping is recorded so the remote branch list stays readable.
 
 ## Known deviations
 
-- `main` now carries phases 0–8. Phases 0–4 were consolidated with a fast-forward from
+- `main` now carries phases 0–10. Phases 0–4 were consolidated with a fast-forward from
   `b4b8860`, Phase 5 from `5e37a1a`, Phase 6 from `9227a12`, Phase 7 from `704a7d8`, and Phase 8 from `e6d55f9`.
   No commit was squashed away, so every phase commit stays inspectable. The Phase 6 trunk
   gate [42277731911](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42277731911)
@@ -121,4 +125,22 @@ after the mapping is recorded so the remote branch list stays readable.
   scope reduction. The static job passed on every gated head; documentation-only heads were
   checked locally with `ci-local.sh --static`.
 
+- The Phase 9 and 10 gates ran on two different runner images. Phase 9's original tip
+  `ba95eae` was green on the Intel image in 42304186052 with 56 unit and 4 UI tests.
+  When the same suite was gated on 2026-11-07, the Intel image needed 6–8 minutes to boot
+  an iPad simulator and then timed out ordinary accessibility snapshots: run 42319162840
+  passed every one of the 67 unit tests but failed four UI tests with `Failed to get
+  matching snapshots` after 2–5 minutes per query. That is a runner-capability fact, not
+  a code failure, so `677f8a2` moves the `ios` job back to `macos-26` (arm64) and adds
+  per-test timeouts that bound a future hang. The arm64 gate 42322972031 then passed
+  67 unit and 5 UI tests, launched PID 24900 and captured 2064×2752 in thirteen minutes.
+  Two Intel runs started before that decision were cancelled rather than left to their
+  45-minute timeouts: 42320665305 (Phase 11, `a069284`) and 42321171618 (Phase 12,
+  `546b1c5`). They are not test results and are not claimed as green.
+- The Phase 9 / Phase 10 split is honest: the Phase 9 row cites the run that gated the
+  phase's original tree (`ba95eae`). Two subsequent fixes were required to land it in the
+  consolidated trunk (`c1234b0` removed a conflicting frame modifier and `57b6015` passed
+  the yaw delta the clamp test expects), and those two commits are verified by the Phase 10
+  gate rather than by a Phase 9 rerun. No app behaviour is claimed beyond what those runs
+  executed.
 - Phase 8 is a pure tessellation module with no new screen; the app still shows the Phase 8 identity label over the Phase 4 shell. Its green gate [42304119386](https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY/actions/runs/42304119386) executed 45 unit tests (including 8 `TessellationTests`) and 4 UI tests with zero failures, launched `com.shahroodazerov.facetforge` as PID 34107 and captured a 2064×2752 screenshot. The `b479466` attempts in run 42296551133 were not geometry failures: the first passed all tests then lost artifact upload to five GitHub `CreateArtifact` timeouts, and the rerun failed the Phase 4 collapse test because `waitForExistence` returns immediately for an element that is still present. `e6d55f9` adds a predicate wait for disappearance and is the verified code head. The Phase 8 test fix does not change app behaviour.
