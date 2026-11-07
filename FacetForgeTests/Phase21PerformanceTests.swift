@@ -11,7 +11,7 @@ final class Phase21PerformanceTests: XCTestCase {
         guard MTLCreateSystemDefaultDevice() != nil else {
             throw XCTSkip("Metal is unavailable on this host")
         }
-        let renderer = try FFMetalViewportRenderer()
+        let renderer = try XCTUnwrap(FFMetalViewportRenderer())
 
         let left = try renderNode(name: "Left", x: -20)
         let right = try renderNode(name: "Right", x: 20)
@@ -103,7 +103,7 @@ final class Phase21PerformanceTests: XCTestCase {
         guard MTLCreateSystemDefaultDevice() != nil else {
             throw XCTSkip("Metal is unavailable on this host")
         }
-        let renderer = try FFMetalViewportRenderer()
+        let renderer = try XCTUnwrap(FFMetalViewportRenderer())
         let node = try renderNode(name: "Solo", x: 0)
         let scene = FFViewportScene(nodes: [node])
         let bounds = try XCTUnwrap(scene.bounds)
