@@ -72,7 +72,7 @@ final class Phase23EditIntegrationTests: XCTestCase {
         )
 
         XCTAssertEqual(session.documentSession.undoDepth, historyBefore + 2)
-        XCTAssertEqual(session.document.undoName, "Transform Stone")
+        XCTAssertEqual(session.documentSession.undoName, "Transform Stone")
     }
 
     func testMeasurementCommitsOneEntryAndUndoRemovesOnlyIt() throws {
