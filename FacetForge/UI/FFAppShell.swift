@@ -1135,6 +1135,10 @@ private struct FFInspector: View {
                                         .foregroundStyle(FFPalette.textTertiary.color)
                                 }
                                 .frame(maxWidth: .infinity, minHeight: 40, alignment: .leading)
+                                // The row's blank middle is part of the target:
+                                // a finger aiming at the row, not at the name
+                                // glyph, must still make it current.
+                                .contentShape(Rectangle())
                             }
                             .buttonStyle(FFPressStyle())
                             .accessibilityIdentifier("layer.row.\(index)")
