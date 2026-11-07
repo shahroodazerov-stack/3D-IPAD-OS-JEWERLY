@@ -3,7 +3,7 @@ import Foundation
 /// Display units. Geometry is stored in millimetres at double precision; this
 /// type only converts and formats for people, so no kernel value ever depends
 /// on the unit currently shown.
-enum FFLengthUnit: String, CaseIterable, Identifiable, Sendable {
+enum FFLengthUnit: String, CaseIterable, Identifiable, Codable, Sendable {
     case millimetres
     case inches
 

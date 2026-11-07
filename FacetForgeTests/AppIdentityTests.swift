@@ -13,8 +13,8 @@ final class AppIdentityTests: XCTestCase {
     }
 
     func testPhaseElevenIsTheUnitsAndWorldSpaceLayer() {
-        XCTAssertEqual(AppIdentity.phase, 11)
-        XCTAssertEqual(AppIdentity.phaseLabel, "Phase 11 · units and world space")
+        XCTAssertEqual(AppIdentity.phase, 12)
+        XCTAssertEqual(AppIdentity.phaseLabel, "Phase 12 · document model")
     }
 
     func testTheHostAppSupportsTheIPadLayout() {

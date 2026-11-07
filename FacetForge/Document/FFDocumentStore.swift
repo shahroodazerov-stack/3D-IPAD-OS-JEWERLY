@@ -1,0 +1,142 @@
+import Foundation
+
+/// Atomic save/load for `FFDocument`.
+///
+/// The file format is the canonical JSON produced by `FFDocument.encoded()`.
+/// Saving writes a sibling temporary file and then replaces the destination, so
+/// a crash or a full disk can never leave a half-written document behind. The
+/// temporary file is removed on every failure path.
+struct FFDocumentStore {
+    let fileManager: FileManager
+
+    init(fileManager: FileManager = .default) {
+        self.fileManager = fileManager
+    }
+
+    func save(_ document: FFDocument, to url: URL) throws {
+        let data = try document.encoded()
+        let directory = url.deletingLastPathComponent()
+        let temporary = directory.appendingPathComponent(
+            ".\(url.lastPathComponent).\(UUID().uuidString).tmp"
+        )
+
+        do {
+            try data.write(to: temporary, options: [])
+            if fileManager.fileExists(atPath: url.path) {
+                _ = try fileManager.replaceItemAt(url, withItemAt: temporary)
+            } else {
+                try fileManager.moveItem(at: temporary, to: url)
+            }
+        } catch {
+            try? fileManager.removeItem(at: temporary)
+            throw error
+        }
+    }
+
+    func load(from url: URL) throws -> FFDocument {
+        try FFDocument.decoded(from: Data(contentsOf: url))
+    }
+}
+
+/// A single reversible edit. `before` and `after` are full snapshots: version
+/// zero of the document is small enough that snapshots are simpler and safer
+/// than invertible diffs, and they make undo exact by construction.
+struct FFDocumentChange: Equatable, Sendable {
+    let name: String
+    let coalescingKey: String?
+    let before: FFDocument
+    let after: FFDocument
+}
+
+/// Editing session with a bounded undo history.
+///
+/// Consecutive edits that share a coalescing key (a drag, a slider, typing in
+/// one field) collapse into one undo step. Any edit after an undo starts a new
+/// step, so redo can never be captured by a stale merge. The history holds at
+/// most 100 steps; older steps are dropped and cannot be recovered, which is
+/// the documented behaviour of the command stack.
+final class FFDocumentSession {
+    static let historyLimit = 100
+
+    private(set) var document: FFDocument
+    private(set) var undoStack: [FFDocumentChange] = []
+    private(set) var redoStack: [FFDocumentChange] = []
+
+    /// Number of edits that actually changed the document, including edits
+    /// whose undo step was later dropped by the history cap.
+    private(set) var appliedChangeCount = 0
+
+    init(document: FFDocument = FFDocument()) {
+        self.document = document
+    }
+
+    var canUndo: Bool { !undoStack.isEmpty }
+    var canRedo: Bool { !redoStack.isEmpty }
+    var undoDepth: Int { undoStack.count }
+    var redoDepth: Int { redoStack.count }
+    var undoName: String? { undoStack.last?.name }
+    var redoName: String? { redoStack.last?.name }
+
+    /// Applies `mutation` to a draft and commits it only when the document
+    /// actually changed. Returns whether an edit was recorded.
+    @discardableResult
+    func perform(
+        _ name: String,
+        coalescingKey: String? = nil,
+        _ mutation: (inout FFDocument) throws -> Void
+    ) rethrows -> Bool {
+        let before = document
+        var draft = document
+        try mutation(&draft)
+        guard draft != before else { return false }
+
+        let hadRedo = !redoStack.isEmpty
+        document = draft
+        appliedChangeCount += 1
+        redoStack.removeAll()
+
+        if !hadRedo,
+           let key = coalescingKey,
+           let last = undoStack.last,
+           last.coalescingKey == key {
+            undoStack[undoStack.count - 1] = FFDocumentChange(
+                name: last.name,
+                coalescingKey: key,
+                before: last.before,
+                after: draft
+            )
+        } else {
+            undoStack.append(FFDocumentChange(
+                name: name,
+                coalescingKey: coalescingKey,
+                before: before,
+                after: draft
+            ))
+            if undoStack.count > Self.historyLimit {
+                undoStack.removeFirst(undoStack.count - Self.historyLimit)
+            }
+        }
+        return true
+    }
+
+    @discardableResult
+    func undo() -> Bool {
+        guard let change = undoStack.popLast() else { return false }
+        document = change.before
+        redoStack.append(change)
+        return true
+    }
+
+    @discardableResult
+    func redo() -> Bool {
+        guard let change = redoStack.popLast() else { return false }
+        document = change.after
+        undoStack.append(change)
+        return true
+    }
+
+    func clearHistory() {
+        undoStack.removeAll()
+        redoStack.removeAll()
+    }
+}
