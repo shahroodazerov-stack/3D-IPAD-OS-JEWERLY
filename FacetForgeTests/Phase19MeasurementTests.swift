@@ -86,7 +86,10 @@ final class Phase19MeasurementTests: XCTestCase {
         XCTAssertEqual(measurement.displayText(.millimetres), "Ø 18.00 mm · US 7.8")
     }
 
-    func testDegenerateFixturesHaveNoValue() {
+    /// Two snapped points at the same place measure 0 mm: that is a real value,
+    /// not an error. A circle through three collinear points, by contrast, has
+    /// no radius at all and must not print a number.
+    func testZeroLengthIsAValueAndACollinearCircleIsNot() throws {
         let coincident = FFMeasurement(
             kind: .distance,
             points: [
@@ -94,8 +97,8 @@ final class Phase19MeasurementTests: XCTestCase {
                 FFMeasurementPoint(position: .zero)
             ]
         )
-        XCTAssertNil(coincident.value)
-        XCTAssertEqual(coincident.displayText(.millimetres), "—")
+        XCTAssertEqual(try XCTUnwrap(coincident.value), 0, accuracy: allowance)
+        XCTAssertEqual(coincident.displayText(.millimetres), "0.00 mm")
 
         let collinear = FFMeasurement(
             kind: .radius,
@@ -106,6 +109,7 @@ final class Phase19MeasurementTests: XCTestCase {
             ]
         )
         XCTAssertNil(collinear.value)
+        XCTAssertEqual(collinear.displayText(.millimetres), "—")
     }
 
     // MARK: Unit-aware labels
