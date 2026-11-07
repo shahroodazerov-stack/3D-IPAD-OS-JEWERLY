@@ -687,24 +687,80 @@ private struct FFViewportPane: View {
     let onCameraChange: (FFCamera) -> Void
     let onStatistics: (FFFrameStatistics) -> Void
 
-    var body: some View {
-        FFMetalViewportView(
-            camera: camera,
-            scene: scene,
-            accessibilityIdentifier: metalIdentifier,
-            onCameraChange: { updated in
-                camera = updated
-                onCameraChange(updated)
-            },
-            onStatistics: onStatistics
+    @State private var gumball = FFGumballSession()
+    @State private var gizmoDragging = false
+
+    /// The four-up panes are camera previews, not editing surfaces. The gizmo
+    /// lives in the maximised Perspective pane, the one a document opens in.
+    private var showsGumball: Bool { metalIdentifier == "shell.viewport.metal" }
+
+    private var selectedNode: FFRenderNode? {
+        scene.nodes.first(where: \.isSelected)
+    }
+
+    private var displayScene: FFViewportScene {
+        guard let nodeID = gumball.nodeID,
+              let index = scene.nodes.firstIndex(where: { $0.id == nodeID })
+        else { return scene }
+        var copy = scene
+        copy.nodes[index].transform = gumball.transform
+        return copy
+    }
+
+    /// The centre of the selected mesh in world space, used by the Pivot
+    /// control. It follows the gizmo transform so the button stays meaningful
+    /// after a move.
+    private var selectionCentre: Vec3? {
+        guard let node = selectedNode, let bounds = node.mesh.bounds else { return nil }
+        let local = Vec3(
+            x: (bounds.minimum.x + bounds.maximum.x) * 0.5,
+            y: (bounds.minimum.y + bounds.maximum.y) * 0.5,
+            z: (bounds.minimum.z + bounds.maximum.z) * 0.5
         )
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        let transform = node.id == gumball.nodeID ? gumball.transform : node.transform
+        let world = transform * Vec4(x: local.x, y: local.y, z: local.z, w: 1)
+        guard abs(world.w) > FFMath.eps else { return nil }
+        return Vec3(x: world.x / world.w, y: world.y / world.w, z: world.z / world.w)
+    }
+
+    var body: some View {
+        GeometryReader { proxy in
+            ZStack {
+                FFMetalViewportView(
+                    camera: camera,
+                    scene: displayScene,
+                    accessibilityIdentifier: metalIdentifier,
+                    allowsCameraGestures: !gizmoDragging,
+                    onCameraChange: { updated in
+                        camera = updated
+                        onCameraChange(updated)
+                    },
+                    onStatistics: onStatistics
+                )
+
+                if showsGumball, gumball.nodeID != nil {
+                    FFGumballOverlay(
+                        session: $gumball,
+                        camera: camera,
+                        viewport: proxy.size,
+                        selectionCentre: selectionCentre,
+                        onDragStateChange: { gizmoDragging = $0 }
+                    )
+                }
+            }
+        }
+        .onAppear(perform: configureGumball)
         // The pane name is a label, not a floating badge. The bottom HUD already
         // names the layout and every pane, and a badge in the corner printed on
         // top of that HUD in the Phase 13 snapshots at 749 pt.
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier(plan.accessibilityIdentifier)
         .accessibilityLabel(plan.title)
+    }
+
+    private func configureGumball() {
+        guard gumball.nodeID == nil, let node = selectedNode else { return }
+        gumball.select(nodeID: node.id, transform: node.transform)
     }
 }
 

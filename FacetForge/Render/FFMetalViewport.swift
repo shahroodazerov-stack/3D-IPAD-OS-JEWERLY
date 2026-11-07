@@ -1088,6 +1088,11 @@ struct FFMetalViewportView: UIViewRepresentable {
     /// one camera state per pane. The single-pane default keeps the Phase 9/10
     /// identifier for the existing camera navigation tests.
     var accessibilityIdentifier: String = "shell.viewport.metal"
+    /// A gizmo drag owns its touches. Letting the camera pan run at the same
+    /// time would project the same screen translation onto a moving axis and
+    /// break the snap, so the overlay switches camera gestures off until the
+    /// drag ends.
+    var allowsCameraGestures = true
     var onCameraChange: (FFCamera) -> Void = { _ in }
     var onPick: (FFPickResult?) -> Void = { _ in }
     var onStatistics: (FFFrameStatistics) -> Void
@@ -1146,6 +1151,7 @@ struct FFMetalViewportView: UIViewRepresentable {
         context.coordinator.onCameraChange = onCameraChange
         context.coordinator.onPick = onPick
         context.coordinator.onStatistics = onStatistics
+        context.coordinator.setCameraGesturesEnabled(allowsCameraGestures)
     }
 
     static func dismantleUIView(_ uiView: UIView, coordinator: Coordinator) {
@@ -1242,6 +1248,19 @@ struct FFMetalViewportView: UIViewRepresentable {
             pickTap.numberOfTapsRequired = 1
             pickTap.delegate = self
             view.addGestureRecognizer(pickTap)
+
+            cameraGestureRecognizers = [pan, pinch, frameTap, pickTap]
+        }
+
+        private var cameraGestureRecognizers: [UIGestureRecognizer] = []
+        private var cameraGesturesEnabled = true
+
+        func setCameraGesturesEnabled(_ enabled: Bool) {
+            guard enabled != cameraGesturesEnabled else { return }
+            cameraGesturesEnabled = enabled
+            for recognizer in cameraGestureRecognizers {
+                recognizer.isEnabled = enabled
+            }
         }
 
         @objc private func handlePan(_ recognizer: UIPanGestureRecognizer) {
