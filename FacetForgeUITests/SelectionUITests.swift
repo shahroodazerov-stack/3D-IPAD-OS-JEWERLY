@@ -46,12 +46,23 @@ final class SelectionUITests: XCTestCase {
         // overlay, so a box that contains every vertex is hard to aim by hand.
         // One pinch gives both objects a margin, and the marquee still tests
         // full containment rather than a bounding-box overlap.
+        let cameraBefore = metal.value as? String ?? ""
         metal.pinch(withScale: 0.7, velocity: -1)
+        let cameraChanged = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "value != %@", cameraBefore),
+            object: metal
+        )
+        XCTAssertEqual(
+            XCTWaiter().wait(for: [cameraChanged], timeout: 10),
+            .completed,
+            "pinch-out did not change the camera; the marquee boxes assume a zoomed-out frame"
+        )
 
         // Multi-select with the touch equivalent of Shift: keep the shank and
         // add the stone with a box around it.
         element("selection.filter.all", app).tap()
         element("selection.multi", app).tap()
+        element("selection.marquee", app).tap()
         drag(metal, from: CGVector(dx: 0.35, dy: 0.42), to: CGVector(dx: 0.65, dy: 0.20))
         waitForLabel(summary, "2 selected", "multi-select marquee did not add the stone")
 
@@ -69,6 +80,7 @@ final class SelectionUITests: XCTestCase {
         element("selection.filter.solid", app).tap()
         drag(metal, from: CGVector(dx: 0.05, dy: 0.20), to: CGVector(dx: 0.95, dy: 0.95))
         waitForLabel(summary, "Shank", "marquee replace did not isolate the shank")
+        element("selection.marquee", app).tap()
 
         // Isolate hides the stone; Show all brings it back.
         element("selection.isolate", app).tap()
