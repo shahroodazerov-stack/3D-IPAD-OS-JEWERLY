@@ -1,6 +1,6 @@
-# Plan reconciliation — v1.0 → v1.1
+# Plan reconciliation — v1.0 → v1.2
 
-**Date:** 2026-11-06 · **Plan:** `docs/MASTER-PLAN.md` v1.1 · **Owner:** shahroodazerov-stack
+**Date:** 2026-11-06 (v1.1); 2026-11-07 (v1.2) · **Plan:** `docs/MASTER-PLAN.md` v1.2 · **Owner:** shahroodazerov-stack
 **Inputs:** `docs/research/00-findings-and-constraints.md`, the three pass-2 threads
 (`g-rendering-materials.md`, `h-production-interchange.md`, `i-competitive-kernels.md`), and the
 verification subsections added to `b-matrixgold-ux.md`, `c-jeweler-domain.md` and
@@ -11,6 +11,9 @@ the 200-phase structure, 12 arcs and `scripts/check-plan.sh` invariants were pre
 **Verdict:** the five named contradiction classes are resolved in the plan. All 200 phase rows
 still carry a `CI:` acceptance and a backward-only dependency chain. Any remaining uncertainty is
 listed in §6 rather than papered over.
+
+**v1.2 amendment (2026-11-07):** edit-commit ownership is assigned to phase 23; see §9. The
+amendment is documentation only and does not re-run or re-open any completed phase.
 
 ---
 
@@ -283,6 +286,7 @@ the recorded fetch results, not new research claims.
 | --- | --- | --- |
 | 1.0 | 2026-11-06 | Original 200-phase spec |
 | 1.1 | 2026-11-06 | Reconciled with dossier A–I: custom Metal gem path, licence gate (ADR-007), export parity corrected, deliberate viewport choice, claim prohibition and scanner, performance-evidence boundary, 42 phase acceptances tightened, provenance restored to A–I |
+| 1.2 | 2026-11-07 | Edit-commit ownership assigned to phase 23; rows 23 and 33 amended, no phase added, renumbered or deleted; see §9 |
 
 Files changed in v1.1:
 
@@ -301,3 +305,67 @@ Files changed in v1.1:
 
 No application source, test, workflow or asset file was modified by this pass. The four
 pre-existing render files in the working tree remain uncommitted and untouched.
+
+---
+
+## 9. Amendment v1.2 — edit-commit ownership (2026-11-07)
+
+**Scope:** documentation only. No phase was implemented, no phase was re-run, and no application
+source, test, workflow or asset file changed. The 200-phase structure, 12 arcs, six-cell row
+schema and `scripts/check-plan.sh` invariants are preserved.
+
+**Problem.** Phase 12 owns the only document commit path: `FFDocumentSession.perform` with
+coalescing and the 100-step cap. No row owned wiring the editing sessions created by phases 15–19
+into it. Phase 15's undo is the viewport-local `FFGumballSession` undo, and phase 19's
+measurements are viewport-local session state. Phases 23 and 33 therefore assume a document undo
+path that nothing routes scene edits into; phase 37 needs only an empty stack at open. Built as written, a gizmo drag or a measurement
+would never become a document change, would not enter the undo history, and would not survive
+save/reopen. The phase-21 boundary note recorded this as a spec gap rather than silently widening
+that phase.
+
+**Decision.** Phase 23 (`UI smoke suite`) is the owner. It is the first row after the editing
+primitives (15, 16, 19) that already exercises create → edit → undo → save → reopen end to end,
+and it precedes 33 and 37. No phase was added, renumbered, deleted or merged, and phase 23's goal
+is unchanged; its deliverable and acceptance now name the wiring explicitly.
+
+**Rows changed.**
+
+| Row | Change |
+| --- | --- |
+| 23 | The deliverable now owns committing the phase 15 gizmo and phase 19 measurement sessions through `FFDocumentSession.perform`, with one coalesced history entry per drag and per measurement. The acceptance now requires a frame-by-frame drag and a snapped measurement to add exactly one document history entry each, one undo after each edit to revert it, and save/reopen to preserve the committed transform and the measurement annotation. Dependencies extended from `2, 12` to `2, 12, 15, 16, 19`. |
+| 33 | The acceptance now requires a pivot edit to commit as one undoable document change and survive save/load and undo. Dependencies extended from `32` to `23, 32`. |
+| 37 | Not changed. Its “empty undo stack” only requires a fresh `FFDocumentSession`, which phase 12 provides; it makes no scene-edit commit assumption. Recorded here so the omission is deliberate. |
+
+**Green phases unaffected.** Phases 15, 16, 19, 20 and 21 remain green on the acceptance they
+ran. Phase 15's “single undo” remains the session-local undo its row names; this amendment says
+where those pane-local states are promoted, not that phase 15 delivered something else. The
+boundary notes under phases 20 and 21 in `docs/PROGRESS.md` now point at phase 23 so the live
+record does not keep claiming no row owns the wiring.
+
+**New phase-23 acceptance (verbatim).** “CI: a frame-by-frame gizmo drag and a snapped
+measurement each add exactly one document history entry; one undo after each edit reverts that
+edit; save/reopen preserves the committed transform and the measurement annotation; suite green
+in CI under 8 minutes and every test leaves a screenshot attachment.”
+
+**Dependency direction.** 23 → 15, 16, 19 and 33 → 23, 32 are all backward dependencies; no
+forward or self dependency was introduced. The axis mix is unchanged because rows 23 and 33 keep
+their `correctness` axis.
+
+**Verification.**
+
+| Command | Result |
+| --- | --- |
+| `bash scripts/ci-local.sh --static` | PASS — 200 phases, 12 arcs, axis mix spec 45 / correctness 88 / design 55 / concision 12; Phase 0 artefacts present; workflow, evidence and project checks pass |
+| `python scripts/check-links.py` | 176 URLs checked: 172 `ok`, 2 `ok_suspect` (bare vendor hosts `gemvision.com`, `3mf.io`), 2 `http_4xx` with explanatory notes (ISO catalogue and cadjewelleryskills both return 403 to automated clients) |
+| `git diff --check` | PASS — no whitespace errors |
+| iOS build/test | Not run for this amendment. No application code or test changed; the last watched phase-21 gate remains run 42368432396 |
+
+Files changed in v1.2:
+
+- `docs/MASTER-PLAN.md` — header version/status and rows 23 and 33.
+- `docs/PLAN-RECONCILIATION.md` — this amendment.
+- `docs/PROGRESS.md` — phases 20 and 21 boundary notes now point at phase 23.
+- `docs/evidence/link-status.json`, `link-status.md` — regenerated by the citation audit; these are
+  fetch records, not new research claims.
+
+No application source, test, workflow or asset file was modified by v1.2.

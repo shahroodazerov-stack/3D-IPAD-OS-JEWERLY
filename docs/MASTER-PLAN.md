@@ -1,9 +1,9 @@
 # FacetForge — 200-Phase Master Implementation Plan
 
-**Version:** 1.1 (reconciled 2026-11-06) · **Date:** 2026-11-06 · **Owner:** shahroodazerov-stack
+**Version:** 1.2 (amended 2026-11-07) · **Date:** 2026-11-07 · **Owner:** shahroodazerov-stack
 **Repo:** https://github.com/shahroodazerov-stack/3D-IPAD-OS-JEWERLY
 **Inputs:** the indexed research dossier in `docs/research/` (index: `docs/research/README.md`; files A–I)
-**Status:** Phases 0–12 are green on `main` (latest gate run #55); 188 phases remain. This v1.1 revision reconciles the plan with the pass-2 research constraints — see `docs/PLAN-RECONCILIATION.md`.
+**Status:** Phases 0–21 are green on `main`; 179 phases remain. v1.1 reconciled the plan with the pass-2 research constraints; v1.2 assigns edit-commit ownership to phase 23 — see `docs/PLAN-RECONCILIATION.md`.
 
 ---
 
@@ -229,7 +229,7 @@ phases 0–12. The original bootstrap commit `1a8d68b` is historical.
 | 20 | Layers v1 | Layers with visibility, lock, colour, current-layer; assign and select by layer; layer panel | CI: Locked layers reject edits; hidden layers are unpickable; wireframe uses layer colour | 12, 17 | design |
 | 21 | Performance instrumentation | Overlay with FPS, frame ms, draw calls, triangles, `os_proc_available_memory` headroom, `thermalState` | CI: the overlay toggles from the HUD and its triangle/draw-call counters equal the synthetic scene's known counts exactly; thermalState is a valid enum case and available memory is > 0 | 13 | correctness |
 | 22 | Render snapshot harness | Deterministic offscreen render, perceptual-hash comparison, baseline manifest, review workflow | CI: six scene hashes are identical across three consecutive runs; a baseline change is rejected unless --update-baselines is passed and writes a diff artifact plus a git-tracked note | 13 | correctness |
-| 23 | UI smoke suite | XCUITest: launch, create document, load fixture, orbit, select, undo, save, reopen, attach screenshots | CI: Suite green in CI under 8 minutes; every test leaves a screenshot attachment | 2, 12 | correctness |
+| 23 | UI smoke suite | XCUITest: launch, create document, load fixture, orbit, select, undo, save, reopen, attach screenshots; this row also owns edit integration — the Phase 15 gizmo drag and the Phase 19 measurement session commit through `FFDocumentSession.perform`, with one coalesced history entry per drag and per measurement | CI: a frame-by-frame gizmo drag and a snapped measurement each add exactly one document history entry; one undo after each edit reverts that edit; save/reopen preserves the committed transform and the measurement annotation; suite green in CI under 8 minutes and every test leaves a screenshot attachment | 2, 12, 15, 16, 19 | correctness |
 | 24 | Touch interaction pass | Gesture arbitration (orbit vs selection), palm rejection, ProMotion pacing, snap haptics, 44 pt hit targets | CI: 100 synthetic touch/Pencil gesture sequences drive the arbitration state machine with zero unintended camera moves; a view-hierarchy audit fails on any control smaller than 44x44 pt; check-evidence.sh 24 accepts a physical palm-rejection record in docs/evidence/phase-024.json | 19 | design |
 
 ### Arc 3 — Document, files and data (phases 25–38)
@@ -244,7 +244,7 @@ phases 0–12. The original bootstrap commit `1a8d68b` is historical.
 | 30 | Units and precision policy | Documented precision rules, rounding/formatting utilities, unit-aware measurement strings, tolerance constants per subsystem | CI: 10 000 chained operations drift < 1e-6 mm; a formatting-table test proves every user-facing value is rounded to its subsystem precision (0.001 mm, 0.01 deg, 0.001 ct) and no string shows more digits than that | 11, 26 | spec |
 | 31 | Layers v2 | Layer states (visible, locked, colour, print), layer sets, assign/select, import from document template | CI: State saves and reloads exactly; layer set switch preserves visibility of other sets | 20 | design |
 | 32 | Object tree panel | Tree with rename, reorder, drag-nest into groups, search, type icons, multi-select sync with viewport | CI: UI test nests a solid into a group and reorders within it; search finds by name and type | 17 | design |
-| 33 | Grouping and pivots | Group/ungroup, nested transforms, pivot editing with axis presets, transform inheritance display | CI: Group rotation moves children rigidly; edited pivot survives save/load and undo | 32 | correctness |
+| 33 | Grouping and pivots | Group/ungroup, nested transforms, pivot editing with axis presets, transform inheritance display | CI: Group rotation moves children rigidly; a pivot edit commits as one undoable document change and survives save/load and undo | 23, 32 | correctness |
 | 34 | Duplication and arrays | Duplicate, linear array (count, offset, direction), radial array (count, axis, total angle) with editable parameters | CI: A 12-item 360° radial array spaces items at exactly 30° ± 1e-9; array parameters remain editable after creation | 33 | spec |
 | 35 | Materials data model | Per-face-group material assignment, metallic/roughness parameters, colour, alloy presets, material inspector | CI: Assigning a material to a face subset persists through export and reopen; changing a preset updates all linked faces | 34 | spec |
 | 36 | Metadata inspector | Part number, SKU, description, workshop notes, stone summary count, manufacturing flags | CI: All fields round-trip through the file format; stone summary matches the stone list exactly | 35 | spec |
