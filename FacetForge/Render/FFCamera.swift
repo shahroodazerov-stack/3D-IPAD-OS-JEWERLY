@@ -2,7 +2,7 @@ import Foundation
 
 /// Which projection the viewport uses. Phase 10 adds the UI that flips this;
 /// Phase 9 only needs both matrices to be correct and testable.
-enum FFProjectionMode: String, CaseIterable, Sendable {
+enum FFProjectionMode: String, CaseIterable, Sendable, Equatable {
     case perspective
     case orthographic
 
@@ -17,7 +17,7 @@ enum FFProjectionMode: String, CaseIterable, Sendable {
 /// The canonical orientations a jeweller asks for by name. A named view only
 /// changes the orientation; the projection mode and framing stay where the
 /// user left them, so the chip row never silently switches the lens.
-enum FFNamedView: String, CaseIterable, Identifiable, Sendable {
+enum FFNamedView: String, CaseIterable, Identifiable, Sendable, Equatable {
     case iso
     case front
     case back

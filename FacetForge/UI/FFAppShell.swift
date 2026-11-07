@@ -106,6 +106,93 @@ struct FFShellMetrics: Equatable {
     }
 }
 
+/// The deliberate Phase 13 viewport layout. Fresh documents open in a single
+/// maximised Perspective; four-up is a preset one chip away, not the default.
+/// Keeping the panes as value data lets the unit test freeze the choice and the
+/// UI test assert the rendered frames against it.
+enum FFViewportLayout: String, CaseIterable, Identifiable, Sendable, Equatable {
+    case single
+    case fourUp
+
+    static let defaultLayout = FFViewportLayout.single
+
+    var id: String { rawValue }
+
+    var label: String {
+        switch self {
+        case .single: "1-up"
+        case .fourUp: "4-up"
+        }
+    }
+
+    var accessibilityIdentifier: String { "shell.viewport.layout.\(rawValue)" }
+
+    var panes: [FFViewportPanePlan] {
+        switch self {
+        case .single:
+            [
+                FFViewportPanePlan(
+                    id: "perspective",
+                    title: "Perspective",
+                    namedView: .iso,
+                    projection: .perspective
+                ),
+            ]
+        case .fourUp:
+            [
+                FFViewportPanePlan(
+                    id: "perspective",
+                    title: "Perspective",
+                    namedView: .iso,
+                    projection: .perspective
+                ),
+                FFViewportPanePlan(
+                    id: "top",
+                    title: "Top",
+                    namedView: .top,
+                    projection: .orthographic
+                ),
+                FFViewportPanePlan(
+                    id: "front",
+                    title: "Front",
+                    namedView: .front,
+                    projection: .orthographic
+                ),
+                FFViewportPanePlan(
+                    id: "right",
+                    title: "Right",
+                    namedView: .right,
+                    projection: .orthographic
+                ),
+            ]
+        }
+    }
+
+    var initialCameras: [String: FFCamera] {
+        Dictionary(uniqueKeysWithValues: panes.map { ($0.id, $0.initialCamera) })
+    }
+}
+
+/// One pane of a layout. The initial camera is derived from the named view and
+/// projection only; framing stays user-controlled once the pane is live.
+struct FFViewportPanePlan: Identifiable, Sendable {
+    let id: String
+    let title: String
+    let namedView: FFNamedView?
+    let projection: FFProjectionMode
+
+    var accessibilityIdentifier: String { "shell.viewport.pane.\(id)" }
+
+    var initialCamera: FFCamera {
+        var camera = FFCamera.standard
+        camera.setProjection(projection)
+        if let namedView {
+            camera.apply(namedView)
+        }
+        return camera
+    }
+}
+
 private struct FFTool: Identifiable {
     let id: String
     let systemImage: String
@@ -339,6 +426,8 @@ private struct FFViewport: View {
     let onShowTools: () -> Void
     let onShowInspector: () -> Void
     @State private var viewportSize = CGSize(width: 800, height: 600)
+    @State private var layout: FFViewportLayout = .defaultLayout
+    @State private var fourUpCameras: [String: FFCamera] = [:]
 
     private var scaleBarPlan: FFScaleBarPlan? {
         guard let units = camera.worldUnitsPerPoint(
@@ -361,15 +450,8 @@ private struct FFViewport: View {
         ZStack {
             FFPalette.canvas.color
 
-            FFMetalViewportView(
-                camera: camera,
-                onCameraChange: { updated in
-                    camera = updated
-                    namedView = FFCameraNavigation.namedView(for: updated)
-                },
-                onStatistics: onFrameStatistics
-            )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            viewportSurface
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             VStack(spacing: 0) {
                 HStack(alignment: .top, spacing: FFSpace.sm) {
@@ -392,34 +474,46 @@ private struct FFViewport: View {
 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: FFSpace.xxs) {
-                        ForEach([FFNamedView.iso, .front, .top]) { view in
+                        ForEach(FFViewportLayout.allCases) { option in
                             FFChip(
-                                title: view.shortLabel,
-                                isSelected: namedView == view,
-                                accessibilityIdentifier: "shell.viewport.namedView.\(view.rawValue)"
+                                title: option.label,
+                                isSelected: layout == option,
+                                accessibilityIdentifier: option.accessibilityIdentifier
                             ) {
-                                camera.apply(view)
-                                namedView = view
+                                layout = option
                             }
                         }
 
-                        FFChip(
-                            title: camera.projection.label,
-                            systemImage: "cube.transparent",
-                            accessibilityIdentifier: "shell.viewport.projection"
-                        ) {
-                            camera.setProjection(
-                                camera.projection == .perspective ? .orthographic : .perspective
-                            )
-                        }
+                        if layout == .single {
+                            ForEach([FFNamedView.iso, .front, .top]) { view in
+                                FFChip(
+                                    title: view.shortLabel,
+                                    isSelected: namedView == view,
+                                    accessibilityIdentifier: "shell.viewport.namedView.\(view.rawValue)"
+                                ) {
+                                    camera.apply(view)
+                                    namedView = view
+                                }
+                            }
 
-                        FFChip(
-                            title: "Frame",
-                            systemImage: "viewfinder",
-                            accessibilityIdentifier: "shell.viewport.frame"
-                        ) {
-                            FFCameraNavigation.frameAll(&camera)
-                            namedView = nil
+                            FFChip(
+                                title: camera.projection.label,
+                                systemImage: "cube.transparent",
+                                accessibilityIdentifier: "shell.viewport.projection"
+                            ) {
+                                camera.setProjection(
+                                    camera.projection == .perspective ? .orthographic : .perspective
+                                )
+                            }
+
+                            FFChip(
+                                title: "Frame",
+                                systemImage: "viewfinder",
+                                accessibilityIdentifier: "shell.viewport.frame"
+                            ) {
+                                FFCameraNavigation.frameAll(&camera)
+                                namedView = nil
+                            }
                         }
                     }
                     .padding(.horizontal, FFSpace.sm)
@@ -430,7 +524,7 @@ private struct FFViewport: View {
 
                 HStack(alignment: .bottom, spacing: FFSpace.xs) {
                     VStack(alignment: .leading, spacing: FFSpace.xxs) {
-                        if let plan = scaleBarPlan {
+                        if layout == .single, let plan = scaleBarPlan {
                             HStack(spacing: FFSpace.xxs) {
                                 Rectangle()
                                     .fill(FFPalette.textSecondary.color)
@@ -448,18 +542,23 @@ private struct FFViewport: View {
                             Circle()
                                 .fill(FFPalette.success.color)
                                 .frame(width: 6, height: 6)
-                            Text(cameraLabel)
+                            Text(layout == .single ? cameraLabel : "Four-up · Perspective / Top / Front / Right")
                                 .font(FFType.monoSmall)
                                 .foregroundStyle(FFPalette.textTertiary.color)
                                 .lineLimit(1)
                                 .accessibilityIdentifier("shell.viewport.camera")
-                                .accessibilityLabel(cameraLabel)
+                                .accessibilityLabel(layout == .single ? cameraLabel : "Four-up layout with Perspective, Top, Front and Right panes")
 
-                            Text("\(fpsLabel) · \(camera.projection.label.lowercased())")
+                            Text("\(fpsLabel) · \(layout == .single ? camera.projection.label.lowercased() : "four-up")")
                                 .font(FFType.monoSmall)
                                 .foregroundStyle(FFPalette.textTertiary.color)
                                 .accessibilityIdentifier("shell.viewport.fps")
                                 .accessibilityLabel("Metal viewport, grid and world axes, \(fpsLabel)")
+
+                            Text(layout == .single ? "Single Perspective" : "Four-up preset")
+                                .font(FFType.monoSmall)
+                                .foregroundStyle(FFPalette.textTertiary.color)
+                                .accessibilityIdentifier("shell.viewport.layout.current")
                         }
                     }
 
@@ -484,6 +583,63 @@ private struct FFViewport: View {
         .clipped()
     }
 
+    @ViewBuilder
+    private var viewportSurface: some View {
+        switch layout {
+        case .single:
+            if let pane = FFViewportLayout.single.panes.first {
+                FFViewportPane(
+                    plan: pane,
+                    camera: $camera,
+                    scene: .jewelleryDemo,
+                    metalIdentifier: "shell.viewport.metal",
+                    onCameraChange: { updated in
+                        camera = updated
+                        namedView = FFCameraNavigation.namedView(for: updated)
+                    },
+                    onStatistics: onFrameStatistics
+                )
+            }
+        case .fourUp:
+            fourUpGrid
+        }
+    }
+
+    private var fourUpGrid: some View {
+        let panes = FFViewportLayout.fourUp.panes
+        return VStack(spacing: 1) {
+            HStack(spacing: 1) {
+                fourUpPane(panes[0])
+                fourUpPane(panes[1])
+            }
+            HStack(spacing: 1) {
+                fourUpPane(panes[2])
+                fourUpPane(panes[3])
+            }
+        }
+        .background(FFPalette.separator.color)
+    }
+
+    private func fourUpPane(_ pane: FFViewportPanePlan) -> some View {
+        FFViewportPane(
+            plan: pane,
+            camera: fourUpBinding(for: pane),
+            scene: .jewelleryDemo,
+            metalIdentifier: "shell.viewport.metal.\(pane.id)",
+            onCameraChange: { updated in
+                fourUpCameras[pane.id] = updated
+            },
+            onStatistics: onFrameStatistics
+        )
+    }
+
+    private func fourUpBinding(for pane: FFViewportPanePlan) -> Binding<FFCamera> {
+        Binding(
+            get: { fourUpCameras[pane.id] ?? pane.initialCamera },
+            set: { fourUpCameras[pane.id] = $0 }
+        )
+    }
+
     private func shellToggle(systemImage: String, label: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Image(systemName: systemImage)
@@ -504,6 +660,46 @@ private struct FFViewport: View {
     }
 }
 
+/// One live viewport pane. The binding is owned by the layout, so the single
+/// pane shares the global camera and the four-up panes keep independent ones.
+private struct FFViewportPane: View {
+    let plan: FFViewportPanePlan
+    @Binding var camera: FFCamera
+    let scene: FFViewportScene
+    let metalIdentifier: String
+    let onCameraChange: (FFCamera) -> Void
+    let onStatistics: (FFFrameStatistics) -> Void
+
+    var body: some View {
+        ZStack(alignment: .bottomTrailing) {
+            FFMetalViewportView(
+                camera: camera,
+                scene: scene,
+                accessibilityIdentifier: metalIdentifier,
+                onCameraChange: { updated in
+                    camera = updated
+                    onCameraChange(updated)
+                },
+                onStatistics: onStatistics
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            Text(plan.title)
+                .font(FFType.monoSmall)
+                .foregroundStyle(FFPalette.textSecondary.color)
+                .padding(.horizontal, FFSpace.xs)
+                .padding(.vertical, FFSpace.xxs)
+                .background(
+                    FFPalette.panel.color.opacity(0.88),
+                    in: RoundedRectangle(cornerRadius: FFRadius.sm, style: .continuous)
+                )
+                .padding(FFSpace.xs)
+                .accessibilityHidden(true)
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(plan.accessibilityIdentifier)
+    }
+}
 
 // MARK: - Inspector
 

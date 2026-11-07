@@ -12,9 +12,9 @@ final class AppIdentityTests: XCTestCase {
         XCTAssertEqual(AppIdentity.tagline, "iPad CAD for jewellers")
     }
 
-    func testPhaseElevenIsTheUnitsAndWorldSpaceLayer() {
-        XCTAssertEqual(AppIdentity.phase, 12)
-        XCTAssertEqual(AppIdentity.phaseLabel, "Phase 12 · document model")
+    func testPhaseThirteenIsTheRenderHost() {
+        XCTAssertEqual(AppIdentity.phase, 13)
+        XCTAssertEqual(AppIdentity.phaseLabel, "Phase 13 · render host")
     }
 
     func testTheHostAppSupportsTheIPadLayout() {

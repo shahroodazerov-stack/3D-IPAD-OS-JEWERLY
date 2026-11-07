@@ -29,6 +29,9 @@
 		A1000000000000000000003E /* FFUnits.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000003D /* FFUnits.swift */; };
 		A10000000000000000000046 /* FFDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000045 /* FFDocument.swift */; };
 		A10000000000000000000048 /* FFDocumentStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000047 /* FFDocumentStore.swift */; };
+		A1000000000000000000004A /* FFSceneRendering.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000049 /* FFSceneRendering.swift */; };
+		A1000000000000000000004C /* FFDemoScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000004B /* FFDemoScene.swift */; };
+		A1000000000000000000004E /* FFRealityViewport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000004D /* FFRealityViewport.swift */; };
 		A2000000000000000000000B /* AppIdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* AppIdentityTests.swift */; };
 		A2000000000000000000000F /* DesignSystemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* DesignSystemTests.swift */; };
 		A20000000000000000000011 /* ComponentSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* ComponentSnapshotTests.swift */; };
@@ -41,10 +44,12 @@
 		A2000000000000000000001F /* CameraNavigationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000001E /* CameraNavigationTests.swift */; };
 		A20000000000000000000021 /* UnitsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000020 /* UnitsTests.swift */; };
 		A20000000000000000000023 /* DocumentTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000022 /* DocumentTests.swift */; };
+		A20000000000000000000025 /* Phase13ViewportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000024 /* Phase13ViewportTests.swift */; };
 		A3000000000000000000000B /* LaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000002 /* LaunchTests.swift */; };
 		A3000000000000000000000F /* GalleryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3000000000000000000000E /* GalleryTests.swift */; };
 		A30000000000000000000011 /* AdaptiveShellTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000010 /* AdaptiveShellTests.swift */; };
 		A30000000000000000000013 /* CameraNavigationUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000012 /* CameraNavigationUITests.swift */; };
+		A30000000000000000000015 /* ViewportLayoutUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000014 /* ViewportLayoutUITests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -88,6 +93,9 @@
 		A1000000000000000000003D /* FFUnits.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFUnits.swift; sourceTree = "<group>"; };
 		A10000000000000000000045 /* FFDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFDocument.swift; sourceTree = "<group>"; };
 		A10000000000000000000047 /* FFDocumentStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFDocumentStore.swift; sourceTree = "<group>"; };
+		A10000000000000000000049 /* FFSceneRendering.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFSceneRendering.swift; sourceTree = "<group>"; };
+		A1000000000000000000004B /* FFDemoScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFDemoScene.swift; sourceTree = "<group>"; };
+		A1000000000000000000004D /* FFRealityViewport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFRealityViewport.swift; sourceTree = "<group>"; };
 		A20000000000000000000002 /* AppIdentityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIdentityTests.swift; sourceTree = "<group>"; };
 		A2000000000000000000000E /* DesignSystemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystemTests.swift; sourceTree = "<group>"; };
 		A20000000000000000000010 /* ComponentSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentSnapshotTests.swift; sourceTree = "<group>"; };
@@ -100,11 +108,13 @@
 		A2000000000000000000001E /* CameraNavigationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraNavigationTests.swift; sourceTree = "<group>"; };
 		A20000000000000000000020 /* UnitsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnitsTests.swift; sourceTree = "<group>"; };
 		A20000000000000000000022 /* DocumentTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentTests.swift; sourceTree = "<group>"; };
+		A20000000000000000000024 /* Phase13ViewportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase13ViewportTests.swift; sourceTree = "<group>"; };
 		A20000000000000000000003 /* FacetForgeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FacetForgeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A30000000000000000000002 /* LaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchTests.swift; sourceTree = "<group>"; };
 		A3000000000000000000000E /* GalleryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryTests.swift; sourceTree = "<group>"; };
 		A30000000000000000000010 /* AdaptiveShellTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AdaptiveShellTests.swift; sourceTree = "<group>"; };
 		A30000000000000000000012 /* CameraNavigationUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraNavigationUITests.swift; sourceTree = "<group>"; };
+		A30000000000000000000014 /* ViewportLayoutUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewportLayoutUITests.swift; sourceTree = "<group>"; };
 		A30000000000000000000003 /* FacetForgeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FacetForgeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -209,6 +219,9 @@
 				A10000000000000000000034 /* FFCamera.swift */,
 				A1000000000000000000003A /* FFCameraNavigation.swift */,
 				A10000000000000000000036 /* FFMetalViewport.swift */,
+				A10000000000000000000049 /* FFSceneRendering.swift */,
+				A1000000000000000000004B /* FFDemoScene.swift */,
+				A1000000000000000000004D /* FFRealityViewport.swift */,
 			);
 			path = Render;
 			sourceTree = "<group>";
@@ -245,6 +258,7 @@
 				A2000000000000000000001E /* CameraNavigationTests.swift */,
 				A20000000000000000000020 /* UnitsTests.swift */,
 				A20000000000000000000022 /* DocumentTests.swift */,
+				A20000000000000000000024 /* Phase13ViewportTests.swift */,
 			);
 			path = FacetForgeTests;
 			sourceTree = "<group>";
@@ -256,6 +270,7 @@
 				A3000000000000000000000E /* GalleryTests.swift */,
 				A30000000000000000000010 /* AdaptiveShellTests.swift */,
 				A30000000000000000000012 /* CameraNavigationUITests.swift */,
+				A30000000000000000000014 /* ViewportLayoutUITests.swift */,
 			);
 			path = FacetForgeUITests;
 			sourceTree = "<group>";
@@ -410,6 +425,9 @@
 				A1000000000000000000003E /* FFUnits.swift in Sources */,
 				A10000000000000000000046 /* FFDocument.swift in Sources */,
 				A10000000000000000000048 /* FFDocumentStore.swift in Sources */,
+				A1000000000000000000004A /* FFSceneRendering.swift in Sources */,
+				A1000000000000000000004C /* FFDemoScene.swift in Sources */,
+				A1000000000000000000004E /* FFRealityViewport.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -429,6 +447,7 @@
 				A2000000000000000000001F /* CameraNavigationTests.swift in Sources */,
 				A20000000000000000000021 /* UnitsTests.swift in Sources */,
 				A20000000000000000000023 /* DocumentTests.swift in Sources */,
+				A20000000000000000000025 /* Phase13ViewportTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -440,6 +459,7 @@
 				A3000000000000000000000F /* GalleryTests.swift in Sources */,
 				A30000000000000000000011 /* AdaptiveShellTests.swift in Sources */,
 				A30000000000000000000013 /* CameraNavigationUITests.swift in Sources */,
+				A30000000000000000000015 /* ViewportLayoutUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
