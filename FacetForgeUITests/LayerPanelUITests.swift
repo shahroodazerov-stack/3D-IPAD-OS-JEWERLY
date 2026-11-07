@@ -38,7 +38,7 @@ final class LayerPanelUITests: XCTestCase {
         // the stone, not the whole ring.
         stonesRow.tap()
         waitForLabel(current, "Stones", "tapping the Stones row did not make it current")
-        element("layer.select").tap()
+        element("layer.select", app).tap()
         let summary = element("selection.summary", app)
         waitForLabel(summary, "Stone", "Select did not select the Stones layer")
 
@@ -60,7 +60,7 @@ final class LayerPanelUITests: XCTestCase {
         // into the current (locked) layer is an edit the panel must refuse.
         element("layer.lock.0", app).tap()
         metalRow.tap()
-        element("layer.select").tap()
+        element("layer.select", app).tap()
         waitForLabel(summary, "Shank", "Select did not select the Metal layer")
 
         let assign = element("layer.assign", app)
