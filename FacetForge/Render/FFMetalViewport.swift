@@ -485,8 +485,15 @@ struct FFMetalViewportView: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: UIView, context: Context) {
+        // SwiftUI re-renders the host whenever the FPS statistics tick. Writing
+        // an unchanged accessibility value on every tick forces XCUITest to
+        // rebuild its snapshot continuously, so only a real camera change may
+        // touch the accessibility tree.
         if uiView.accessibilityIdentifier == "shell.viewport.metal" {
-            uiView.accessibilityValue = camera.accessibilityState
+            let state = camera.accessibilityState
+            if uiView.accessibilityValue as? String != state {
+                uiView.accessibilityValue = state
+            }
         }
         context.coordinator.camera = camera
         context.coordinator.onCameraChange = onCameraChange
