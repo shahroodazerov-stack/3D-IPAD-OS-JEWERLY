@@ -75,37 +75,75 @@ enum FFMeshFactory {
     }
 }
 
-extension FFViewportScene {
-    /// The bench sample shown until a document is loaded: a 60 mm shank
-    /// standing upright with a faceted stone selected at the top.
-    static let jewelleryDemo: FFViewportScene = {
-        var nodes: [FFRenderNode] = []
+extension FFDocument {
+    /// The bench sample the app opens with: a 60 mm shank standing upright with
+    /// a faceted stone at the top, both as ordinary document nodes so the scene
+    /// the renderer draws is derived from saved data rather than from code.
+    /// The stone's id travels with the sample so the first selection survives
+    /// the document-to-scene conversion.
+    static let benchSample: (document: FFDocument, selectedNodeIDs: Set<UUID>) = {
+        let gold = FFMaterial(
+            name: "18k Yellow Gold",
+            baseColor: .gold,
+            metallic: 1.0,
+            roughness: 0.24
+        )
+        let gem = FFMaterial(
+            name: "Gem",
+            baseColor: FFRGBA(red: 0.52, green: 0.84, blue: 0.96),
+            metallic: 0.05,
+            roughness: 0.08
+        )
 
+        var roots: [FFNode] = []
         if let band = FFMeshFactory.torus(
             majorRadius: 30,
             minorRadius: 4.5,
             majorSegments: 120,
             minorSegments: 28
-        ), let mesh = FFRenderMesh(mesh: band) {
-            nodes.append(FFRenderNode(
+        ) {
+            roots.append(FFNode(
                 name: "Shank",
-                mesh: mesh,
-                transform: Mat4.rotationX(.pi / 2),
-                material: .gold
+                transform: FFTransform(
+                    translation: FFPoint3(x: 0, y: 0, z: 0),
+                    rotation: FFPoint3(x: .pi / 2, y: 0, z: 0),
+                    scale: FFPoint3(x: 1, y: 1, z: 1)
+                ),
+                geometry: .mesh(FFMeshPayload(band)),
+                materialID: gold.id,
+                kind: .solid
             ))
         }
 
-        if let stone = FFMeshFactory.octahedron(radius: 6), let mesh = FFRenderMesh(mesh: stone) {
-            nodes.append(FFRenderNode(
+        var selected: Set<UUID> = []
+        if let stone = FFMeshFactory.octahedron(radius: 6) {
+            let node = FFNode(
                 name: "Stone",
-                mesh: mesh,
-                transform: Mat4.translation(Vec3(x: 0, y: 40, z: 0)),
-                material: .gem,
-                isSelected: true,
+                transform: FFTransform(
+                    translation: FFPoint3(x: 0, y: 40, z: 0),
+                    rotation: FFPoint3(x: 0, y: 0, z: 0),
+                    scale: FFPoint3(x: 1, y: 1, z: 1)
+                ),
+                geometry: .mesh(FFMeshPayload(stone)),
+                materialID: gem.id,
                 kind: .stone
-            ))
+            )
+            roots.append(node)
+            selected.insert(node.id)
         }
 
-        return FFViewportScene(nodes: nodes)
+        return (
+            FFDocument(name: "Untitled ring", materials: [gold, gem], rootNodes: roots),
+            selected
+        )
     }()
+}
+
+extension FFViewportScene {
+    /// The bench sample as a renderable scene, with its stone selected. Tests
+    /// and the RealityKit bridge consume this; the app reads the same document
+    /// through `FFEditorSession`.
+    static let jewelleryDemo: FFViewportScene = FFEditorSession
+        .scene(from: FFDocument.benchSample.document)
+        .selecting(Array(FFDocument.benchSample.selectedNodeIDs))
 }

@@ -146,7 +146,11 @@ struct FFViewportReadback: Equatable {
 private struct FFMeshGPUBuffer {
     let vertices: MTLBuffer
     let indices: MTLBuffer
+    /// Three line segments per triangle, used by the edge and wireframe
+    /// passes. Built with the mesh buffer and reused every frame.
+    let edges: MTLBuffer
     let indexCount: Int
+    let edgeIndexCount: Int
     let vertexCount: Int
     let triangleCount: Int
 }
@@ -163,6 +167,7 @@ private struct FFMeshUniforms {
     var shadow: SIMD4<Float>
     var lightDirection: SIMD4<Float>
     var viewport: SIMD4<Float>
+    var overlay: SIMD4<Float>
 }
 
 /// Owns the Metal device, the line and mesh pipelines and the immutable grid
@@ -178,6 +183,16 @@ final class FFMetalViewportRenderer {
     static let depthPixelFormat: MTLPixelFormat = .depth32Float
     static let clearColor = MTLClearColor(red: 0.055, green: 0.062, blue: 0.078, alpha: 1)
 
+    static func clearColor(for mode: FFDisplayMode) -> MTLClearColor {
+        let background = mode.background
+        return MTLClearColor(
+            red: background.red,
+            green: background.green,
+            blue: background.blue,
+            alpha: 1
+        )
+    }
+
     let device: MTLDevice
     let pixelFormat: MTLPixelFormat
     let sampleCount: Int
@@ -187,10 +202,12 @@ final class FFMetalViewportRenderer {
     private let pipelineState: MTLRenderPipelineState
     private let depthState: MTLDepthStencilState
     private let meshPipelineState: MTLRenderPipelineState
+    private let edgePipelineState: MTLRenderPipelineState
     private let outlinePipelineState: MTLRenderPipelineState
     private let shadowPipelineState: MTLRenderPipelineState
     private let pickPipelineState: MTLRenderPipelineState
     private let meshDepthState: MTLDepthStencilState
+    private let edgeDepthState: MTLDepthStencilState
     private let outlineDepthState: MTLDepthStencilState
     private let shadowDepthState: MTLDepthStencilState
     private let vertexBuffer: MTLBuffer
@@ -270,6 +287,10 @@ final class FFMetalViewportRenderer {
             label: "FacetForge viewport meshes",
             vertex: "ff_mesh_vertex",
             fragment: "ff_mesh_fragment"
+        ), let edgePipelineState = makePipeline(
+            label: "FacetForge viewport edges",
+            vertex: "ff_edge_vertex",
+            fragment: "ff_edge_fragment"
         ), let outlinePipelineState = makePipeline(
             label: "FacetForge viewport selection outline",
             vertex: "ff_outline_vertex",
@@ -314,6 +335,10 @@ final class FFMetalViewportRenderer {
             label: "FacetForge viewport mesh depth",
             compare: .less,
             write: true
+        ), let edgeDepthState = makeDepthState(
+            label: "FacetForge viewport edge depth",
+            compare: .lessEqual,
+            write: false
         ), let outlineDepthState = makeDepthState(
             label: "FacetForge viewport outline depth",
             compare: .lessEqual,
@@ -343,10 +368,12 @@ final class FFMetalViewportRenderer {
         self.pipelineState = pipelineState
         self.depthState = depthState
         self.meshPipelineState = meshPipelineState
+        self.edgePipelineState = edgePipelineState
         self.outlinePipelineState = outlinePipelineState
         self.shadowPipelineState = shadowPipelineState
         self.pickPipelineState = pickPipelineState
         self.meshDepthState = meshDepthState
+        self.edgeDepthState = edgeDepthState
         self.outlineDepthState = outlineDepthState
         self.shadowDepthState = shadowDepthState
         self.vertexBuffer = vertexBuffer
@@ -359,7 +386,8 @@ final class FFMetalViewportRenderer {
         in view: MTKView,
         camera: FFCamera,
         at time: Double = CACurrentMediaTime(),
-        scene: FFViewportScene = .empty
+        scene: FFViewportScene = .empty,
+        mode: FFDisplayMode = .shaded
     ) {
         let width = max(1, view.drawableSize.width)
         let height = max(1, view.drawableSize.height)
@@ -369,7 +397,7 @@ final class FFMetalViewportRenderer {
         else { return }
 
         pass.colorAttachments[0].loadAction = .clear
-        pass.colorAttachments[0].clearColor = Self.clearColor
+        pass.colorAttachments[0].clearColor = Self.clearColor(for: mode)
         // Keep MTKView's own store action: with MSAA it is a multisample
         // resolve into the drawable, and overwriting it with `.store` would
         // leave the drawable unresolved.
@@ -383,6 +411,7 @@ final class FFMetalViewportRenderer {
             camera: camera,
             aspect: Double(width / height),
             scene: scene,
+            mode: mode,
             viewport: SIMD2<Float>(Float(width), Float(height))
         )
         commandBuffer.present(drawable)
@@ -405,7 +434,8 @@ final class FFMetalViewportRenderer {
         width: Int,
         height: Int,
         camera: FFCamera,
-        scene: FFViewportScene = .empty
+        scene: FFViewportScene = .empty,
+        mode: FFDisplayMode = .shaded
     ) -> FFViewportReadback? {
         guard width > 0, height > 0, width <= 4_096, height <= 4_096 else {
             return nil
@@ -456,7 +486,7 @@ final class FFMetalViewportRenderer {
         pass.colorAttachments[0].resolveTexture = resolveTexture
         pass.colorAttachments[0].loadAction = .clear
         pass.colorAttachments[0].storeAction = .multisampleResolve
-        pass.colorAttachments[0].clearColor = Self.clearColor
+        pass.colorAttachments[0].clearColor = Self.clearColor(for: mode)
         pass.depthAttachment.texture = depthTexture
         pass.depthAttachment.loadAction = .clear
         pass.depthAttachment.clearDepth = 1
@@ -470,6 +500,7 @@ final class FFMetalViewportRenderer {
             camera: camera,
             aspect: Double(width) / Double(height),
             scene: scene,
+            mode: mode,
             viewport: SIMD2<Float>(Float(width), Float(height))
         )
 
@@ -573,7 +604,8 @@ final class FFMetalViewportRenderer {
                 node: node,
                 camera: camera,
                 viewProjection: viewProjection,
-                viewport: viewport
+                viewport: viewport,
+                mode: .shaded
             )
             var objectID = UInt32(index + 1)
             encoder.setVertexBuffer(buffers.vertices, offset: 0, index: 0)
@@ -684,6 +716,7 @@ final class FFMetalViewportRenderer {
         camera: FFCamera,
         aspect: Double,
         scene: FFViewportScene,
+        mode: FFDisplayMode,
         viewport: SIMD2<Float>
     ) {
         guard let encoder = commandBuffer.makeRenderCommandEncoder(descriptor: pass) else {
@@ -692,7 +725,7 @@ final class FFMetalViewportRenderer {
         encoder.label = "FacetForge viewport"
         let viewProjection = camera.viewProjectionMatrix(aspect: aspect)
 
-        if let bounds = scene.bounds {
+        if mode.showsShadow, let bounds = scene.bounds {
             var shadowUniforms = FFMeshUniforms(
                 model: Mat4.identity.simdMatrix,
                 viewProjection: viewProjection.simdMatrix,
@@ -707,7 +740,8 @@ final class FFMetalViewportRenderer {
                     Float(bounds.minimum.y) - 0.05
                 ),
                 lightDirection: SIMD4<Float>(0, 1, 0, 0),
-                viewport: SIMD4<Float>(viewport.x, viewport.y, 0, 0)
+                viewport: SIMD4<Float>(viewport.x, viewport.y, 0, 0),
+                overlay: .zero
             )
             encoder.setRenderPipelineState(shadowPipelineState)
             encoder.setDepthStencilState(shadowDepthState)
@@ -725,18 +759,20 @@ final class FFMetalViewportRenderer {
             encoder.drawPrimitives(type: .triangleStrip, vertexStart: 0, vertexCount: 4)
         }
 
-        encoder.setRenderPipelineState(pipelineState)
-        encoder.setDepthStencilState(depthState)
-        encoder.setCullMode(.none)
-        encoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
+        if mode.showsGrid {
+            encoder.setRenderPipelineState(pipelineState)
+            encoder.setDepthStencilState(depthState)
+            encoder.setCullMode(.none)
+            encoder.setVertexBuffer(vertexBuffer, offset: 0, index: 0)
 
-        var matrix = viewProjection.metalMatrix
-        encoder.setVertexBytes(
-            &matrix,
-            length: MemoryLayout<simd_float4x4>.stride,
-            index: 1
-        )
-        encoder.drawPrimitives(type: .line, vertexStart: 0, vertexCount: lineCount * 2)
+            var matrix = viewProjection.metalMatrix
+            encoder.setVertexBytes(
+                &matrix,
+                length: MemoryLayout<simd_float4x4>.stride,
+                index: 1
+            )
+            encoder.drawPrimitives(type: .line, vertexStart: 0, vertexCount: lineCount * 2)
+        }
 
         // The outline is drawn before the meshes. Culling the back faces and
         // expanding the front-facing shell in screen space leaves a rim outside
@@ -754,7 +790,8 @@ final class FFMetalViewportRenderer {
                     node: node,
                     camera: camera,
                     viewProjection: viewProjection,
-                    viewport: viewport
+                    viewport: viewport,
+                    mode: mode
                 )
                 encoder.setVertexBuffer(buffers.vertices, offset: 0, index: 0)
                 encoder.setVertexBuffer(buffers.indices, offset: 0, index: 2)
@@ -778,7 +815,7 @@ final class FFMetalViewportRenderer {
             }
         }
 
-        if !scene.nodes.isEmpty {
+        if mode.drawsFaces, !scene.nodes.isEmpty {
             encoder.setRenderPipelineState(meshPipelineState)
             encoder.setDepthStencilState(meshDepthState)
             encoder.setCullMode(.back)
@@ -788,7 +825,8 @@ final class FFMetalViewportRenderer {
                     node: node,
                     camera: camera,
                     viewProjection: viewProjection,
-                    viewport: viewport
+                    viewport: viewport,
+                    mode: mode
                 )
                 encoder.setVertexBuffer(buffers.vertices, offset: 0, index: 0)
                 encoder.setVertexBuffer(buffers.indices, offset: 0, index: 2)
@@ -807,6 +845,44 @@ final class FFMetalViewportRenderer {
                     indexCount: buffers.indexCount,
                     indexType: .uint32,
                     indexBuffer: buffers.indices,
+                    indexBufferOffset: 0
+                )
+            }
+        }
+
+        // Edges read as a drawing: they sit on top of the shaded faces with a
+        // small depth bias. A wireframe has no face pass at all, so the same
+        // segments become the whole model and show the far side through it.
+        if mode.drawsEdges {
+            encoder.setRenderPipelineState(edgePipelineState)
+            encoder.setDepthStencilState(edgeDepthState)
+            encoder.setCullMode(.none)
+            for node in scene.nodes where node.isVisible {
+                guard let buffers = buffers(for: node.mesh, nodeID: node.id) else { continue }
+                var uniforms = meshUniforms(
+                    node: node,
+                    camera: camera,
+                    viewProjection: viewProjection,
+                    viewport: viewport,
+                    mode: mode
+                )
+                encoder.setVertexBuffer(buffers.vertices, offset: 0, index: 0)
+                encoder.setVertexBuffer(buffers.edges, offset: 0, index: 2)
+                encoder.setVertexBytes(
+                    &uniforms,
+                    length: MemoryLayout<FFMeshUniforms>.stride,
+                    index: 1
+                )
+                encoder.setFragmentBytes(
+                    &uniforms,
+                    length: MemoryLayout<FFMeshUniforms>.stride,
+                    index: 1
+                )
+                encoder.drawIndexedPrimitives(
+                    type: .line,
+                    indexCount: buffers.edgeIndexCount,
+                    indexType: .uint32,
+                    indexBuffer: buffers.edges,
                     indexBufferOffset: 0
                 )
             }
@@ -819,10 +895,15 @@ final class FFMetalViewportRenderer {
         node: FFRenderNode,
         camera: FFCamera,
         viewProjection: Mat4,
-        viewport: SIMD2<Float>
+        viewport: SIMD2<Float>,
+        mode: FFDisplayMode
     ) -> FFMeshUniforms {
         let model = node.transform.simdMatrix
-        let color = node.material.baseColor
+        // Clay and Technical replace the document's material on the way to the
+        // GPU. The node itself is untouched, so leaving the mode restores it.
+        let surface = mode.materialOverride ?? node.material
+        let color = surface.baseColor
+        let edge = mode.edgeColor
         let eye = camera.position
         return FFMeshUniforms(
             model: model,
@@ -836,20 +917,22 @@ final class FFMetalViewportRenderer {
             ),
             cameraPosition: SIMD4<Float>(Float(eye.x), Float(eye.y), Float(eye.z), 1),
             material: SIMD4<Float>(
-                Float(node.material.metallic),
-                Float(node.material.roughness),
+                Float(surface.metallic),
+                Float(surface.roughness),
                 3.0,
-                0
+                mode.shaderCode
             ),
             shadow: .zero,
             lightDirection: SIMD4<Float>(-0.45, 0.80, 0.55, 0.20),
-            viewport: SIMD4<Float>(viewport.x, viewport.y, 0, 0)
+            viewport: SIMD4<Float>(viewport.x, viewport.y, 0, 0),
+            overlay: SIMD4<Float>(Float(edge.red), Float(edge.green), Float(edge.blue), 1)
         )
     }
 
     private func buffers(for mesh: FFRenderMesh, nodeID: UUID) -> FFMeshGPUBuffer? {
         if let cached = meshBuffers[nodeID],
            cached.indexCount == mesh.indices.count,
+           cached.edgeIndexCount == mesh.indices.count * 2,
            cached.vertexCount == mesh.positions.count
         {
             return cached
@@ -880,11 +963,30 @@ final class FFMetalViewportRenderer {
             guard let base = raw.baseAddress else { return nil }
             return device.makeBuffer(bytes: base, length: raw.count, options: .storageModeShared)
         }
-        guard let vertices = vertexBuffer, let indices = indexBuffer else { return nil }
+
+        // Three line segments per triangle, sharing the triangle's vertices.
+        var edgeIndices: [UInt32] = []
+        edgeIndices.reserveCapacity(mesh.indices.count * 2)
+        for offset in stride(from: 0, to: mesh.indices.count, by: 3) {
+            let a = mesh.indices[offset]
+            let b = mesh.indices[offset + 1]
+            let c = mesh.indices[offset + 2]
+            edgeIndices.append(contentsOf: [a, b, b, c, c, a])
+        }
+        let edgeBuffer: MTLBuffer? = edgeIndices.withUnsafeBytes { raw -> MTLBuffer? in
+            guard let base = raw.baseAddress else { return nil }
+            return device.makeBuffer(bytes: base, length: raw.count, options: .storageModeShared)
+        }
+
+        guard let vertices = vertexBuffer, let indices = indexBuffer, let edges = edgeBuffer else {
+            return nil
+        }
         let buffer = FFMeshGPUBuffer(
             vertices: vertices,
             indices: indices,
+            edges: edges,
             indexCount: mesh.indices.count,
+            edgeIndexCount: edgeIndices.count,
             vertexCount: mesh.positions.count,
             triangleCount: mesh.triangleCount
         )
@@ -939,6 +1041,7 @@ final class FFMetalViewportRenderer {
         float4 shadow;
         float4 lightDirection;
         float4 viewport;
+        float4 overlay;
     };
 
     struct FFMeshVaryings {
@@ -978,7 +1081,41 @@ final class FFMetalViewportRenderer {
         float3 diffuse = u.baseColor.rgb * (1.0 - metallic) * ndl;
         float3 ambient = u.baseColor.rgb * mix(0.20, 0.38, max(normal.y, 0.0));
         float3 color = ambient + diffuse * 0.9 + specular * light;
+
+        // Technical is a drawing, not a render: per-facet normals flatten the
+        // surface and the shading is compressed so the line work reads.
+        if (u.material.w > 3.5) {
+            float3 facet = normalize(cross(dfdx(in.worldPosition), dfdy(in.worldPosition)));
+            if (dot(facet, normalize(u.cameraPosition.xyz - in.worldPosition)) < 0.0) {
+                facet = -facet;
+            }
+            float facetLight = max(dot(facet, light), 0.0);
+            color = u.baseColor.rgb * (0.74 + 0.22 * facetLight);
+        }
         return float4(color, 1.0);
+    }
+
+    struct FFEdgeVaryings {
+        float4 position [[position]];
+    };
+
+    vertex FFEdgeVaryings ff_edge_vertex(
+        uint vertexID [[vertex_id]],
+        device const FFMeshVertex *vertices [[buffer(0)]],
+        constant FFMeshUniforms &u [[buffer(1)]]
+    ) {
+        FFMeshVertex value = vertices[vertexID];
+        float4 clip = u.viewProjection * u.model * float4(float3(value.position), 1.0);
+        // Pull the line toward the eye in clip space so it wins the depth test
+        // against the face it belongs to without hiding geometry in front.
+        clip.z -= 0.00035 * clip.w;
+        FFEdgeVaryings out;
+        out.position = clip;
+        return out;
+    }
+
+    fragment float4 ff_edge_fragment(constant FFMeshUniforms &u [[buffer(1)]]) {
+        return float4(u.overlay.rgb, 1.0);
     }
 
     struct FFPickVaryings {
@@ -1084,6 +1221,9 @@ extension FFMetalViewportRenderer: ViewportRendering {
 struct FFMetalViewportView: UIViewRepresentable {
     var camera: FFCamera
     var scene: FFViewportScene = .empty
+    /// The document's display mode for this pane. Every pane owns its own, so a
+    /// shaded Perspective can sit beside a technical Top.
+    var mode: FFDisplayMode = .shaded
     /// Four-up panes need distinct identifiers so the accessibility tree keeps
     /// one camera state per pane. The single-pane default keeps the Phase 9/10
     /// identifier for the existing camera navigation tests.
@@ -1108,6 +1248,7 @@ struct FFMetalViewportView: UIViewRepresentable {
         Coordinator(
             camera: camera,
             scene: scene,
+            mode: mode,
             pickFilter: pickFilter,
             onCameraChange: onCameraChange,
             onPick: onPick,
@@ -1125,7 +1266,7 @@ struct FFMetalViewportView: UIViewRepresentable {
         view.colorPixelFormat = renderer.pixelFormat
         view.depthStencilPixelFormat = FFMetalViewportRenderer.depthPixelFormat
         view.sampleCount = renderer.sampleCount
-        view.clearColor = FFMetalViewportRenderer.clearColor
+        view.clearColor = FFMetalViewportRenderer.clearColor(for: mode)
         view.preferredFramesPerSecond = 60
         view.isPaused = false
         view.enableSetNeedsDisplay = false
@@ -1157,7 +1298,9 @@ struct FFMetalViewportView: UIViewRepresentable {
         }
         context.coordinator.camera = camera
         context.coordinator.scene = scene
+        context.coordinator.mode = mode
         context.coordinator.pickFilter = pickFilter
+        (uiView as? MTKView)?.clearColor = FFMetalViewportRenderer.clearColor(for: mode)
         context.coordinator.onCameraChange = onCameraChange
         context.coordinator.onPick = onPick
         context.coordinator.onHover = onHover
@@ -1198,6 +1341,7 @@ struct FFMetalViewportView: UIViewRepresentable {
     final class Coordinator: NSObject, MTKViewDelegate, UIGestureRecognizerDelegate {
         var camera: FFCamera
         var scene: FFViewportScene
+        var mode: FFDisplayMode
         var pickFilter: FFPickFilter
         var onCameraChange: (FFCamera) -> Void
         var onPick: (FFPickResult?) -> Void
@@ -1212,6 +1356,7 @@ struct FFMetalViewportView: UIViewRepresentable {
         init(
             camera: FFCamera,
             scene: FFViewportScene,
+            mode: FFDisplayMode,
             pickFilter: FFPickFilter,
             onCameraChange: @escaping (FFCamera) -> Void,
             onPick: @escaping (FFPickResult?) -> Void,
@@ -1220,6 +1365,7 @@ struct FFMetalViewportView: UIViewRepresentable {
         ) {
             self.camera = camera
             self.scene = scene
+            self.mode = mode
             self.pickFilter = pickFilter
             self.onCameraChange = onCameraChange
             self.onPick = onPick
@@ -1408,7 +1554,7 @@ struct FFMetalViewportView: UIViewRepresentable {
         func draw(in view: MTKView) {
             guard let renderer else { return }
             let now = CACurrentMediaTime()
-            renderer.draw(in: view, camera: camera, at: now, scene: scene)
+            renderer.draw(in: view, camera: camera, at: now, scene: scene, mode: mode)
 
             guard now - lastReportTime >= 0.5 else { return }
             lastReportTime = now

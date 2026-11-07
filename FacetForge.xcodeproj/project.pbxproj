@@ -38,6 +38,8 @@
 		A10000000000000000000056 /* FFSnapping.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000055 /* FFSnapping.swift */; };
 		A10000000000000000000058 /* FFSnapOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000057 /* FFSnapOverlay.swift */; };
 		A1000000000000000000005A /* FFSelection.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000059 /* FFSelection.swift */; };
+		A1000000000000000000005C /* FFDisplayMode.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000005B /* FFDisplayMode.swift */; };
+		A1000000000000000000005E /* FFEditorSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000000000000000000005D /* FFEditorSession.swift */; };
 		A2000000000000000000000B /* AppIdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000002 /* AppIdentityTests.swift */; };
 		A2000000000000000000000F /* DesignSystemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000000E /* DesignSystemTests.swift */; };
 		A20000000000000000000011 /* ComponentSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000010 /* ComponentSnapshotTests.swift */; };
@@ -55,6 +57,7 @@
 		A20000000000000000000029 /* Phase15GumballTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000000000000000000028 /* Phase15GumballTests.swift */; };
 		A2000000000000000000002B /* Phase16SnappingTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002A /* Phase16SnappingTests.swift */; };
 		A2000000000000000000002D /* Phase17SelectionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002C /* Phase17SelectionTests.swift */; };
+		A2000000000000000000002F /* Phase18DisplayModeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000000000000000000002E /* Phase18DisplayModeTests.swift */; };
 		A3000000000000000000000B /* LaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000002 /* LaunchTests.swift */; };
 		A3000000000000000000000F /* GalleryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3000000000000000000000E /* GalleryTests.swift */; };
 		A30000000000000000000011 /* AdaptiveShellTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000010 /* AdaptiveShellTests.swift */; };
@@ -63,6 +66,7 @@
 		A30000000000000000000017 /* GumballUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000016 /* GumballUITests.swift */; };
 		A30000000000000000000019 /* SnapMarkerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30000000000000000000018 /* SnapMarkerUITests.swift */; };
 		A3000000000000000000001B /* SelectionUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3000000000000000000001A /* SelectionUITests.swift */; };
+		A3000000000000000000001D /* DisplayModeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3000000000000000000001C /* DisplayModeUITests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -115,6 +119,8 @@
 		A10000000000000000000055 /* FFSnapping.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFSnapping.swift; sourceTree = "<group>"; };
 		A10000000000000000000057 /* FFSnapOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFSnapOverlay.swift; sourceTree = "<group>"; };
 		A10000000000000000000059 /* FFSelection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFSelection.swift; sourceTree = "<group>"; };
+		A1000000000000000000005B /* FFDisplayMode.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFDisplayMode.swift; sourceTree = "<group>"; };
+		A1000000000000000000005D /* FFEditorSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FFEditorSession.swift; sourceTree = "<group>"; };
 		A20000000000000000000002 /* AppIdentityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppIdentityTests.swift; sourceTree = "<group>"; };
 		A2000000000000000000000E /* DesignSystemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystemTests.swift; sourceTree = "<group>"; };
 		A20000000000000000000010 /* ComponentSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComponentSnapshotTests.swift; sourceTree = "<group>"; };
@@ -132,6 +138,7 @@
 		A20000000000000000000028 /* Phase15GumballTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase15GumballTests.swift; sourceTree = "<group>"; };
 		A2000000000000000000002A /* Phase16SnappingTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase16SnappingTests.swift; sourceTree = "<group>"; };
 		A2000000000000000000002C /* Phase17SelectionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase17SelectionTests.swift; sourceTree = "<group>"; };
+		A2000000000000000000002E /* Phase18DisplayModeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase18DisplayModeTests.swift; sourceTree = "<group>"; };
 		A20000000000000000000003 /* FacetForgeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FacetForgeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		A30000000000000000000002 /* LaunchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchTests.swift; sourceTree = "<group>"; };
 		A3000000000000000000000E /* GalleryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GalleryTests.swift; sourceTree = "<group>"; };
@@ -141,6 +148,7 @@
 		A30000000000000000000016 /* GumballUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GumballUITests.swift; sourceTree = "<group>"; };
 		A30000000000000000000018 /* SnapMarkerUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapMarkerUITests.swift; sourceTree = "<group>"; };
 		A3000000000000000000001A /* SelectionUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelectionUITests.swift; sourceTree = "<group>"; };
+		A3000000000000000000001C /* DisplayModeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisplayModeUITests.swift; sourceTree = "<group>"; };
 		A30000000000000000000003 /* FacetForgeUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FacetForgeUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -254,6 +262,7 @@
 				A1000000000000000000004F /* FFPicking.swift */,
 				A10000000000000000000051 /* FFGumball.swift */,
 				A10000000000000000000055 /* FFSnapping.swift */,
+				A1000000000000000000005B /* FFDisplayMode.swift */,
 			);
 			path = Render;
 			sourceTree = "<group>";
@@ -271,6 +280,7 @@
 			children = (
 				A10000000000000000000045 /* FFDocument.swift */,
 				A10000000000000000000047 /* FFDocumentStore.swift */,
+				A1000000000000000000005D /* FFEditorSession.swift */,
 			);
 			path = Document;
 			sourceTree = "<group>";
@@ -295,6 +305,7 @@
 				A20000000000000000000028 /* Phase15GumballTests.swift */,
 				A2000000000000000000002A /* Phase16SnappingTests.swift */,
 				A2000000000000000000002C /* Phase17SelectionTests.swift */,
+				A2000000000000000000002E /* Phase18DisplayModeTests.swift */,
 			);
 			path = FacetForgeTests;
 			sourceTree = "<group>";
@@ -310,6 +321,7 @@
 				A30000000000000000000016 /* GumballUITests.swift */,
 				A30000000000000000000018 /* SnapMarkerUITests.swift */,
 				A3000000000000000000001A /* SelectionUITests.swift */,
+				A3000000000000000000001C /* DisplayModeUITests.swift */,
 			);
 			path = FacetForgeUITests;
 			sourceTree = "<group>";
@@ -473,6 +485,8 @@
 				A10000000000000000000056 /* FFSnapping.swift in Sources */,
 				A10000000000000000000058 /* FFSnapOverlay.swift in Sources */,
 				A1000000000000000000005A /* FFSelection.swift in Sources */,
+				A1000000000000000000005C /* FFDisplayMode.swift in Sources */,
+				A1000000000000000000005E /* FFEditorSession.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -497,6 +511,7 @@
 				A20000000000000000000029 /* Phase15GumballTests.swift in Sources */,
 				A2000000000000000000002B /* Phase16SnappingTests.swift in Sources */,
 				A2000000000000000000002D /* Phase17SelectionTests.swift in Sources */,
+				A2000000000000000000002F /* Phase18DisplayModeTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -512,6 +527,7 @@
 				A30000000000000000000017 /* GumballUITests.swift in Sources */,
 				A30000000000000000000019 /* SnapMarkerUITests.swift in Sources */,
 				A3000000000000000000001B /* SelectionUITests.swift in Sources */,
+				A3000000000000000000001D /* DisplayModeUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

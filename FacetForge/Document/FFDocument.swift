@@ -279,6 +279,9 @@ struct FFNode: Codable, Equatable, Identifiable, Sendable {
     var isVisible: Bool
     var geometry: FFNodeGeometry?
     var materialID: UUID?
+    /// The kind a pick filter sees. Optional so schema-1 documents written
+    /// before Phase 18 still decode; a missing kind is a solid.
+    var kind: FFPickKind?
     var children: [FFNode]
 
     init(
@@ -288,6 +291,7 @@ struct FFNode: Codable, Equatable, Identifiable, Sendable {
         isVisible: Bool = true,
         geometry: FFNodeGeometry? = nil,
         materialID: UUID? = nil,
+        kind: FFPickKind? = nil,
         children: [FFNode] = []
     ) {
         self.id = id
@@ -296,6 +300,7 @@ struct FFNode: Codable, Equatable, Identifiable, Sendable {
         self.isVisible = isVisible
         self.geometry = geometry
         self.materialID = materialID
+        self.kind = kind
         self.children = children
     }
 
@@ -339,6 +344,7 @@ struct FFDocument: Codable, Equatable, Sendable {
         case displayUnit
         case materials
         case rootNodes
+        case displayModes
     }
 
     var schemaVersion: Int
@@ -346,18 +352,24 @@ struct FFDocument: Codable, Equatable, Sendable {
     var displayUnit: FFLengthUnit
     var materials: [FFMaterial]
     var rootNodes: [FFNode]
+    /// Each viewport keeps its own display mode, keyed by pane id. The field is
+    /// additive in schema 1: an older document decodes to an empty map and
+    /// every pane opens Shaded.
+    var displayModes: [String: FFDisplayMode]
 
     init(
         name: String = "Untitled",
         displayUnit: FFLengthUnit = .millimetres,
         materials: [FFMaterial] = [],
-        rootNodes: [FFNode] = []
+        rootNodes: [FFNode] = [],
+        displayModes: [String: FFDisplayMode] = [:]
     ) {
         self.schemaVersion = Self.currentSchemaVersion
         self.name = name
         self.displayUnit = displayUnit
         self.materials = materials
         self.rootNodes = rootNodes
+        self.displayModes = displayModes
     }
 
     init(from decoder: Decoder) throws {
@@ -371,6 +383,10 @@ struct FFDocument: Codable, Equatable, Sendable {
         self.displayUnit = try container.decodeIfPresent(FFLengthUnit.self, forKey: .displayUnit) ?? .millimetres
         self.materials = try container.decodeIfPresent([FFMaterial].self, forKey: .materials) ?? []
         self.rootNodes = try container.decodeIfPresent([FFNode].self, forKey: .rootNodes) ?? []
+        self.displayModes = try container.decodeIfPresent(
+            [String: FFDisplayMode].self,
+            forKey: .displayModes
+        ) ?? [:]
     }
 
     var nodeCount: Int {

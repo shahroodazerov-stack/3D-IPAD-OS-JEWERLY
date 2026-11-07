@@ -216,7 +216,8 @@ struct FFAppShell: View {
     @State private var camera = FFCamera.standard
     @State private var namedView: FFNamedView? = .iso
     @State private var lengthUnit: FFLengthUnit = .millimetres
-    @State private var selection = FFSelectionState.initial(for: .jewelleryDemo)
+    /// The document and scene owner. The shell keeps layout and input only.
+    @StateObject private var session = FFEditorSession()
 
     private let tools: [FFTool] = [
         FFTool(id: "select", systemImage: "cursorarrow", label: "Select"),
@@ -257,8 +258,10 @@ struct FFAppShell: View {
                         frameStatistics: frameStatistics,
                         camera: $camera,
                         namedView: $namedView,
-                        scene: .jewelleryDemo,
-                        selection: $selection,
+                        scene: session.scene,
+                        displayModes: session.displayModes,
+                        selection: $session.selection,
+                        onCycleDisplayMode: { session.cycleDisplayMode(for: $0) },
                         onFrameStatistics: { frameStatistics = $0 },
                         onShowTools: { toolsCollapsed = false },
                         onShowInspector: { inspectorCollapsed = false }
@@ -271,8 +274,8 @@ struct FFAppShell: View {
                         FFInspector(
                             bandWidth: $bandWidth,
                             lengthUnit: $lengthUnit,
-                            scene: .jewelleryDemo,
-                            selection: $selection,
+                            scene: session.scene,
+                            selection: $session.selection,
                             onCollapse: { inspectorCollapsed = true }
                         )
                         .frame(width: metrics.inspectorWidth)
@@ -428,7 +431,9 @@ private struct FFViewport: View {
     @Binding var camera: FFCamera
     @Binding var namedView: FFNamedView?
     let scene: FFViewportScene
+    let displayModes: [String: FFDisplayMode]
     @Binding var selection: FFSelectionState
+    let onCycleDisplayMode: (String) -> Void
     let onFrameStatistics: (FFFrameStatistics) -> Void
     let onShowTools: () -> Void
     let onShowInspector: () -> Void
@@ -462,13 +467,10 @@ private struct FFViewport: View {
 
             VStack(spacing: 0) {
                 HStack(alignment: .top, spacing: FFSpace.sm) {
-                    FFToolbar(items: [
-                        FFToolbarItem(id: "shaded", systemImage: "circle.lefthalf.filled", label: "Shaded", isSelected: true),
-                        FFToolbarItem(id: "edges", systemImage: "square.on.square", label: "Shaded with edges"),
-                        FFToolbarItem(id: "clay", systemImage: "circle.dotted", label: "Clay"),
-                        FFToolbarItem(id: "wire", systemImage: "grid", label: "Wireframe"),
-                    ])
-
+                    // Display modes live on the pane itself, one chip per
+                    // viewport, so four-up can mix a shaded Perspective with
+                    // a technical Top. A second, global set of mode buttons
+                    // here would be a lie.
                     Spacer(minLength: 0)
 
                     Text(selectedTool.uppercased())
@@ -599,8 +601,10 @@ private struct FFViewport: View {
                     plan: pane,
                     camera: $camera,
                     scene: scene,
+                    mode: displayModes[pane.id] ?? .shaded,
                     selection: $selection,
                     metalIdentifier: "shell.viewport.metal",
+                    onCycleDisplayMode: { onCycleDisplayMode(pane.id) },
                     onCameraChange: { updated in
                         camera = updated
                         namedView = FFCameraNavigation.namedView(for: updated)
@@ -650,8 +654,10 @@ private struct FFViewport: View {
             plan: pane,
             camera: fourUpBinding(for: pane),
             scene: scene,
+            mode: displayModes[pane.id] ?? .shaded,
             selection: $selection,
             metalIdentifier: "shell.viewport.metal.\(pane.id)",
+            onCycleDisplayMode: { onCycleDisplayMode(pane.id) },
             onCameraChange: { updated in
                 fourUpCameras[pane.id] = updated
             },
@@ -692,8 +698,10 @@ private struct FFViewportPane: View {
     let plan: FFViewportPanePlan
     @Binding var camera: FFCamera
     let scene: FFViewportScene
+    let mode: FFDisplayMode
     @Binding var selection: FFSelectionState
     let metalIdentifier: String
+    let onCycleDisplayMode: () -> Void
     let onCameraChange: (FFCamera) -> Void
     let onStatistics: (FFFrameStatistics) -> Void
 
@@ -746,6 +754,7 @@ private struct FFViewportPane: View {
                 FFMetalViewportView(
                     camera: camera,
                     scene: displayScene,
+                    mode: mode,
                     accessibilityIdentifier: metalIdentifier,
                     allowsCameraGestures: !gizmoDragging && !selection.isMarquee,
                     pickFilter: selection.filter,
@@ -795,6 +804,23 @@ private struct FFViewportPane: View {
                         selection.select(ids, extend: selection.isMultiSelect)
                     }
                 }
+            }
+            // The per-viewport mode chip sits on the trailing edge, vertically
+            // centred: away from the top tool strip, the bottom HUD, the gizmo
+            // at the stone and the marquee's starting corners.
+            .overlay(alignment: .trailing) {
+                FFChip(
+                    title: mode.shortLabel,
+                    systemImage: mode.systemImage,
+                    isSelected: mode != .shaded,
+                    accessibilityIdentifier: "shell.viewport.mode.\(plan.id)"
+                ) {
+                    onCycleDisplayMode()
+                }
+                .accessibilityLabel("Display mode, \(mode.label)")
+                .accessibilityValue(mode.label)
+                .accessibilityHint("Cycles the display mode for this viewport")
+                .padding(.trailing, FFSpace.xs)
             }
             .onGeometryChange(for: CGSize.self) { geometry in
                 geometry.size
