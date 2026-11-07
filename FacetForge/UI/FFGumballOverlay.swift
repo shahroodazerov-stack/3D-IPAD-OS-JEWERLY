@@ -52,13 +52,18 @@ struct FFGumballOverlay: View {
             if let pivot = camera.screenPoint(for: session.pivot, viewport: viewportVector) {
                 pivotMarker(at: pivot)
 
-                ForEach(FFGumballAxis.allCases) { axis in
-                    axisHandle(axis, pivotScreen: pivot)
-                }
-
+                // Planes first, arrows last. A plane tile is a 24 pt square at
+                // 6 mm from the pivot and an arrow's touch target is 44 pt at
+                // 10 mm; after an orbit the two can overlap. Drawing the
+                // arrows on top means a touch on the arrow is always an axis
+                // move, never a plane move that happens to start under it.
                 planeHandle(first: .x, second: .y, pivotScreen: pivot)
                 planeHandle(first: .y, second: .z, pivotScreen: pivot)
                 planeHandle(first: .x, second: .z, pivotScreen: pivot)
+
+                ForEach(FFGumballAxis.allCases) { axis in
+                    axisHandle(axis, pivotScreen: pivot)
+                }
             }
 
             VStack {
