@@ -34,10 +34,13 @@ jobs:
   ios:
     name: Build, test and launch (iPad simulator)
     needs: static
-    # The research note says to use the Intel image only when the arm64 pool is
-    # unavailable. After repeated arm64 cancellations with runner_id 0, that is
-    # the current state; macos-26-intel carries the same Xcode 26.6 toolchain.
-    runs-on: macos-26-intel
+    # Arm64 is the primary image because its simulators are native and fast. It
+    # was replaced with macos-26-intel after repeated runner_id-0 capacity
+    # cancellations, but on 2026-11-07 the Intel image needed 6-8 minutes just to
+    # boot a simulator and then timed out ordinary UI snapshots, so the gate is
+    # back on arm64. If capacity cancels again, fall back to Intel deliberately
+    # and record the run id rather than polling the queue.
+    runs-on: macos-26
     timeout-minutes: 45
     env:
       PROJECT: FacetForge.xcodeproj
@@ -117,6 +120,9 @@ jobs:
             -clonedSourcePackagesDirPath .build/SourcePackages \
             -resultBundlePath "$RESULT" \
             -parallel-testing-enabled NO \
+            -test-timeouts-enabled YES \
+            -default-test-execution-time-allowance 240 \
+            -maximum-test-execution-time-allowance 600 \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
