@@ -628,6 +628,12 @@ private struct FFViewport: View {
             }
             .frame(width: proxy.size.width, height: proxy.size.height)
         }
+        // The single pane is a UIView host and fills the whole viewport element.
+        // A GeometryReader is safe-area aware, so on iPad it stopped 20 pt short
+        // of the bottom home-indicator inset and the preset was not a true half
+        // split. Ignoring the container inset makes both layouts fill the same
+        // rectangle the acceptance test measures.
+        .ignoresSafeArea(.container, edges: .bottom)
         .background(FFPalette.separator.color)
     }
 
