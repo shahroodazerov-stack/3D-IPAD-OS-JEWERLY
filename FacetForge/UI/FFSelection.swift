@@ -55,7 +55,10 @@ struct FFSelectionState: Equatable, Sendable {
     }
 
     func visibilitySummary(in scene: FFViewportScene) -> String {
-        let hidden = scene.nodes.filter { !isVisible($0) }.count
+        // A node can already be hidden by its document or its layer before
+        // this selection state is applied; the readout names every node the
+        // viewport is not drawing.
+        let hidden = scene.nodes.filter { !$0.isVisible || !isVisible($0) }.count
         if let isolatedIDs {
             return "\(hidden) hidden · isolated \(isolatedIDs.count)"
         }
@@ -78,7 +81,10 @@ struct FFSelectionState: Equatable, Sendable {
         FFViewportScene(nodes: scene.nodes.map { node in
             var copy = node
             copy.isSelected = selectedIDs.contains(node.id)
-            copy.isVisible = isVisible(node)
+            // `node.isVisible` carries document and layer visibility. Replacing
+            // it outright would resurrect a node a hidden layer had already
+            // removed from the drawing.
+            copy.isVisible = node.isVisible && isVisible(node)
             return copy
         })
     }

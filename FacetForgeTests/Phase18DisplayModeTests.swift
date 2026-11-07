@@ -280,11 +280,16 @@ final class Phase18DisplayModeTests: XCTestCase {
     private func makeFixtureScene() throws -> FFViewportScene {
         let facets = try XCTUnwrap(FFMeshFactory.octahedron(radius: 24))
         let facetMesh = try XCTUnwrap(FFRenderMesh(mesh: facets))
+        // Phase 20 colours wireframe line work by layer. The fixture keeps
+        // the mode's historical neutral line colour so this suite still
+        // measures the wireframe itself rather than the layer palette.
+        let neutralLine = FFRGBA(red: 0.72, green: 0.78, blue: 0.82)
         let shank = FFRenderNode(
             name: "Fixture shank",
             mesh: facetMesh,
             transform: Mat4.translation(Vec3(x: 0, y: 34, z: 0)),
-            material: .gold
+            material: .gold,
+            layerColor: neutralLine
         )
 
         let stone = try XCTUnwrap(FFMeshFactory.octahedron(radius: 7))
@@ -294,7 +299,8 @@ final class Phase18DisplayModeTests: XCTestCase {
             mesh: stoneMesh,
             transform: Mat4.translation(Vec3(x: 0, y: 72, z: 0)),
             material: .gem,
-            kind: .stone
+            kind: .stone,
+            layerColor: neutralLine
         )
         return FFViewportScene(nodes: [shank, gem])
     }

@@ -88,6 +88,15 @@ enum FFDisplayMode: String, CaseIterable, Codable, Identifiable, Sendable {
         }
     }
 
+    /// Wireframe is the one mode whose line work is coloured by the layer a
+    /// node draws on, so two layers stay distinguishable without changing the
+    /// shading or the material. Every other mode keeps its own edge colour.
+    var usesLayerColor: Bool { self == .wireframe }
+
+    func strokeColor(for node: FFRenderNode) -> FFRGBA {
+        usesLayerColor ? node.layerColor : edgeColor
+    }
+
     /// Modes that replace the document's materials with a single working
     /// material. This is the material override the display-mode row names; the
     /// document's own materials are untouched and return in Shaded.

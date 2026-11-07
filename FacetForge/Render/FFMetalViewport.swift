@@ -903,7 +903,7 @@ final class FFMetalViewportRenderer {
         // GPU. The node itself is untouched, so leaving the mode restores it.
         let surface = mode.materialOverride ?? node.material
         let color = surface.baseColor
-        let edge = mode.edgeColor
+        let edge = mode.strokeColor(for: node)
         let eye = camera.position
         return FFMeshUniforms(
             model: model,

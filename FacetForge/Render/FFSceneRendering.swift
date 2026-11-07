@@ -79,6 +79,9 @@ struct FFRenderNode: Equatable, Sendable, Identifiable {
     /// Hidden nodes are neither drawn nor written to the picking buffer. They
     /// keep their scene index so the ID mapping stays stable.
     var isVisible: Bool
+    /// The colour of the layer this node draws on. Wireframe draws its line
+    /// work in this colour; every other mode keeps the mode's own edge colour.
+    var layerColor: FFRGBA
 
     init(
         id: UUID = UUID(),
@@ -88,7 +91,8 @@ struct FFRenderNode: Equatable, Sendable, Identifiable {
         material: FFRenderMaterial = .gold,
         isSelected: Bool = false,
         kind: FFPickKind = .solid,
-        isVisible: Bool = true
+        isVisible: Bool = true,
+        layerColor: FFRGBA = .gold
     ) {
         self.id = id
         self.name = name
@@ -98,6 +102,7 @@ struct FFRenderNode: Equatable, Sendable, Identifiable {
         self.isSelected = isSelected
         self.kind = kind
         self.isVisible = isVisible
+        self.layerColor = layerColor
     }
 }
 

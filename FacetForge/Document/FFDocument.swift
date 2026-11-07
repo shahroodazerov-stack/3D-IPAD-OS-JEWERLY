@@ -282,6 +282,10 @@ struct FFNode: Codable, Equatable, Identifiable, Sendable {
     /// The kind a pick filter sees. Optional so schema-1 documents written
     /// before Phase 18 still decode; a missing kind is a solid.
     var kind: FFPickKind?
+    /// The layer this node draws on. Optional so schema-1 documents written
+    /// before Phase 20 still decode; a missing assignment belongs to the
+    /// document's first layer.
+    var layerID: UUID?
     var children: [FFNode]
 
     init(
@@ -292,6 +296,7 @@ struct FFNode: Codable, Equatable, Identifiable, Sendable {
         geometry: FFNodeGeometry? = nil,
         materialID: UUID? = nil,
         kind: FFPickKind? = nil,
+        layerID: UUID? = nil,
         children: [FFNode] = []
     ) {
         self.id = id
@@ -301,6 +306,7 @@ struct FFNode: Codable, Equatable, Identifiable, Sendable {
         self.geometry = geometry
         self.materialID = materialID
         self.kind = kind
+        self.layerID = layerID
         self.children = children
     }
 
@@ -345,6 +351,8 @@ struct FFDocument: Codable, Equatable, Sendable {
         case materials
         case rootNodes
         case displayModes
+        case layers
+        case currentLayerID
     }
 
     var schemaVersion: Int
@@ -356,13 +364,20 @@ struct FFDocument: Codable, Equatable, Sendable {
     /// additive in schema 1: an older document decodes to an empty map and
     /// every pane opens Shaded.
     var displayModes: [String: FFDisplayMode]
+    /// Drawing layers and the layer new nodes are assigned to. Phase 20 makes
+    /// these document state so membership, visibility, lock and colour survive
+    /// save and reopen.
+    var layers: [FFLayer]
+    var currentLayerID: UUID?
 
     init(
         name: String = "Untitled",
         displayUnit: FFLengthUnit = .millimetres,
         materials: [FFMaterial] = [],
         rootNodes: [FFNode] = [],
-        displayModes: [String: FFDisplayMode] = [:]
+        displayModes: [String: FFDisplayMode] = [:],
+        layers: [FFLayer] = [FFLayer.defaultLayer],
+        currentLayerID: UUID? = nil
     ) {
         self.schemaVersion = Self.currentSchemaVersion
         self.name = name
@@ -370,6 +385,8 @@ struct FFDocument: Codable, Equatable, Sendable {
         self.materials = materials
         self.rootNodes = rootNodes
         self.displayModes = displayModes
+        self.layers = layers.isEmpty ? [FFLayer.defaultLayer] : layers
+        self.currentLayerID = currentLayerID ?? self.layers.first?.id
     }
 
     init(from decoder: Decoder) throws {
@@ -387,6 +404,10 @@ struct FFDocument: Codable, Equatable, Sendable {
             [String: FFDisplayMode].self,
             forKey: .displayModes
         ) ?? [:]
+        let decodedLayers = try container.decodeIfPresent([FFLayer].self, forKey: .layers) ?? []
+        self.layers = decodedLayers.isEmpty ? [FFLayer.defaultLayer] : decodedLayers
+        self.currentLayerID = try container.decodeIfPresent(UUID.self, forKey: .currentLayerID)
+            ?? self.layers.first?.id
     }
 
     var nodeCount: Int {

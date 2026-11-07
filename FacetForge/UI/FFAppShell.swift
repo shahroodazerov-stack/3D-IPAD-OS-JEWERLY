@@ -261,6 +261,7 @@ struct FFAppShell: View {
                         namedView: $namedView,
                         scene: session.scene,
                         displayModes: session.displayModes,
+                        lockedNodeIDs: session.lockedNodeIDs,
                         selection: $session.selection,
                         onCycleDisplayMode: { session.cycleDisplayMode(for: $0) },
                         onFrameStatistics: { frameStatistics = $0 },
@@ -276,7 +277,27 @@ struct FFAppShell: View {
                             bandWidth: $bandWidth,
                             lengthUnit: $lengthUnit,
                             scene: session.scene,
+                            layers: session.layers,
+                            currentLayerID: session.currentLayerID,
+                            layerCounts: Dictionary(
+                                uniqueKeysWithValues: session.layers.map {
+                                    ($0.id, session.nodeCount(inLayer: $0.id))
+                                }
+                            ),
                             selection: $session.selection,
+                            onAddLayer: { session.addLayer() },
+                            onSetCurrentLayer: { session.setCurrentLayer($0) },
+                            onToggleLayerVisibility: { id in
+                                guard let layer = session.layer(withID: id) else { return }
+                                session.setLayerVisible(id, isVisible: !layer.isVisible)
+                            },
+                            onToggleLayerLock: { id in
+                                guard let layer = session.layer(withID: id) else { return }
+                                session.setLayerLocked(id, isLocked: !layer.isLocked)
+                            },
+                            onCycleLayerColor: { session.cycleLayerColor($0) },
+                            onSelectLayer: { session.selectLayer($0) },
+                            onAssignToLayer: { session.assignSelection(to: $0) },
                             onCollapse: { inspectorCollapsed = true }
                         )
                         .frame(width: metrics.inspectorWidth)
@@ -434,6 +455,7 @@ private struct FFViewport: View {
     @Binding var namedView: FFNamedView?
     let scene: FFViewportScene
     let displayModes: [String: FFDisplayMode]
+    let lockedNodeIDs: Set<UUID>
     @Binding var selection: FFSelectionState
     let onCycleDisplayMode: (String) -> Void
     let onFrameStatistics: (FFFrameStatistics) -> Void
@@ -610,6 +632,7 @@ private struct FFViewport: View {
                     camera: $camera,
                     scene: scene,
                     mode: displayModes[pane.id] ?? .shaded,
+                    lockedNodeIDs: lockedNodeIDs,
                     selection: $selection,
                     measurement: measurement,
                     isMeasuring: isMeasuring,
@@ -666,6 +689,7 @@ private struct FFViewport: View {
             camera: fourUpBinding(for: pane),
             scene: scene,
             mode: displayModes[pane.id] ?? .shaded,
+            lockedNodeIDs: lockedNodeIDs,
             selection: $selection,
             measurement: measurement,
             // The four-up panes are camera previews; measuring happens in the
@@ -722,6 +746,7 @@ private struct FFViewportPane: View {
     @Binding var camera: FFCamera
     let scene: FFViewportScene
     let mode: FFDisplayMode
+    let lockedNodeIDs: Set<UUID>
     @Binding var selection: FFSelectionState
     @ObservedObject var measurement: FFMeasurementSession
     let isMeasuring: Bool
@@ -753,8 +778,20 @@ private struct FFViewportPane: View {
         selectionScene.nodes.first(where: \.isSelected)
     }
 
-    private var displayScene: FFViewportScene {
+    /// A gizmo exists only on a node that is both drawn and editable. A hidden
+    /// layer has no gizmo, and a locked layer has none because the session
+    /// would reject the edit a drag produces.
+    private var editableGumballNodeID: UUID? {
         guard let nodeID = gumball.nodeID,
+              let node = selectionScene.node(id: nodeID),
+              node.isVisible,
+              !lockedNodeIDs.contains(nodeID)
+        else { return nil }
+        return nodeID
+    }
+
+    private var displayScene: FFViewportScene {
+        guard let nodeID = editableGumballNodeID,
               let index = selectionScene.nodes.firstIndex(where: { $0.id == nodeID })
         else { return selectionScene }
         var copy = selectionScene
@@ -826,7 +863,7 @@ private struct FFViewportPane: View {
                     )
                 }
 
-                if showsGumball, gumball.nodeID != nil, !isMeasuring {
+                if showsGumball, editableGumballNodeID != nil, !isMeasuring {
                     FFGumballOverlay(
                         session: $gumball,
                         camera: camera,
@@ -893,18 +930,36 @@ private struct FFViewportPane: View {
         .onAppear(perform: configureGumball)
         .onChange(of: selection.selectedIDs) { _, ids in
             // A gizmo cannot outlive its selection or float over a node the
-            // jeweller just hid. Follow the primary selection, or clear.
+            // jeweller just hid or locked. Follow the primary editable
+            // selection, or clear.
             if let nodeID = gumball.nodeID, !ids.contains(nodeID) {
-                if let node = scene.nodes.first(where: { ids.contains($0.id) }) {
+                if let node = scene.nodes.first(where: {
+                    ids.contains($0.id) && !lockedNodeIDs.contains($0.id)
+                }) {
                     gumball.select(nodeID: node.id, transform: node.transform)
                 } else {
                     gumball = FFGumballSession()
                 }
             } else if gumball.nodeID == nil,
-                      let node = scene.nodes.first(where: { ids.contains($0.id) }) {
+                      let node = scene.nodes.first(where: {
+                          ids.contains($0.id) && !lockedNodeIDs.contains($0.id)
+                      }) {
                 gumball.select(nodeID: node.id, transform: node.transform)
             }
             refreshSnapMarkers(viewport: paneSize)
+        }
+        .onChange(of: lockedNodeIDs) { _, locked in
+            // Locking the active layer retires a gizmo that was already on
+            // screen, so the next drag cannot start an edit the session will
+            // refuse. Unlocking brings it back for the same selection.
+            if let nodeID = gumball.nodeID, locked.contains(nodeID) {
+                gumball = FFGumballSession()
+            } else if gumball.nodeID == nil,
+                      let node = selectedNode,
+                      node.isVisible,
+                      !locked.contains(node.id) {
+                gumball.select(nodeID: node.id, transform: node.transform)
+            }
         }
         // The pane name is a label, not a floating badge. The bottom HUD already
         // names the layout and every pane, and a badge in the corner printed on
@@ -915,7 +970,11 @@ private struct FFViewportPane: View {
     }
 
     private func configureGumball() {
-        guard gumball.nodeID == nil, let node = selectedNode else { return }
+        guard gumball.nodeID == nil,
+              let node = selectedNode,
+              node.isVisible,
+              !lockedNodeIDs.contains(node.id)
+        else { return }
         gumball.select(nodeID: node.id, transform: node.transform)
     }
 
@@ -961,11 +1020,25 @@ private struct FFInspector: View {
     @Binding var bandWidth: String
     @Binding var lengthUnit: FFLengthUnit
     let scene: FFViewportScene
+    let layers: [FFLayer]
+    let currentLayerID: UUID?
+    let layerCounts: [UUID: Int]
     @Binding var selection: FFSelectionState
+    let onAddLayer: () -> Void
+    let onSetCurrentLayer: (UUID) -> Void
+    let onToggleLayerVisibility: (UUID) -> Void
+    let onToggleLayerLock: (UUID) -> Void
+    let onCycleLayerColor: (UUID) -> Void
+    let onSelectLayer: (UUID) -> Void
+    let onAssignToLayer: (UUID) -> Void
     let onCollapse: () -> Void
 
     private var selectedNodes: [FFRenderNode] {
         scene.nodes.filter { selection.selectedIDs.contains($0.id) }
+    }
+
+    private var currentLayer: FFLayer? {
+        layers.first { $0.id == currentLayerID }
     }
 
     var body: some View {
@@ -986,6 +1059,131 @@ private struct FFInspector: View {
                     }
                     .buttonStyle(FFPressStyle())
                     .accessibilityLabel("Hide inspector")
+                }
+
+                // Phase 20's layer panel. The session owns membership,
+                // visibility, lock, colour and the current layer; this panel
+                // only renders them and routes taps back to the session.
+                FFPanel(
+                    title: "Layers",
+                    subtitle: "\(layers.count) layers",
+                    trailing: currentLayer.map { "Current: \($0.name)" }
+                ) {
+                    HStack(spacing: FFSpace.xxs) {
+                        FFChip(
+                            title: "Add",
+                            systemImage: "plus",
+                            accessibilityIdentifier: "layer.add"
+                        ) {
+                            onAddLayer()
+                        }
+
+                        FFChip(
+                            title: "Select",
+                            systemImage: "square.dashed",
+                            accessibilityIdentifier: "layer.select"
+                        ) {
+                            if let currentLayerID { onSelectLayer(currentLayerID) }
+                        }
+                        .disabled(currentLayer == nil || currentLayer?.isVisible == false)
+
+                        FFChip(
+                            title: "Move",
+                            systemImage: "arrow.right.to.line",
+                            accessibilityIdentifier: "layer.assign"
+                        ) {
+                            if let currentLayerID { onAssignToLayer(currentLayerID) }
+                        }
+                        .disabled(selection.selectedIDs.isEmpty || currentLayer?.isLocked == true)
+                    }
+
+                    ForEach(Array(layers.enumerated()), id: \.element.id) { index, layer in
+                        HStack(spacing: 2) {
+                            Button {
+                                onSetCurrentLayer(layer.id)
+                            } label: {
+                                HStack(spacing: FFSpace.xxs) {
+                                    Circle()
+                                        .stroke(
+                                            layer.id == currentLayerID
+                                                ? FFPalette.accent.color
+                                                : FFPalette.textTertiary.color,
+                                            lineWidth: 1.5
+                                        )
+                                        .background(
+                                            Circle().fill(
+                                                layer.id == currentLayerID
+                                                    ? FFPalette.accent.color
+                                                    : Color.clear
+                                            )
+                                        )
+                                        .frame(width: 9, height: 9)
+
+                                    Text(layer.name)
+                                        .font(FFType.caption)
+                                        .foregroundStyle(
+                                            layer.isVisible
+                                                ? FFPalette.textPrimary.color
+                                                : FFPalette.textTertiary.color
+                                        )
+                                        .lineLimit(1)
+
+                                    Spacer(minLength: FFSpace.xxs)
+
+                                    Text("\(layerCounts[layer.id] ?? 0)")
+                                        .font(FFType.monoSmall)
+                                        .foregroundStyle(FFPalette.textTertiary.color)
+                                }
+                                .frame(maxWidth: .infinity, minHeight: 40, alignment: .leading)
+                            }
+                            .buttonStyle(FFPressStyle())
+                            .accessibilityIdentifier("layer.row.\(index)")
+                            .accessibilityLabel("\(layer.name), \(layerCounts[layer.id] ?? 0) objects")
+                            .accessibilityValue(
+                                layer.isLocked ? "Locked" : (layer.isVisible ? "Visible" : "Hidden")
+                            )
+
+                            layerIconButton(
+                                layer.isVisible ? "eye" : "eye.slash",
+                                label: "\(layer.name) visibility",
+                                identifier: "layer.visible.\(index)",
+                                isSelected: !layer.isVisible
+                            ) {
+                                onToggleLayerVisibility(layer.id)
+                            }
+
+                            layerIconButton(
+                                layer.isLocked ? "lock.fill" : "lock.open",
+                                label: "\(layer.name) lock",
+                                identifier: "layer.lock.\(index)",
+                                isSelected: layer.isLocked
+                            ) {
+                                onToggleLayerLock(layer.id)
+                            }
+
+                            Button {
+                                onCycleLayerColor(layer.id)
+                            } label: {
+                                Circle()
+                                    .fill(swatch(layer.color))
+                                    .frame(width: 16, height: 16)
+                                    .frame(width: 30, height: 40)
+                            }
+                            .buttonStyle(FFPressStyle())
+                            .accessibilityLabel("\(layer.name) colour")
+                            .accessibilityIdentifier("layer.color.\(index)")
+                        }
+                    }
+
+                    if let currentLayer {
+                        Text(
+                            "Current: \(currentLayer.name) · \(layerCounts[currentLayer.id] ?? 0) objects"
+                                + (currentLayer.isLocked ? " · locked" : "")
+                        )
+                        .font(FFType.monoSmall)
+                        .foregroundStyle(FFPalette.textTertiary.color)
+                        .accessibilityIdentifier("layer.current")
+                    }
                 }
 
                 // Phase 17's touch controls. iPadOS has no Shift-click on
@@ -1200,5 +1398,33 @@ private struct FFInspector: View {
                 .fill(FFPalette.separator.color)
                 .frame(width: 1)
         }
+    }
+
+    private func layerIconButton(
+        _ systemImage: String,
+        label: String,
+        identifier: String,
+        isSelected: Bool,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            Image(systemName: systemImage)
+                .font(.system(size: 12, weight: .semibold))
+                .foregroundStyle(
+                    isSelected ? FFPalette.accent.color : FFPalette.textSecondary.color
+                )
+                .frame(width: 30, height: 40)
+                .background(
+                    isSelected ? FFPalette.raised.color : Color.clear,
+                    in: RoundedRectangle(cornerRadius: FFRadius.sm, style: .continuous)
+                )
+        }
+        .buttonStyle(FFPressStyle())
+        .accessibilityLabel(label)
+        .accessibilityIdentifier(identifier)
+    }
+
+    private func swatch(_ color: FFRGBA) -> Color {
+        Color(.sRGB, red: color.red, green: color.green, blue: color.blue, opacity: 1)
     }
 }

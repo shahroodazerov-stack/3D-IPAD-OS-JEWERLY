@@ -94,6 +94,16 @@ extension FFDocument {
             metallic: 0.05,
             roughness: 0.08
         )
+        // Two layers out of the box, so the panel and the wireframe colour are
+        // meaningful on the first frame rather than after the user builds one.
+        let metal = FFLayer(
+            name: "Metal",
+            color: FFRGBA(red: 0.90, green: 0.72, blue: 0.34)
+        )
+        let stones = FFLayer(
+            name: "Stones",
+            color: FFRGBA(red: 0.46, green: 0.82, blue: 0.96)
+        )
 
         var roots: [FFNode] = []
         if let band = FFMeshFactory.torus(
@@ -111,7 +121,8 @@ extension FFDocument {
                 ),
                 geometry: .mesh(FFMeshPayload(band)),
                 materialID: gold.id,
-                kind: .solid
+                kind: .solid,
+                layerID: metal.id
             ))
         }
 
@@ -126,14 +137,21 @@ extension FFDocument {
                 ),
                 geometry: .mesh(FFMeshPayload(stone)),
                 materialID: gem.id,
-                kind: .stone
+                kind: .stone,
+                layerID: stones.id
             )
             roots.append(node)
             selected.insert(node.id)
         }
 
         return (
-            FFDocument(name: "Untitled ring", materials: [gold, gem], rootNodes: roots),
+            FFDocument(
+                name: "Untitled ring",
+                materials: [gold, gem],
+                rootNodes: roots,
+                layers: [metal, stones],
+                currentLayerID: metal.id
+            ),
             selected
         )
     }()
