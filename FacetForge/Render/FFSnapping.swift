@@ -33,8 +33,9 @@ enum FFSnapKind: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
-    /// Lower wins when several candidates share the cursor. Geometry outranks
-    /// projection aids: a vertex at six points beats an on-curve point at one.
+    /// Lower breaks a sub-pixel tie: an endpoint and the on-curve point at the
+    /// same screen position resolve to the endpoint. Proximity still outranks
+    /// kind, so a strong snap never steals the cursor from a closer one.
     var priority: Int {
         switch self {
         case .vertex: return 0
@@ -47,6 +48,15 @@ enum FFSnapKind: String, CaseIterable, Identifiable, Sendable {
         case .onCurve: return 7
         case .angle: return 8
         case .grid: return 9
+        }
+    }
+
+    /// Angle and grid are inference, not geometry the jeweller drew. They only
+    /// answer when no real snap is under the cursor, and angle outranks grid.
+    var isProjectionAid: Bool {
+        switch self {
+        case .angle, .grid: return true
+        default: return false
         }
     }
 }
@@ -248,8 +258,14 @@ enum FFSnapResolver {
             if (hover - closest).length <= tolerance * 2.5 {
                 nearbySegments.append((segment, index))
             }
-            if (hover - closest).length <= tolerance {
-                add(.onCurve, segment.a.lerp(to: segment.b, t: t))
+            if (hover - closest).length <= tolerance,
+               let point = worldPointUnderCursor(
+                   on: segment,
+                   hover: hover,
+                   camera: camera,
+                   viewport: viewport
+               ) {
+                add(.onCurve, point)
             }
 
             if let reference {
@@ -333,23 +349,75 @@ enum FFSnapResolver {
             }
         }
 
-        let ranked = byKind.values.sorted { lhs, rhs in
+        let candidates = Array(byKind.values)
+        guard let best = select(from: candidates) else { return nil }
+
+        let markers = candidates
+            .sorted { lhs, rhs in
+                if lhs.kind.priority != rhs.kind.priority {
+                    return lhs.kind.priority < rhs.kind.priority
+                }
+                return lhs.distance < rhs.distance
+            }
+            .map { candidate in
+                FFSnapMarker(
+                    kind: candidate.kind,
+                    screen: candidate.screen,
+                    label: candidate.kind.label,
+                    isBest: candidate.kind == best.kind
+                )
+            }
+        return FFSnapResult(best: best, markers: markers)
+    }
+
+    /// Real geometry first, nearest point wins; kind priority only breaks a
+    /// sub-pixel tie. Projection aids answer only when no geometry is under the
+    /// cursor, angle before grid, so a snapped grid point can never outbid the
+    /// intersection the jeweller actually aimed at.
+    private static func select(from candidates: [FFSnapCandidate]) -> FFSnapCandidate? {
+        let geometry = candidates.filter { !$0.kind.isProjectionAid }
+        if let best = nearest(geometry) { return best }
+        if let angle = candidates.first(where: { $0.kind == .angle }) { return angle }
+        return nearest(candidates.filter { $0.kind == .grid })
+    }
+
+    private static func nearest(_ candidates: [FFSnapCandidate]) -> FFSnapCandidate? {
+        guard let closest = candidates.map(\.distance).min() else { return nil }
+        let finalists = candidates.filter { $0.distance <= closest + 0.6 }
+        return finalists.min { lhs, rhs in
             if lhs.kind.priority != rhs.kind.priority {
                 return lhs.kind.priority < rhs.kind.priority
             }
             return lhs.distance < rhs.distance
         }
-        guard let best = ranked.first else { return nil }
+    }
 
-        let markers = ranked.map { candidate in
-            FFSnapMarker(
-                kind: candidate.kind,
-                screen: candidate.screen,
-                label: candidate.kind.label,
-                isBest: candidate.kind == best.kind
-            )
+    /// The point of a world segment that lies under the cursor: the closest
+    /// approach between the pick ray and the segment. Lerping in screen space
+    /// drifts under perspective, so the solve happens in 3-D.
+    private static func worldPointUnderCursor(
+        on segment: FFSnapSegment,
+        hover: Vec2,
+        camera: FFCamera,
+        viewport: Vec2
+    ) -> Vec3? {
+        guard let ray = camera.ray(at: hover, viewport: viewport),
+              let direction = ray.direction.normalized()
+        else { return nil }
+        let span = segment.b - segment.a
+        let lengthSquared = span.lengthSquared
+        guard lengthSquared > FFMath.eps else { return segment.a }
+
+        let offset = ray.origin - segment.a
+        let alongRay = direction.dot(offset)
+        let alongSpan = span.dot(offset)
+        let cross = direction.dot(span)
+        let denominator = lengthSquared - cross * cross
+        var t = 0.0
+        if abs(denominator) > FFMath.eps {
+            t = (alongSpan - alongRay * cross) / denominator
         }
-        return FFSnapResult(best: best, markers: markers)
+        return segment.a + span * FFMath.clamp(t, to: 0...1)
     }
 
     /// Closest points between two finite segments; `nil` for a degenerate one.
