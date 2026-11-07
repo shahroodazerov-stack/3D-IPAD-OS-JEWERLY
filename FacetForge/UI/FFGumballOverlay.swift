@@ -12,12 +12,21 @@ struct FFGumballOverlay: View {
     let selectionCentre: Vec3?
     /// Tells the pane to suspend camera gestures for the duration of a drag.
     let onDragStateChange: (Bool) -> Void
+    /// Reports the finished world transform to the document owner. The gizmo
+    /// session stays the live interaction state; the commit is what makes the
+    /// drag an undoable document edit.
+    let onCommitTransform: (Mat4, String) -> Void
+    /// Undo is a document command now, not the gizmo's private stack.
+    let onUndo: () -> Void
 
     @State private var numericX = ""
     @State private var numericY = ""
     @State private var numericZ = ""
     @State private var draggingAxis: FFGumballAxis?
     @State private var pivotAtCentre = true
+    /// One key per gesture, so repeated commit reports coalesce into one step
+    /// while two separate drags stay two steps.
+    @State private var dragKey = UUID().uuidString
 
     private var viewportVector: Vec2 {
         Vec2(x: Double(viewport.width), y: Double(viewport.height))
@@ -163,6 +172,7 @@ struct FFGumballOverlay: View {
                         y: Double(numericY),
                         z: Double(numericZ)
                     )
+                    onCommitTransform(session.transform, "numeric-\(UUID().uuidString)")
                     numericX = ""
                     numericY = ""
                     numericZ = ""
@@ -195,7 +205,7 @@ struct FFGumballOverlay: View {
                     title: "Undo",
                     accessibilityIdentifier: "gumball.undo"
                 ) {
-                    _ = session.undo()
+                    onUndo()
                 }
             }
 
@@ -236,6 +246,7 @@ struct FFGumballOverlay: View {
             .onChanged { value in
                 if draggingAxis != axis {
                     draggingAxis = axis
+                    dragKey = UUID().uuidString
                     session.beginDrag()
                     onDragStateChange(true)
                 }
@@ -267,6 +278,7 @@ struct FFGumballOverlay: View {
             }
             .onEnded { _ in
                 session.commitDrag()
+                onCommitTransform(session.transform, dragKey)
                 draggingAxis = nil
                 onDragStateChange(false)
             }
@@ -277,6 +289,7 @@ struct FFGumballOverlay: View {
             .onChanged { value in
                 if draggingAxis != first {
                     draggingAxis = first
+                    dragKey = UUID().uuidString
                     session.beginDrag()
                     onDragStateChange(true)
                 }
@@ -294,6 +307,7 @@ struct FFGumballOverlay: View {
             }
             .onEnded { _ in
                 session.commitDrag()
+                onCommitTransform(session.transform, dragKey)
                 draggingAxis = nil
                 onDragStateChange(false)
             }

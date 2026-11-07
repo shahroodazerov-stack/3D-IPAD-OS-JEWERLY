@@ -15,6 +15,9 @@ struct FFMeasurementLabelPlacement: Equatable {
 /// steals a camera gesture; the card that chooses the kind is a sibling view.
 struct FFMeasurementOverlay: View {
     @ObservedObject var session: FFMeasurementSession
+    /// Committed annotations from the document. The draft still comes from the
+    /// tool session; a committed measurement is document state now.
+    let measurements: [FFMeasurement]
     let camera: FFCamera
     let viewport: CGSize
     let unit: FFLengthUnit
@@ -26,14 +29,14 @@ struct FFMeasurementOverlay: View {
     var body: some View {
         ZStack(alignment: .topLeading) {
             Canvas { context, _ in
-                for measurement in session.measurements {
+                for measurement in measurements {
                     draw(measurement, in: &context)
                 }
                 drawDraft(in: &context)
             }
             .allowsHitTesting(false)
 
-            ForEach(session.measurements) { measurement in
+            ForEach(measurements) { measurement in
                 if let item = placement(for: measurement) {
                     label(item)
                 }
@@ -140,14 +143,16 @@ struct FFMeasurementOverlay: View {
 /// live value or the point count, and clear or abandon work.
 struct FFMeasurementPanel: View {
     @ObservedObject var session: FFMeasurementSession
+    let measurements: [FFMeasurement]
     let unit: FFLengthUnit
+    let onClear: () -> Void
 
     private var status: String {
         if !session.draft.isEmpty {
             let next = min(session.draft.count + 1, session.kind.pointCount)
             return "Tap point \(next) of \(session.kind.pointCount)"
         }
-        if let value = session.latest?.displayText(unit) {
+        if let value = measurements.last?.displayText(unit) {
             return value
         }
         return session.kind.pointCount == 2
@@ -185,7 +190,7 @@ struct FFMeasurementPanel: View {
                     title: "Clear",
                     accessibilityIdentifier: "shell.measure.clear"
                 ) {
-                    session.clear()
+                    onClear()
                 }
             }
         }

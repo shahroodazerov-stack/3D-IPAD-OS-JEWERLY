@@ -169,6 +169,37 @@ struct FFMeasurement: Identifiable, Equatable, Sendable {
     }
 }
 
+/// A committed measurement in file form. Phase 19 stored measurements only in
+/// the pane session; Phase 23 promotes them to document annotations, so the
+/// save file owns the value and the undo stack owns the commit. Points are
+/// plain triples and snap provenance is the kind's raw value, keeping the file
+/// independent of the kernel types.
+struct FFMeasurementAnnotation: Codable, Equatable, Identifiable, Sendable {
+    var id: UUID
+    var kind: FFMeasurementKind
+    var points: [FFPoint3]
+    /// One entry per point; `nil` is a point the snap engine did not label.
+    var snaps: [String?]
+
+    init(_ measurement: FFMeasurement) {
+        self.id = measurement.id
+        self.kind = measurement.kind
+        self.points = measurement.points.map { FFPoint3($0.position) }
+        self.snaps = measurement.points.map { $0.snap?.rawValue }
+    }
+
+    var measurement: FFMeasurement {
+        let restored = zip(points, snaps).map { pair -> FFMeasurementPoint in
+            let (point, snap) = pair
+            return FFMeasurementPoint(
+                position: point.vector,
+                snap: snap.flatMap(FFSnapKind.init(rawValue:))
+            )
+        }
+        return FFMeasurement(id: id, kind: kind, points: restored)
+    }
+}
+
 /// A measurement's on-screen chip: the text, the face it is drawn at, and the
 /// rectangle it occupies. The rectangle is already clamped inside the viewport,
 /// which is what the row's "unclipped at 3 zoom levels" asks for: the anchor
@@ -297,5 +328,12 @@ final class FFMeasurementSession: ObservableObject {
     func clear() {
         draft = []
         measurements = []
+    }
+
+    /// Mirrors the document's annotations into this tool session. The document
+    /// is the owner; this copy exists so the Phase 19 session API and its
+    /// tests keep describing the same committed list the viewport renders.
+    func replaceCommitted(_ measurements: [FFMeasurement]) {
+        self.measurements = measurements
     }
 }

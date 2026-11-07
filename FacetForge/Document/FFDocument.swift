@@ -90,6 +90,49 @@ struct FFTransform: Codable, Equatable, Sendable {
         self.scale = scale
     }
 
+    /// Decomposes a world or local matrix back into the document's T * Rz * Ry
+    /// * Rx * S form. The gizmo edits matrices, so the commit path needs one
+    /// conversion rather than a second matrix field in the file format. Shear
+    /// is not representable; the orthogonal columns of a T * R * S product are
+    /// exact, and a singular axis falls back to a scale of one rather than a
+    /// non-finite value.
+    init(matrix: Mat4) {
+        let columnX = Vec3(x: matrix.m00, y: matrix.m10, z: matrix.m20)
+        let columnY = Vec3(x: matrix.m01, y: matrix.m11, z: matrix.m21)
+        let columnZ = Vec3(x: matrix.m02, y: matrix.m12, z: matrix.m22)
+        let scaleX = max(columnX.length, FFMath.eps)
+        let scaleY = max(columnY.length, FFMath.eps)
+        let scaleZ = max(columnZ.length, FFMath.eps)
+
+        // R = Rz * Ry * Rx, so its third row is (-sin y, cos y sin x, cos y cos x).
+        let r20 = matrix.m20 / scaleX
+        let r21 = matrix.m21 / scaleY
+        let r22 = matrix.m22 / scaleZ
+        let r00 = matrix.m00 / scaleX
+        let r10 = matrix.m10 / scaleX
+        let r01 = matrix.m01 / scaleY
+        let r11 = matrix.m11 / scaleY
+
+        let pitch = asin(FFMath.clamp(-r20, to: -1...1))
+        let roll: Double
+        let yaw: Double
+        if abs(cos(pitch)) > 1e-9 {
+            roll = atan2(r21, r22)
+            yaw = atan2(r10, r00)
+        } else {
+            // Gimbal lock: only the sum or difference of roll and yaw is
+            // observable, so pin roll and put the whole turn in yaw.
+            roll = 0
+            yaw = atan2(-r01, r11)
+        }
+
+        self.init(
+            translation: FFPoint3(x: matrix.m03, y: matrix.m13, z: matrix.m23),
+            rotation: FFPoint3(x: roll, y: pitch, z: yaw),
+            scale: FFPoint3(x: scaleX, y: scaleY, z: scaleZ)
+        )
+    }
+
     var matrix: Mat4 {
         Mat4.translation(translation.vector)
             * Mat4.rotationZ(rotation.z)
@@ -353,6 +396,7 @@ struct FFDocument: Codable, Equatable, Sendable {
         case displayModes
         case layers
         case currentLayerID
+        case measurements
     }
 
     var schemaVersion: Int
@@ -369,6 +413,11 @@ struct FFDocument: Codable, Equatable, Sendable {
     /// save and reopen.
     var layers: [FFLayer]
     var currentLayerID: UUID?
+    /// Committed measurements. Phase 19 kept them in the pane's tool session;
+    /// Phase 23 makes them document annotations so a measurement is one undo
+    /// step and survives save and reopen. Additive in schema 1: a file written
+    /// before this field decodes to no annotations.
+    var measurements: [FFMeasurementAnnotation]
 
     init(
         name: String = "Untitled",
@@ -377,7 +426,8 @@ struct FFDocument: Codable, Equatable, Sendable {
         rootNodes: [FFNode] = [],
         displayModes: [String: FFDisplayMode] = [:],
         layers: [FFLayer] = [FFLayer.defaultLayer],
-        currentLayerID: UUID? = nil
+        currentLayerID: UUID? = nil,
+        measurements: [FFMeasurementAnnotation] = []
     ) {
         self.schemaVersion = Self.currentSchemaVersion
         self.name = name
@@ -387,6 +437,7 @@ struct FFDocument: Codable, Equatable, Sendable {
         self.displayModes = displayModes
         self.layers = layers.isEmpty ? [FFLayer.defaultLayer] : layers
         self.currentLayerID = currentLayerID ?? self.layers.first?.id
+        self.measurements = measurements
     }
 
     init(from decoder: Decoder) throws {
@@ -408,6 +459,10 @@ struct FFDocument: Codable, Equatable, Sendable {
         self.layers = decodedLayers.isEmpty ? [FFLayer.defaultLayer] : decodedLayers
         self.currentLayerID = try container.decodeIfPresent(UUID.self, forKey: .currentLayerID)
             ?? self.layers.first?.id
+        self.measurements = try container.decodeIfPresent(
+            [FFMeasurementAnnotation].self,
+            forKey: .measurements
+        ) ?? []
     }
 
     var nodeCount: Int {

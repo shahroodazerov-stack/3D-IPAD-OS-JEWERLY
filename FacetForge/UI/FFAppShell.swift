@@ -237,7 +237,17 @@ struct FFAppShell: View {
             )
 
             VStack(spacing: 0) {
-                FFAppBar(width: width, onOpenGallery: onOpenGallery)
+                FFAppBar(
+                    width: width,
+                    status: session.documentStatus,
+                    canUndo: session.documentSession.canUndo,
+                    onNewDocument: { session.newDocument() },
+                    onLoadFixture: { session.loadFixture() },
+                    onSave: { try? session.save() },
+                    onReopen: { try? session.reopen() },
+                    onUndo: { session.undo() },
+                    onOpenGallery: onOpenGallery
+                )
 
                 HStack(spacing: 0) {
                     if !toolsCollapsed {
@@ -263,6 +273,17 @@ struct FFAppShell: View {
                         displayModes: session.displayModes,
                         lockedNodeIDs: session.lockedNodeIDs,
                         selection: $session.selection,
+                        measurements: session.measurements,
+                        onCommitMeasurement: { session.addMeasurement($0) },
+                        onClearMeasurements: { session.clearMeasurements() },
+                        onCommitGizmoTransform: { nodeID, transform, key in
+                            session.commitGizmoTransform(
+                                nodeID: nodeID,
+                                worldTransform: transform,
+                                dragKey: key
+                            )
+                        },
+                        onUndoEdit: { session.undo() },
                         onCycleDisplayMode: { session.cycleDisplayMode(for: $0) },
                         onPerformance: { performance = $0 },
                         onShowTools: { toolsCollapsed = false },
@@ -320,6 +341,13 @@ struct FFAppShell: View {
 
 private struct FFAppBar: View {
     let width: CGFloat
+    let status: String
+    let canUndo: Bool
+    let onNewDocument: () -> Void
+    let onLoadFixture: () -> Void
+    let onSave: () -> Void
+    let onReopen: () -> Void
+    let onUndo: () -> Void
     let onOpenGallery: () -> Void
 
     private var isCompact: Bool {
@@ -347,10 +375,36 @@ private struct FFAppBar: View {
 
             Spacer(minLength: FFSpace.xs)
 
+            Menu {
+                Button("New document", action: onNewDocument)
+                    .accessibilityIdentifier("shell.document.new")
+                Button("Load fixture", action: onLoadFixture)
+                    .accessibilityIdentifier("shell.document.fixture")
+                Button("Save", action: onSave)
+                    .accessibilityIdentifier("shell.document.save")
+                Button("Reopen", action: onReopen)
+                    .accessibilityIdentifier("shell.document.reopen")
+                Divider()
+                Button("Undo", action: onUndo)
+                    .disabled(!canUndo)
+                    .accessibilityIdentifier("shell.document.undo")
+            } label: {
+                Label("File", systemImage: "folder")
+                    .font(FFType.caption)
+                    .foregroundStyle(FFPalette.textSecondary.color)
+                    .frame(width: isCompact ? 44 : 86, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .accessibilityIdentifier("shell.document.menu")
+            .accessibilityLabel("Document")
+
             if !isCompact {
-                Text("Untitled ring")
+                Text(status)
                     .font(FFType.monoSmall)
                     .foregroundStyle(FFPalette.textSecondary.color)
+                    .lineLimit(1)
+                    .accessibilityIdentifier("shell.document.status")
+                    .accessibilityLabel(status)
             }
 
             Button(action: onOpenGallery) {
@@ -457,6 +511,11 @@ private struct FFViewport: View {
     let displayModes: [String: FFDisplayMode]
     let lockedNodeIDs: Set<UUID>
     @Binding var selection: FFSelectionState
+    let measurements: [FFMeasurement]
+    let onCommitMeasurement: (FFMeasurement) -> Void
+    let onClearMeasurements: () -> Void
+    let onCommitGizmoTransform: (UUID, Mat4, String) -> Void
+    let onUndoEdit: () -> Void
     let onCycleDisplayMode: (String) -> Void
     let onPerformance: (FFPerformanceReport) -> Void
     let onShowTools: () -> Void
@@ -678,6 +737,11 @@ private struct FFViewport: View {
                     lockedNodeIDs: lockedNodeIDs,
                     selection: $selection,
                     measurement: measurement,
+                    measurements: measurements,
+                    onCommitMeasurement: onCommitMeasurement,
+                    onClearMeasurements: onClearMeasurements,
+                    onCommitGizmoTransform: onCommitGizmoTransform,
+                    onUndoEdit: onUndoEdit,
                     isMeasuring: isMeasuring,
                     unit: lengthUnit,
                     metalIdentifier: "shell.viewport.metal",
@@ -735,6 +799,11 @@ private struct FFViewport: View {
             lockedNodeIDs: lockedNodeIDs,
             selection: $selection,
             measurement: measurement,
+            measurements: measurements,
+            onCommitMeasurement: onCommitMeasurement,
+            onClearMeasurements: onClearMeasurements,
+            onCommitGizmoTransform: onCommitGizmoTransform,
+            onUndoEdit: onUndoEdit,
             // The four-up panes are camera previews; measuring happens in the
             // maximised Perspective pane that a document opens in.
             isMeasuring: false,
@@ -792,6 +861,11 @@ private struct FFViewportPane: View {
     let lockedNodeIDs: Set<UUID>
     @Binding var selection: FFSelectionState
     @ObservedObject var measurement: FFMeasurementSession
+    let measurements: [FFMeasurement]
+    let onCommitMeasurement: (FFMeasurement) -> Void
+    let onClearMeasurements: () -> Void
+    let onCommitGizmoTransform: (UUID, Mat4, String) -> Void
+    let onUndoEdit: () -> Void
     let isMeasuring: Bool
     let unit: FFLengthUnit
     let metalIdentifier: String
@@ -900,6 +974,7 @@ private struct FFViewportPane: View {
                 if showsGumball, isMeasuring {
                     FFMeasurementOverlay(
                         session: measurement,
+                        measurements: measurements,
                         camera: camera,
                         viewport: proxy.size,
                         unit: unit
@@ -912,7 +987,13 @@ private struct FFViewportPane: View {
                         camera: camera,
                         viewport: proxy.size,
                         selectionCentre: selectionCentre,
-                        onDragStateChange: { gizmoDragging = $0 }
+                        onDragStateChange: { gizmoDragging = $0 },
+                        onCommitTransform: { transform, key in
+                            if let nodeID = gumball.nodeID {
+                                onCommitGizmoTransform(nodeID, transform, key)
+                            }
+                        },
+                        onUndo: onUndoEdit
                     )
                 }
 
@@ -953,9 +1034,17 @@ private struct FFViewportPane: View {
             // the HUD strip so the value is readable while tapping.
             .overlay(alignment: .bottomLeading) {
                 if showsGumball, isMeasuring {
-                    FFMeasurementPanel(session: measurement, unit: unit)
-                        .padding(.leading, FFSpace.sm)
-                        .padding(.bottom, 72)
+                    FFMeasurementPanel(
+                        session: measurement,
+                        measurements: measurements,
+                        unit: unit,
+                        onClear: {
+                            measurement.clear()
+                            onClearMeasurements()
+                        }
+                    )
+                    .padding(.leading, FFSpace.sm)
+                    .padding(.bottom, 72)
                 }
             }
             .onGeometryChange(for: CGSize.self) { geometry in
@@ -968,6 +1057,23 @@ private struct FFViewportPane: View {
             // screen coordinates behind.
             .onChange(of: camera) { _, _ in
                 refreshSnapMarkers(viewport: paneSize)
+            }
+        .onChange(of: scene) { _, _ in
+                // A document commit, undo or reopen replaces the scene. The
+                // gizmo is live interaction state, so reseed it from the new
+                // document transforms instead of keeping a stale matrix.
+                guard !gizmoDragging else { return }
+                if let nodeID = gumball.nodeID,
+                   let node = scene.nodes.first(where: { $0.id == nodeID }) {
+                    gumball.select(nodeID: nodeID, transform: node.transform)
+                } else if let node = scene.nodes.first(where: {
+                    selection.selectedIDs.contains($0.id) && !lockedNodeIDs.contains($0.id)
+                }) {
+                    gumball.select(nodeID: node.id, transform: node.transform)
+                }
+            }
+        .onChange(of: measurements) { _, latest in
+                measurement.replaceCommitted(latest)
             }
         }
         .onAppear(perform: configureGumball)
@@ -1032,7 +1138,9 @@ private struct FFViewportPane: View {
             camera: camera,
             viewport: Vec2(x: Double(paneSize.width), y: Double(paneSize.height))
         ) else { return }
-        measurement.add(point)
+        if let committed = measurement.add(point) {
+            onCommitMeasurement(committed)
+        }
         refreshSnapMarkers(viewport: paneSize)
     }
 

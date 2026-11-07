@@ -25,6 +25,13 @@ final class FFEditorSession: ObservableObject {
     /// it is drawn, whether it can be edited, and its wireframe colour.
     @Published private(set) var layers: [FFLayer]
     @Published private(set) var currentLayerID: UUID?
+    /// Committed measurements, derived from the document. Phase 23 gives them
+    /// the same owner as layers and display modes; the measurement tool keeps
+    /// only its draft points.
+    @Published private(set) var measurements: [FFMeasurement]
+    /// The last document command, shown in the app bar so a smoke run can read
+    /// back that save and reopen actually happened.
+    @Published private(set) var documentStatus: String
     /// Where the document was last saved or loaded from. `nil` for a new bench
     /// sample that has never touched disk.
     @Published private(set) var documentURL: URL?
@@ -47,6 +54,8 @@ final class FFEditorSession: ObservableObject {
         self.displayModes = initial.displayModes
         self.layers = initial.layers
         self.currentLayerID = initial.currentLayerID
+        self.measurements = initial.measurements.map(\.measurement)
+        self.documentStatus = initial.name
         self.documentURL = documentURL
         self.selection = document == nil
             ? FFSelectionState(selectedIDs: sample.selectedNodeIDs)
@@ -218,9 +227,146 @@ final class FFEditorSession: ObservableObject {
     }
 
     private func syncLayers() {
-        layers = documentSession.document.layers
-        currentLayerID = documentSession.document.currentLayerID
-        scene = Self.scene(from: documentSession.document)
+        syncDocumentState()
+    }
+
+    /// Rebuilds every published value that is derived from the document. The
+    /// document session remains the only owner; this is the projection the
+    /// shell renders.
+    private func syncDocumentState() {
+        let document = documentSession.document
+        scene = Self.scene(from: document)
+        displayModes = document.displayModes
+        layers = document.layers
+        currentLayerID = document.currentLayerID
+        measurements = document.measurements.map(\.measurement)
+    }
+
+    // MARK: - Document commands
+
+    /// Replaces the current document with a new, empty one. This is a document
+    /// command, not an undoable edit: undo must not resurrect a file the user
+    /// discarded before the new document existed.
+    func newDocument() {
+        let document = FFDocument(name: "Untitled")
+        documentSession = FFDocumentSession(document: document)
+        syncDocumentState()
+        selection = FFSelectionState()
+        documentURL = nil
+        documentStatus = "New document"
+    }
+
+    /// Loads the shipping bench sample as a fresh, unsaved document and selects
+    /// its stone, the state the smoke suite then orbits and edits.
+    func loadFixture() {
+        let sample = FFDocument.benchSample
+        documentSession = FFDocumentSession(document: sample.document)
+        syncDocumentState()
+        selection = FFSelectionState(selectedIDs: sample.selectedNodeIDs)
+        documentURL = nil
+        documentStatus = "Fixture loaded"
+    }
+
+    /// Commits one gizmo interaction. The gizmo reports its world matrix when
+    /// the drag ends; this converts it to the node's local transform, writes it
+    /// through the document session and rebuilds the scene. `dragKey` is unique
+    /// per gesture, so a drag that reports more than one frame still produces
+    /// exactly one coalesced history entry.
+    @discardableResult
+    func commitGizmoTransform(
+        nodeID: UUID,
+        worldTransform: Mat4,
+        dragKey: String
+    ) -> Bool {
+        guard let node = documentSession.document.node(withID: nodeID),
+              !isLocked(nodeID: nodeID)
+        else { return false }
+        let local = localTransform(for: nodeID, world: worldTransform)
+        let changed = documentSession.perform(
+            "Transform \(node.name)",
+            coalescingKey: dragKey
+        ) { document in
+            document.updateNode(withID: nodeID) { $0.transform = local }
+        }
+        guard changed else { return false }
+        syncDocumentState()
+        documentStatus = "Moved \(node.name)"
+        return true
+    }
+
+    /// Commits one completed measurement as a document annotation. The unique
+    /// key makes a repeated completion of the same measurement coalesce instead
+    /// of adding a second history entry; two different measurements never share
+    /// a step.
+    @discardableResult
+    func addMeasurement(_ measurement: FFMeasurement) -> Bool {
+        guard measurement.isComplete, measurement.value != nil else { return false }
+        guard !documentSession.document.measurements.contains(where: { $0.id == measurement.id }) else {
+            return false
+        }
+        let changed = documentSession.perform(
+            "Measurement \(measurement.kind.label)",
+            coalescingKey: "measurement-\(measurement.id.uuidString)"
+        ) { document in
+            document.measurements.append(FFMeasurementAnnotation(measurement))
+        }
+        guard changed else { return false }
+        syncDocumentState()
+        documentStatus = "Measurement \(measurement.kind.label)"
+        return true
+    }
+
+    @discardableResult
+    func clearMeasurements() -> Bool {
+        guard !documentSession.document.measurements.isEmpty else { return false }
+        let changed = documentSession.perform("Clear measurements") { document in
+            document.measurements.removeAll()
+        }
+        guard changed else { return false }
+        syncDocumentState()
+        documentStatus = "Measurements cleared"
+        return true
+    }
+
+    @discardableResult
+    func undo() -> Bool {
+        guard documentSession.undo() else { return false }
+        syncDocumentState()
+        documentStatus = "Undo"
+        return true
+    }
+
+    @discardableResult
+    func redo() -> Bool {
+        guard documentSession.redo() else { return false }
+        syncDocumentState()
+        documentStatus = "Redo"
+        return true
+    }
+
+    /// The node's parent world matrix, or identity for a root. A gizmo matrix
+    /// is in world space; the document stores local transforms, so a nested
+    /// node must have its parent's transform removed before the commit.
+    private func localTransform(for nodeID: UUID, world: Mat4) -> FFTransform {
+        guard let parent = parentWorldTransform(of: nodeID),
+              let inverse = parent.inverse()
+        else { return FFTransform(matrix: world) }
+        return FFTransform(matrix: inverse * world)
+    }
+
+    private func parentWorldTransform(of nodeID: UUID) -> Mat4? {
+        func search(_ node: FFNode, parent: Mat4) -> Mat4? {
+            if node.id == nodeID { return parent }
+            let world = parent * node.transform.matrix
+            for child in node.children {
+                if let found = search(child, parent: world) { return found }
+            }
+            return nil
+        }
+        for root in documentSession.document.rootNodes {
+            if let found = search(root, parent: .identity) { return found }
+        }
+        return nil
     }
 
     /// Saves to `url`, or to the last known URL. A document that has never been
@@ -229,6 +375,7 @@ final class FFEditorSession: ObservableObject {
         let destination = url ?? documentURL ?? Self.defaultDocumentURL
         try store.save(documentSession.document, to: destination)
         documentURL = destination
+        documentStatus = "Saved \(destination.lastPathComponent)"
     }
 
     func reopen() throws {
@@ -241,12 +388,10 @@ final class FFEditorSession: ObservableObject {
     func reopen(from url: URL) throws {
         let loaded = try store.load(from: url)
         documentSession = FFDocumentSession(document: loaded)
-        scene = Self.scene(from: loaded)
-        displayModes = loaded.displayModes
-        layers = loaded.layers
-        currentLayerID = loaded.currentLayerID
+        syncDocumentState()
         documentURL = url
         selection = FFSelectionState.initial(for: scene)
+        documentStatus = "Reopened \(url.lastPathComponent)"
     }
 
     static var defaultDocumentURL: URL {
