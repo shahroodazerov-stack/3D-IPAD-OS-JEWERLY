@@ -46,7 +46,7 @@ final class SelectionUITests: XCTestCase {
         // overlay, so a box that contains every vertex is hard to aim by hand.
         // One pinch gives both objects a margin, and the marquee still tests
         // full containment rather than a bounding-box overlap.
-        metal.pinch(withScale: 0.7, velocity: 1)
+        metal.pinch(withScale: 0.7, velocity: -1)
 
         // Multi-select with the touch equivalent of Shift: keep the shank and
         // add the stone with a box around it.
