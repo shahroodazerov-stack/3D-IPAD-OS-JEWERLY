@@ -555,10 +555,10 @@ private struct FFViewport: View {
                                 .accessibilityIdentifier("shell.viewport.fps")
                                 .accessibilityLabel("Metal viewport, grid and world axes, \(fpsLabel)")
 
-                            Text(layout == .single ? "Single Perspective" : "Four-up preset")
-                                .font(FFType.monoSmall)
-                                .foregroundStyle(FFPalette.textTertiary.color)
-                                .accessibilityIdentifier("shell.viewport.layout.current")
+                            // The layout chips above already show the current layout
+                            // with their selected state. A duplicate label here
+                            // overflowed the 749 pt viewport and printed on top of
+                            // the fps readout in the Phase 13 snapshot.
                         }
                     }
 
