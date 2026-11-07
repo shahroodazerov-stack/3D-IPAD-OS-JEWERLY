@@ -256,6 +256,7 @@ struct FFAppShell: View {
                         toolsCollapsed: toolsCollapsed,
                         inspectorCollapsed: inspectorCollapsed,
                         frameStatistics: frameStatistics,
+                        lengthUnit: lengthUnit,
                         camera: $camera,
                         namedView: $namedView,
                         scene: session.scene,
@@ -428,6 +429,7 @@ private struct FFViewport: View {
     let toolsCollapsed: Bool
     let inspectorCollapsed: Bool
     let frameStatistics: FFFrameStatistics
+    let lengthUnit: FFLengthUnit
     @Binding var camera: FFCamera
     @Binding var namedView: FFNamedView?
     let scene: FFViewportScene
@@ -440,6 +442,12 @@ private struct FFViewport: View {
     @State private var viewportSize = CGSize(width: 800, height: 600)
     @State private var layout: FFViewportLayout = .defaultLayout
     @State private var fourUpCameras: [String: FFCamera] = [:]
+    /// Measurements outlive a layout switch, so the session belongs here rather
+    /// than to one pane. The row asks for the tool and its labels; annotations
+    /// are not part of the saved document.
+    @State private var measurement = FFMeasurementSession()
+
+    private var isMeasuring: Bool { selectedTool == "measure" }
 
     private var scaleBarPlan: FFScaleBarPlan? {
         guard let units = camera.worldUnitsPerPoint(
@@ -603,6 +611,9 @@ private struct FFViewport: View {
                     scene: scene,
                     mode: displayModes[pane.id] ?? .shaded,
                     selection: $selection,
+                    measurement: measurement,
+                    isMeasuring: isMeasuring,
+                    unit: lengthUnit,
                     metalIdentifier: "shell.viewport.metal",
                     onCycleDisplayMode: { onCycleDisplayMode(pane.id) },
                     onCameraChange: { updated in
@@ -656,6 +667,11 @@ private struct FFViewport: View {
             scene: scene,
             mode: displayModes[pane.id] ?? .shaded,
             selection: $selection,
+            measurement: measurement,
+            // The four-up panes are camera previews; measuring happens in the
+            // maximised Perspective pane that a document opens in.
+            isMeasuring: false,
+            unit: lengthUnit,
             metalIdentifier: "shell.viewport.metal.\(pane.id)",
             onCycleDisplayMode: { onCycleDisplayMode(pane.id) },
             onCameraChange: { updated in
@@ -692,6 +708,13 @@ private struct FFViewport: View {
     }
 }
 
+/// Carries the tap's hover sample from the viewport callback into the pick
+/// callback. A reference type is deliberate: SwiftUI state writes are not
+/// guaranteed to be readable by a second callback in the same run loop turn.
+private final class FFMeasureTapBox {
+    var point: Vec2?
+}
+
 /// One live viewport pane. The binding is owned by the layout, so the single
 /// pane shares the global camera and the four-up panes keep independent ones.
 private struct FFViewportPane: View {
@@ -700,6 +723,9 @@ private struct FFViewportPane: View {
     let scene: FFViewportScene
     let mode: FFDisplayMode
     @Binding var selection: FFSelectionState
+    @ObservedObject var measurement: FFMeasurementSession
+    let isMeasuring: Bool
+    let unit: FFLengthUnit
     let metalIdentifier: String
     let onCycleDisplayMode: () -> Void
     let onCameraChange: (FFCamera) -> Void
@@ -710,6 +736,10 @@ private struct FFViewportPane: View {
     @State private var snapMarkers: [FFSnapMarker] = []
     @State private var hoverPoint: Vec2?
     @State private var paneSize = CGSize(width: 1, height: 1)
+    /// The viewport publishes hover before pick on a tap; a reference box keeps
+    /// that sample readable inside the pick callback without a SwiftUI state
+    /// round-trip.
+    @State private var measureTap = FFMeasureTapBox()
 
     /// The four-up panes are camera previews, not editing surfaces. The gizmo
     /// lives in the maximised Perspective pane, the one a document opens in.
@@ -759,6 +789,7 @@ private struct FFViewportPane: View {
                     allowsCameraGestures: !gizmoDragging && !selection.isMarquee,
                     pickFilter: selection.filter,
                     onHover: { point in
+                        measureTap.point = point
                         updateHover(point, viewport: paneSize)
                     },
                     onCameraChange: { updated in
@@ -766,6 +797,13 @@ private struct FFViewportPane: View {
                         onCameraChange(updated)
                     },
                     onPick: { result in
+                        if isMeasuring {
+                            // While the Measure tool is selected a tap is a
+                            // point, not a selection. The pick is ignored so a
+                            // measurement cannot move the Phase 17 selection.
+                            addMeasurementPoint()
+                            return
+                        }
                         // Phase 14's pick becomes Phase 17's selection here.
                         // iPadOS has no Shift-click on touch, so the Multi
                         // chip is the extend contract the CI drives.
@@ -779,7 +817,16 @@ private struct FFViewportPane: View {
 
                 FFSnapOverlay(markers: snapMarkers)
 
-                if showsGumball, gumball.nodeID != nil {
+                if showsGumball, isMeasuring {
+                    FFMeasurementOverlay(
+                        session: measurement,
+                        camera: camera,
+                        viewport: proxy.size,
+                        unit: unit
+                    )
+                }
+
+                if showsGumball, gumball.nodeID != nil, !isMeasuring {
                     FFGumballOverlay(
                         session: $gumball,
                         camera: camera,
@@ -822,6 +869,15 @@ private struct FFViewportPane: View {
                 .accessibilityHint("Cycles the display mode for this viewport")
                 .padding(.trailing, FFSpace.xs)
             }
+            // The card names the kinds and shows the live value. It sits above
+            // the HUD strip so the value is readable while tapping.
+            .overlay(alignment: .bottomLeading) {
+                if showsGumball, isMeasuring {
+                    FFMeasurementPanel(session: measurement, unit: unit)
+                        .padding(.leading, FFSpace.sm)
+                        .padding(.bottom, 72)
+                }
+            }
             .onGeometryChange(for: CGSize.self) { geometry in
                 geometry.size
             } action: { size in
@@ -861,6 +917,21 @@ private struct FFViewportPane: View {
     private func configureGumball() {
         guard gumball.nodeID == nil, let node = selectedNode else { return }
         gumball.select(nodeID: node.id, transform: node.transform)
+    }
+
+    /// Resolves the last published hover sample through the snapping engine and
+    /// appends it to the live measurement. A tap that finds no snap adds
+    /// nothing, so a stray finger cannot create a point off the geometry.
+    private func addMeasurementPoint() {
+        guard let tap = measureTap.point, paneSize.width > 1, paneSize.height > 1 else { return }
+        guard let point = FFMeasurementSnap.point(
+            at: tap,
+            scene: displayScene,
+            camera: camera,
+            viewport: Vec2(x: Double(paneSize.width), y: Double(paneSize.height))
+        ) else { return }
+        measurement.add(point)
+        refreshSnapMarkers(viewport: paneSize)
     }
 
     private func updateHover(_ point: Vec2?, viewport: CGSize) {

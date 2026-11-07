@@ -108,6 +108,13 @@ struct FFSnapGeometry: Equatable, Sendable {
     /// edge caps keep a dense export mesh from turning a mouse move into a
     /// scene-wide traversal.
     static func features(of scene: FFViewportScene, selectedID: UUID?) -> FFSnapGeometry {
+        features(of: scene, selectedIDs: selectedID.map { Set([$0]) } ?? [])
+    }
+
+    /// Several nodes can contribute vertices and edges at once. Measuring needs
+    /// that: its points may lie on any visible object, not only on the one the
+    /// gizmo happens to own. The per-node caps still bound the work.
+    static func features(of scene: FFViewportScene, selectedIDs: Set<UUID>) -> FFSnapGeometry {
         var geometry = FFSnapGeometry()
         let vertexCap = 2_048
         let edgeCap = 4_096
@@ -128,7 +135,7 @@ struct FFSnapGeometry: Equatable, Sendable {
                 }
             }
 
-            guard node.id == selectedID else { continue }
+            guard selectedIDs.contains(node.id), node.isVisible else { continue }
             let positions = node.mesh.positions.map { position -> Vec3 in
                 let world = node.transform * Vec4(
                     x: position.x,
