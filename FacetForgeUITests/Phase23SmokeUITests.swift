@@ -108,12 +108,26 @@ final class Phase23SmokeUITests: XCTestCase {
             waitForPosition(readout, timeout: 20, matching: { abs($0.x + 10) < 1e-3 }),
             "the second drag did not land on X -10; readout is '\(readout.label)'"
         )
+        // Reopen deliberately clears the ephemeral selection, so remember
+        // where the stone sits on screen and pick it again after the file is
+        // loaded. The camera and the committed transform are both unchanged
+        // by save/reopen, so that point still hits the stone.
+        let reopenedStonePoint = normalizedPoint(
+            of: pivot.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).screenPoint,
+            in: metal
+        )
+
         choose("Save", app: app)
         waitForLabel(status, "Saved")
         attach(app, "phase23-saved")
 
         choose("Reopen", app: app)
         waitForLabel(status, "Reopened")
+        metal.coordinate(withNormalizedOffset: reopenedStonePoint).tap()
+        XCTAssertTrue(
+            readout.waitForExistence(timeout: 15),
+            "selecting the reopened stone did not restore the gizmo"
+        )
         XCTAssertNotNil(
             waitForPosition(readout, timeout: 15, matching: { abs($0.x + 10) < 1e-3 }),
             "reopen lost the committed transform; readout is '\(readout.label)'"
