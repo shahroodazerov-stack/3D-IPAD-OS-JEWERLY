@@ -363,7 +363,9 @@ final class DocumentTests: XCTestCase {
             }
         case 2:
             guard let rootID else { return }
-            session.perform("Move \(index)", coalescingKey: "move-\(rootID)") { draft in
+            // No coalescing key: this test needs exactly one undo step per
+            // applied edit so the 100-step history is exercised end to end.
+            session.perform("Move \(index)", coalescingKey: nil) { draft in
                 draft.updateNode(withID: rootID) { node in
                     node.transform.translation.x += Double(index % 7) * 0.25
                 }
