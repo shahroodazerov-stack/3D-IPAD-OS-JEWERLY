@@ -1,0 +1,6 @@
+{
+  "version": 1,
+  "algorithm": "dhash-17x16-256",
+  "budgetBits": 8,
+  "scenes": []
+}
