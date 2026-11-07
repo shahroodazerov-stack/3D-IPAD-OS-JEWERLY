@@ -216,6 +216,7 @@ struct FFAppShell: View {
     @State private var camera = FFCamera.standard
     @State private var namedView: FFNamedView? = .iso
     @State private var lengthUnit: FFLengthUnit = .millimetres
+    @State private var selection = FFSelectionState.initial(for: .jewelleryDemo)
 
     private let tools: [FFTool] = [
         FFTool(id: "select", systemImage: "cursorarrow", label: "Select"),
@@ -256,6 +257,8 @@ struct FFAppShell: View {
                         frameStatistics: frameStatistics,
                         camera: $camera,
                         namedView: $namedView,
+                        scene: .jewelleryDemo,
+                        selection: $selection,
                         onFrameStatistics: { frameStatistics = $0 },
                         onShowTools: { toolsCollapsed = false },
                         onShowInspector: { inspectorCollapsed = false }
@@ -268,6 +271,8 @@ struct FFAppShell: View {
                         FFInspector(
                             bandWidth: $bandWidth,
                             lengthUnit: $lengthUnit,
+                            scene: .jewelleryDemo,
+                            selection: $selection,
                             onCollapse: { inspectorCollapsed = true }
                         )
                         .frame(width: metrics.inspectorWidth)
@@ -422,6 +427,8 @@ private struct FFViewport: View {
     let frameStatistics: FFFrameStatistics
     @Binding var camera: FFCamera
     @Binding var namedView: FFNamedView?
+    let scene: FFViewportScene
+    @Binding var selection: FFSelectionState
     let onFrameStatistics: (FFFrameStatistics) -> Void
     let onShowTools: () -> Void
     let onShowInspector: () -> Void
@@ -591,7 +598,8 @@ private struct FFViewport: View {
                 FFViewportPane(
                     plan: pane,
                     camera: $camera,
-                    scene: .jewelleryDemo,
+                    scene: scene,
+                    selection: $selection,
                     metalIdentifier: "shell.viewport.metal",
                     onCameraChange: { updated in
                         camera = updated
@@ -641,7 +649,8 @@ private struct FFViewport: View {
         FFViewportPane(
             plan: pane,
             camera: fourUpBinding(for: pane),
-            scene: .jewelleryDemo,
+            scene: scene,
+            selection: $selection,
             metalIdentifier: "shell.viewport.metal.\(pane.id)",
             onCameraChange: { updated in
                 fourUpCameras[pane.id] = updated
@@ -683,6 +692,7 @@ private struct FFViewportPane: View {
     let plan: FFViewportPanePlan
     @Binding var camera: FFCamera
     let scene: FFViewportScene
+    @Binding var selection: FFSelectionState
     let metalIdentifier: String
     let onCameraChange: (FFCamera) -> Void
     let onStatistics: (FFFrameStatistics) -> Void
@@ -692,20 +702,25 @@ private struct FFViewportPane: View {
     @State private var snapMarkers: [FFSnapMarker] = []
     @State private var hoverPoint: Vec2?
     @State private var paneSize = CGSize(width: 1, height: 1)
+    @State private var shiftHeld = false
 
     /// The four-up panes are camera previews, not editing surfaces. The gizmo
     /// lives in the maximised Perspective pane, the one a document opens in.
     private var showsGumball: Bool { metalIdentifier == "shell.viewport.metal" }
 
+    private var selectionScene: FFViewportScene {
+        selection.applying(to: scene)
+    }
+
     private var selectedNode: FFRenderNode? {
-        scene.nodes.first(where: \.isSelected)
+        selectionScene.nodes.first(where: \.isSelected)
     }
 
     private var displayScene: FFViewportScene {
         guard let nodeID = gumball.nodeID,
-              let index = scene.nodes.firstIndex(where: { $0.id == nodeID })
-        else { return scene }
-        var copy = scene
+              let index = selectionScene.nodes.firstIndex(where: { $0.id == nodeID })
+        else { return selectionScene }
+        var copy = selectionScene
         copy.nodes[index].transform = gumball.transform
         return copy
     }
@@ -733,13 +748,21 @@ private struct FFViewportPane: View {
                     camera: camera,
                     scene: displayScene,
                     accessibilityIdentifier: metalIdentifier,
-                    allowsCameraGestures: !gizmoDragging,
+                    allowsCameraGestures: !gizmoDragging && !selection.isMarquee,
                     onHover: { point in
                         updateHover(point, viewport: paneSize)
                     },
                     onCameraChange: { updated in
                         camera = updated
                         onCameraChange(updated)
+                    },
+                    onPick: { result in
+                        // Phase 14's pick becomes Phase 17's selection here.
+                        // Shift and the Multi chip are the same extend flag.
+                        selection.click(
+                            result?.nodeID,
+                            extend: selection.isMultiSelect || shiftHeld
+                        )
                     },
                     onStatistics: onStatistics
                 )
@@ -755,6 +778,22 @@ private struct FFViewportPane: View {
                         onDragStateChange: { gizmoDragging = $0 }
                     )
                 }
+
+                if showsGumball, selection.isMarquee {
+                    FFMarqueeOverlay { box in
+                        let ids = FFMarqueeSelection.nodeIDs(
+                            in: box,
+                            scene: selectionScene,
+                            camera: camera,
+                            viewport: Vec2(
+                                x: Double(proxy.size.width),
+                                y: Double(proxy.size.height)
+                            ),
+                            filter: selection.filter
+                        )
+                        selection.select(ids, extend: selection.isMultiSelect)
+                    }
+                }
             }
             .onGeometryChange(for: CGSize.self) { geometry in
                 geometry.size
@@ -769,6 +808,24 @@ private struct FFViewportPane: View {
             }
         }
         .onAppear(perform: configureGumball)
+        .onModifierKeysChanged(mask: .shift) { _, modifiers in
+            shiftHeld = modifiers.contains(.shift)
+        }
+        .onChange(of: selection.selectedIDs) { _, ids in
+            // A gizmo cannot outlive its selection or float over a node the
+            // jeweller just hid. Follow the primary selection, or clear.
+            if let nodeID = gumball.nodeID, !ids.contains(nodeID) {
+                if let node = scene.nodes.first(where: { ids.contains($0.id) }) {
+                    gumball.select(nodeID: node.id, transform: node.transform)
+                } else {
+                    gumball = FFGumballSession()
+                }
+            } else if gumball.nodeID == nil,
+                      let node = scene.nodes.first(where: { ids.contains($0.id) }) {
+                gumball.select(nodeID: node.id, transform: node.transform)
+            }
+            refreshSnapMarkers(viewport: paneSize)
+        }
         // The pane name is a label, not a floating badge. The bottom HUD already
         // names the layout and every pane, and a badge in the corner printed on
         // top of that HUD in the Phase 13 snapshots at 749 pt.
@@ -808,7 +865,13 @@ private struct FFViewportPane: View {
 private struct FFInspector: View {
     @Binding var bandWidth: String
     @Binding var lengthUnit: FFLengthUnit
+    let scene: FFViewportScene
+    @Binding var selection: FFSelectionState
     let onCollapse: () -> Void
+
+    private var selectedNodes: [FFRenderNode] {
+        scene.nodes.filter { selection.selectedIDs.contains($0.id) }
+    }
 
     var body: some View {
         ScrollView {
@@ -830,9 +893,163 @@ private struct FFInspector: View {
                     .accessibilityLabel("Hide inspector")
                 }
 
-                FFPanel(title: "Selection", subtitle: "Solitaire ring", trailing: "18.00 mm") {
-                    FFListRow(title: "Band", trailing: "4.1 g")
-                    FFListRow(title: "Stone", trailing: "1.00 ct")
+                // Phase 17's touch controls. Shift-click still extends on a
+                // hardware keyboard; the Multi chip is the same contract for a
+                // finger, which is what the CI UI tests drive. Keeping them in
+                // the inspector leaves the viewport's top strip free for the
+                // marquee's start above the stone.
+                FFPanel(title: "Select", subtitle: "Touch mode and pick filter") {
+                    HStack(spacing: FFSpace.xxs) {
+                        FFChip(
+                            title: "Multi",
+                            systemImage: "square.on.square",
+                            isSelected: selection.isMultiSelect,
+                            accessibilityIdentifier: "selection.multi"
+                        ) {
+                            selection.isMultiSelect.toggle()
+                        }
+
+                        FFChip(
+                            title: "Box",
+                            systemImage: "rectangle.dashed",
+                            isSelected: selection.isMarquee,
+                            accessibilityIdentifier: "selection.marquee"
+                        ) {
+                            selection.isMarquee.toggle()
+                        }
+                    }
+
+                    HStack(spacing: FFSpace.xxs) {
+                        FFChip(
+                            title: "All",
+                            isSelected: selection.filter == .all,
+                            accessibilityIdentifier: "selection.filter.all"
+                        ) {
+                            selection.filter = .all
+                        }
+
+                        FFChip(
+                            title: "Solid",
+                            isSelected: selection.filter == .solid,
+                            accessibilityIdentifier: "selection.filter.solid"
+                        ) {
+                            selection.filter = .solid
+                        }
+                    }
+
+                    HStack(spacing: FFSpace.xxs) {
+                        FFChip(
+                            title: "Stone",
+                            isSelected: selection.filter == .stone,
+                            accessibilityIdentifier: "selection.filter.stone"
+                        ) {
+                            selection.filter = .stone
+                        }
+
+                        FFChip(
+                            title: "Curve",
+                            isSelected: selection.filter == .curve,
+                            accessibilityIdentifier: "selection.filter.curve"
+                        ) {
+                            selection.filter = .curve
+                        }
+                    }
+                }
+
+                FFPanel(
+                    title: "Selection",
+                    subtitle: selection.summary(in: scene),
+                    trailing: selection.visibilitySummary(in: scene)
+                ) {
+                    Text(selection.summary(in: scene))
+                        .font(FFType.body)
+                        .foregroundStyle(FFPalette.textPrimary.color)
+                        .accessibilityIdentifier("selection.summary")
+
+                    if selectedNodes.isEmpty {
+                        Text("Nothing selected")
+                            .font(FFType.caption)
+                            .foregroundStyle(FFPalette.textTertiary.color)
+                    } else {
+                        ForEach(selectedNodes) { node in
+                            FFListRow(title: node.name, trailing: node.kind.rawValue.capitalized)
+                        }
+                    }
+
+                    VStack(alignment: .leading, spacing: FFSpace.xxs) {
+                        HStack(spacing: FFSpace.xxs) {
+                            FFChip(
+                                title: "Isolate",
+                                systemImage: "square.dashed",
+                                isSelected: selection.isolatedIDs != nil,
+                                accessibilityIdentifier: "selection.isolate"
+                            ) {
+                                selection.isolateSelection()
+                            }
+
+                            FFChip(
+                                title: "Hide",
+                                systemImage: "eye.slash",
+                                accessibilityIdentifier: "selection.hide"
+                            ) {
+                                selection.hideSelection()
+                            }
+                        }
+
+                        FFChip(
+                            title: "Show all",
+                            systemImage: "eye",
+                            accessibilityIdentifier: "selection.showAll"
+                        ) {
+                            selection.showAll()
+                        }
+                    }
+
+                    Text(selection.visibilitySummary(in: scene))
+                        .font(FFType.monoSmall)
+                        .foregroundStyle(FFPalette.textTertiary.color)
+                        .accessibilityIdentifier("selection.visibility")
+                }
+
+                FFPanel(title: "Selection sets", subtitle: "\(selection.sets.count) saved") {
+                    Button {
+                        selection.saveSelectionSet()
+                    } label: {
+                        HStack(spacing: FFSpace.xxs) {
+                            Image(systemName: "square.and.arrow.down")
+                            Text("Save selection")
+                        }
+                        .font(FFType.caption)
+                        .foregroundStyle(
+                            selection.selectedIDs.isEmpty
+                                ? FFPalette.textTertiary.color
+                                : FFPalette.accent.color
+                        )
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .background(
+                            FFPalette.raised.color,
+                            in: RoundedRectangle(cornerRadius: FFRadius.sm, style: .continuous)
+                        )
+                    }
+                    .buttonStyle(FFPressStyle())
+                    .disabled(selection.selectedIDs.isEmpty)
+                    .accessibilityIdentifier("selection.saveSet")
+
+                    if selection.sets.isEmpty {
+                        Text("No saved sets")
+                            .font(FFType.caption)
+                            .foregroundStyle(FFPalette.textTertiary.color)
+                    } else {
+                        ForEach(Array(selection.sets.enumerated()), id: \.element.id) { index, set in
+                            Button {
+                                selection.apply(set)
+                            } label: {
+                                FFListRow(title: set.name, trailing: "\(set.nodeIDs.count) objects")
+                            }
+                            .buttonStyle(FFPressStyle())
+                            .accessibilityIdentifier("selection.set.\(index)")
+                        }
+                    }
                 }
 
                 FFPanel(title: "Dimensions", subtitle: "Millimetres") {
