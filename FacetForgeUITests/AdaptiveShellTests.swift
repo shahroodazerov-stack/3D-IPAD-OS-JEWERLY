@@ -114,6 +114,12 @@ final class AdaptiveShellTests: XCTestCase {
     @MainActor
     private func launchLayoutLab() -> XCUIApplication {
         let app = XCUIApplication()
+        // Tests share one simulator and the previous case can leave the app
+        // running. Terminating it explicitly keeps `launch()` from failing with
+        // "Failed to terminate" on a loaded runner.
+        if app.state != .notRunning {
+            app.terminate()
+        }
         app.launchArguments = ["-FFLayoutLab"]
         app.launch()
         XCTAssertTrue(
